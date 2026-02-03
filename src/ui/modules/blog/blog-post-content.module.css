@@ -1,0 +1,15 @@
+.body {
+	@media (width >=48rem) {
+		grid-template-columns: [bleed-start] 1fr [content-start] min(100%,
+				var(--container-2xl)) [content-end] 1fr [bleed-end];
+
+		&>* {
+			grid-column: content;
+		}
+	}
+
+	/* &>p:first-of-type::first-letter {
+		float: left;
+		font: var(--text-7xl) var(--font-serif);
+	} */
+}

@@ -1,0 +1,625 @@
+@import 'tailwindcss';
+
+@theme {
+	/* 1. FONT VÀ SPACING */
+	--font-sans: 'Lora', serif;
+	--spacing-lh: 1lh;
+	--spacing-ch: 1ch;
+
+	/* 2. CẤU HÌNH MÀU SẮC ĐỘNG (Lấy từ biến CSS do ThemeProvider bơm vào) */
+
+	/* Background & Text toàn trang */
+	--color-background: var(--bg-color);
+	--color-foreground: var(--text-color);
+
+	/* Primary Color (Màu chủ đạo) */
+	--color-primary: var(--primary-color);
+	--color-primary-foreground: #ffffff;
+	/* Màu chữ trên nền primary */
+
+	/* Header Colors */
+	--color-header: var(--header-bg);
+	--color-header-foreground: var(--header-text);
+
+	/* Footer Colors */
+	--color-footer: var(--footer-bg);
+	--color-footer-foreground: var(--footer-text);
+
+	/* 3. CÁC MÀU TĨNH (Giữ nguyên hoặc dùng màu Neutral có sẵn của Tailwind) */
+	/* Dùng neutral-200 làm màu viền mặc định */
+	--color-stroke: var(--color-neutral-200);
+
+	--swiper-navigation-size: 44px;
+
+}
+
+@custom-variant hover (&:hover);
+
+@variant header-open (body:has(#header-open:checked) &);
+@variant header-not-open (body:has(#header-open:not(:checked)) &);
+
+@variant headings (& :is(h1, h2, h3, h4, h5, h6));
+
+@layer base {
+	body {
+		/* Áp dụng màu nền và màu chữ từ biến đã cấu hình ở trên */
+		background-color: var(--color-background);
+		color: var(--color-foreground);
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+	}
+
+	@view-transition {
+		navigation: auto;
+	}
+
+	@supports (interpolate-size: allow-keywords) {
+		:root {
+			interpolate-size: allow-keywords;
+		}
+
+		:open::details-content {
+			height: auto;
+		}
+	}
+
+	:target {
+		scroll-margin-top: var(--header-height);
+
+		&:is(h1, h2, h3, h4, h5, h6) {
+			animation: anchored-heading 2s ease-in-out forwards;
+		}
+	}
+
+	@keyframes anchored-heading {
+
+		0%,
+		50% {
+			background-color: color-mix(in oklab,
+					var(--color-amber-400) 50%,
+					transparent);
+		}
+	}
+
+	* {
+		min-width: 0;
+	}
+
+	html {
+		scroll-behavior: smooth;
+		@apply accent-primary caret-primary;
+	}
+
+	details {
+		&::details-content {
+			overflow: clip;
+			transition-duration: var(--default-transition-duration);
+			transition-property: content-visibility, block-size;
+			transition-behavior: allow-discrete;
+		}
+
+		&:not(:open)::details-content {
+			block-size: 0;
+		}
+	}
+
+	summary,
+	label {
+		cursor: pointer;
+	}
+
+	a {
+		color: inherit;
+	}
+
+	cite {
+		font-style: normal;
+	}
+}
+
+/* ctas, links */
+
+@utility action-base {
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	gap: 0.5em;
+	padding: 0.25em 0.5em;
+}
+
+@utility action {
+	@apply action-base bg-primary text-primary-foreground rounded-sm hover:bg-primary/80;
+}
+
+@utility action-outline {
+	@apply action-base bg-background border rounded-sm border-stroke text-foreground hover:border-current;
+}
+
+@utility ghost {
+	@apply action-base bg-background rounded-sm text-foreground hover:bg-foreground/5;
+}
+
+@utility link {
+	@apply text-black hover:decoration-2 hover:text-blue-700;
+}
+
+@utility input {
+	padding: 0.25em 0.5em;
+	@apply bg-background border border-foreground/10 focus-within:border-foreground/30;
+}
+
+/* typography */
+
+@utility h0 {
+	@apply text-2xl font-bold md:text-4xl;
+}
+
+@utility h1 {
+	@apply text-xl font-bold md:text-3xl;
+}
+
+@utility h2 {
+	@apply text-lg font-bold md:text-2xl;
+}
+
+@utility h3 {
+	@apply text-base font-bold md:text-xl;
+}
+
+@utility h4 {
+	@apply text-base font-bold md:text-lg;
+}
+
+@utility h5 {
+	@apply text-sm font-bold md:text-base;
+}
+
+@utility h6 {
+	@apply text-sm font-bold;
+}
+
+/* components */
+
+/* @utility section {
+	@apply mx-auto max-w-7xl px-4 py-12 md:px-8;
+} */
+
+@utility prose {
+	@apply space-y-4 leading-relaxed;
+
+	& h1 {
+		@apply h1;
+	}
+
+	& h2 {
+		@apply h2;
+	}
+
+	& h3 {
+		@apply h3;
+	}
+
+	& h4 {
+		@apply h4;
+	}
+
+	& h5 {
+		@apply h5;
+	}
+
+	& h6 {
+		@apply h6;
+	}
+
+	& :is(ul, ol) {
+		list-style: revert;
+		padding-left: 1.5em;
+
+		&>li>ol {
+			list-style: lower-alpha;
+		}
+	}
+
+	& a:not([class]) {
+		/* @apply link; */
+	}
+
+	& blockquote {
+		@apply border-l-4 border-stroke pl-4;
+	}
+
+	& :not(pre)>code {
+		padding-inline: 0.25em;
+		font-size: 0.875em;
+		@apply bg-foreground/5 rounded-sm;
+	}
+
+	& pre {
+		overflow-x: auto;
+		font-size: 0.875em;
+	}
+
+	& table {
+		min-width: 100%;
+		display: block;
+		overflow-x: auto;
+		line-height: 1.3;
+
+		@apply max-md:full-bleed;
+
+		& :is(th, td) {
+			padding: 0.5lh 1em;
+		}
+
+		& tbody tr:nth-child(odd) {
+			@apply bg-foreground/5;
+		}
+	}
+}
+
+@utility carousel {
+	--anchor-name: attr(data-anchor-name type(<custom-ident>), --carousel);
+	anchor-name: var(--anchor-name);
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: min(var(--container-sm), 80vw);
+	overflow-x: auto;
+	scroll-behavior: smooth;
+	scroll-snap-type: x mandatory;
+	scroll-marker-group: after;
+
+	@supports (position-anchor: var(--anchor-name)) {
+		@apply no-scrollbar;
+
+		&::scroll-button(*) {
+			cursor: pointer;
+			position: absolute;
+			position-anchor: var(--anchor-name);
+			top: anchor(center);
+			z-index: 1;
+			display: block;
+			aspect-ratio: 1;
+			width: 1.5lh;
+			margin-inline: 0.5lh;
+			translate: 0 -50%;
+			background-color: currentColor;
+		}
+
+		&::scroll-button(left) {
+			content: '' / 'Scroll left';
+			left: anchor(left);
+			mask: url('https://ic0n.dev/io5/IoChevronBackCircleSharp') center / cover;
+			display: none;
+		}
+
+		&::scroll-button(right) {
+			content: '' / 'Scroll right';
+			right: anchor(right);
+			mask: url('https://ic0n.dev/io5/IoChevronForwardCircleSharp') center / cover;
+			display: none;
+		}
+	}
+
+	&::scroll-marker-group {
+		position: absolute;
+		position-anchor: var(--anchor-name);
+		top: calc(anchor(bottom) + 1rem);
+		justify-self: center;
+		display: flex;
+		align-items: center;
+		gap: 0.5ch;
+	}
+
+	&>* {
+		scroll-snap-align: center;
+
+		&::scroll-marker {
+			content: '';
+			@apply bg-foreground/25 block size-1 rounded-full;
+		}
+
+		&::scroll-marker:target-current {
+			@apply bg-foreground w-[2ch] opacity-100;
+		}
+	}
+}
+
+@utility accordion {
+	&>summary {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5em;
+
+		&::after {
+			content: '+';
+			flex-shrink: 0;
+			font-family: var(--font-mono);
+		}
+	}
+
+	&[open]>summary::after {
+		content: '-';
+	}
+}
+
+@utility skeleton {
+	@apply block bg-foreground/5 h-lh;
+}
+
+/* utilities */
+
+@utility full-bleed {
+	width: 100vw;
+	margin-inline: calc(50% - 50vw);
+}
+
+@utility no-scrollbar {
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: none;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
+}
+
+@utility sticky-below-header {
+	position: sticky;
+	top: calc(var(--header-height) + var(--offset, 0px));
+}
+
+/* anims */
+
+@utility anim-fade {
+	--x: 0;
+	--y: 0;
+	animation: anim-fade-to var(--tw-duration, var(--default-transition-duration)) ease-in-out forwards;
+}
+
+@utility anim-fade-to-l {
+	@apply anim-fade;
+	--x: 1rem;
+}
+
+@utility anim-fade-to-r {
+	@apply anim-fade;
+	--x: -1rem;
+}
+
+@utility anim-fade-to-t {
+	@apply anim-fade;
+	--y: 1rem;
+}
+
+@utility anim-fade-to-b {
+	@apply anim-fade;
+	--y: -1rem;
+}
+
+@keyframes anim-fade-to {
+	from {
+		opacity: 0;
+		translate: var(--x, 0) var(--y, 0);
+	}
+
+	to {
+		opacity: 1;
+		translate: 0 0;
+	}
+}
+
+/* style chatbox */
+@keyframes shake {
+
+	0%,
+	100% {
+		transform: rotate(0deg) translateX(0px) rotate(0deg);
+	}
+
+	25% {
+		transform: rotate(2deg) translateX(1px) rotate(-2deg);
+	}
+
+	50% {
+		transform: rotate(0deg) translateX(-1px) rotate(2deg);
+	}
+
+	75% {
+		transform: rotate(-2deg) translateX(1px) rotate(0deg);
+	}
+}
+
+.animate-shake {
+	animation: shake 1s infinite ease-in-out;
+}
+
+.section {
+	margin-inline: auto;
+	max-width: var(--container-7xl);
+	padding-inline: calc(var(--spacing) * 1.5);
+	padding-block: calc(var(--spacing) * 2);
+
+	@media (width >=48rem) {
+		padding-inline: calc(var(--spacing) * 10);
+		padding-block: calc(var(--spacing) * 4);
+	}
+}
+
+.header_root__BaDRv,
+.footer {
+	grid-template-areas:
+		'top'
+		'navigation'
+		'ctas';
+	padding-inline: calc(var(--spacing) * 3);
+	padding-block: calc(var(--spacing) * 2);
+
+	@media (width >=48rem) {
+		grid-template-areas: 'top navigation ctas';
+		grid-template-columns: auto 1fr auto;
+		padding-inline: calc(var(--spacing) * 10);
+		padding-block: calc(var(--spacing) * 4);
+	}
+}
+
+.swiper .swiper-button-prev,
+.swiper .swiper-button-next {
+	color: var(--color-primary-foreground);
+	background: var(--color-primary);
+	padding: 12px;
+	visibility: hidden;
+	transition: visibility 0.1s ease;
+	border-radius: 12px;
+
+	@media (width <=48rem) {
+		/* opacity: 0;
+		display: none; */
+		visibility: visible;
+		width: 20px;
+		border-radius: 4px;
+		height: 20px;
+		padding: 5px;
+		margin-top: -10px !important;
+	}
+}
+
+.swiper-pagination {
+	@media (width <=48rem) {
+		bottom: 0 !important;
+	}
+}
+
+.swiper-pagination-bullet {
+	margin: 0 2px !important;
+}
+
+.swiper-pagination-bullet-active {
+	background: var(--color-primary);
+}
+
+.swiper .swiper-button-prev {
+	left: 5px !important;
+}
+
+.swiper .swiper-button-next {
+	right: 5px !important;
+}
+
+.swiper:hover .swiper-button-prev,
+.swiper:hover .swiper-button-next {
+	visibility: visible;
+}
+
+/* .swiper-pagination {
+	display: inline-flex;
+	background: rgba(0, 0, 0, .4) !important;
+	width: auto !important;
+	padding: 3px 6px;
+	border-radius: 12px;
+	left: 50% !important;
+	transform: translateX(-50%);
+}
+
+.swiper-pagination .swiper-pagination-bullet-active {
+	@apply w-6 bg-white;
+	border-radius: 12px;
+} */
+
+/* --- FIX LAYOUT SWIPER TRƯỚC KHI LOAD JS --- */
+
+/* 1. Logic cho Mobile (Mặc định) */
+.carousel-banner-list .swiper:not(.swiper-initialized) .swiper-wrapper {
+	display: grid;
+	width: 100%;
+
+	/* Cột: Dùng biến --mobile-cols */
+	grid-template-columns: repeat(var(--mobile-cols, 1), 1fr);
+
+	/* Hàng: Chỉ cho phép đúng số lượng hàng quy định (--mobile-rows) */
+	grid-template-rows: repeat(var(--mobile-rows, 1), auto);
+
+	/* QUAN TRỌNG: Ép tất cả các hàng thừa (hàng thứ 2, 3...) về chiều cao 0 */
+	grid-auto-rows: 0;
+
+	/* Ẩn nội dung của các hàng thừa bị ép chiều cao */
+	overflow: hidden;
+
+	gap: var(--mobile-gap, 8px);
+	/* Khoảng cách mobile */
+}
+
+/* 2. Logic cho Desktop (min-width: 1024px khớp với breakpoint JS của bạn) */
+@media (min-width: 1024px) {
+	.carousel-banner-list .swiper:not(.swiper-initialized) .swiper-wrapper {
+		/* Cột: Dùng biến --desktop-cols */
+		grid-template-columns: repeat(var(--desktop-cols, 4), 1fr);
+
+		/* Hàng: Dùng biến --desktop-rows */
+		grid-template-rows: repeat(var(--desktop-rows, 1), auto);
+
+		gap: var(--desktop-gap, 16px);
+		/* Khoảng cách desktop */
+	}
+}
+
+/* 3. Đảm bảo item con không bị trồi ra ngoài khi hàng bị ép về 0px */
+.carousel-banner-list .swiper:not(.swiper-initialized) .swiper-slide {
+	height: auto;
+	overflow: hidden;
+	/* Cắt phần thừa nếu item cố tình hiển thị */
+}
+
+/* 1. Mobile: CỐ ĐỊNH 2 Cột - LINH HOẠT Hàng */
+.carousel-list-product .swiper:not(.swiper-initialized) .swiper-wrapper {
+	display: grid;
+	width: 100%;
+
+	/* CỐ ĐỊNH: 2 cột */
+	grid-template-columns: repeat(2, 1fr);
+
+	/* ĐỘNG: Số hàng lấy từ biến --mobile-rows (mặc định là 1) */
+	grid-template-rows: repeat(var(--mobile-rows, 1), auto);
+
+	/* Ẩn các hàng thừa */
+	grid-auto-rows: 0;
+	overflow: hidden;
+
+	gap: 8px;
+	/* Gap mobile cố định */
+}
+
+.carousel-list-product .swiper:not(.swiper-initialized) .swiper-slide {
+	height: auto;
+	overflow: hidden;
+}
+
+/* 2. Desktop: CỐ ĐỊNH 4 Cột - LINH HOẠT Hàng */
+@media (min-width: 1024px) {
+	.carousel-list-product .swiper:not(.swiper-initialized) .swiper-wrapper {
+		/* CỐ ĐỊNH: 4 cột */
+		grid-template-columns: repeat(4, 1fr);
+
+		/* ĐỘNG: Số hàng lấy từ biến --desktop-rows (mặc định là 1) */
+		grid-template-rows: repeat(var(--desktop-rows, 1), auto);
+
+		gap: 16px;
+		/* Gap desktop cố định */
+	}
+}
+
+/* Fix lỗi Thumb Swiper khi chưa load xong JS */
+.main-image-product-slide .thumb-swiper:not(.swiper-initialized) .swiper-wrapper {
+	display: flex;
+	gap: 8px;
+	overflow: hidden;
+	width: 100%;
+}
+
+/* Từng item bên trong */
+.main-image-product-slide .thumb-swiper:not(.swiper-initialized) .swiper-slide {
+	width: calc((100% - 40px) / 6) !important;
+	flex-shrink: 0;
+	display: block;
+}

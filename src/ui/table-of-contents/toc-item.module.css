@@ -1,0 +1,10 @@
+@media (width >=48rem) {
+	.inView:not(:has(~ .inView)) {
+		color: var(--color-primary);
+		border-color: currentColor;
+
+		a {
+			color: currentColor;
+		}
+	}
+}

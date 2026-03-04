@@ -63,10 +63,17 @@ export function getBlockText(
 	)
 }
 
+// export const formatVND = (value: number) =>
+// 	new Intl.NumberFormat('en-US', {
+// 		style: 'currency',
+// 		currency: 'USD',
+// 		maximumFractionDigits: 0,
+// 	}).format(value)
+
 export const formatVND = (value: number) =>
-	new Intl.NumberFormat('en-US', {
+	new Intl.NumberFormat('vi-VN', {
 		style: 'currency',
-		currency: 'USD',
+		currency: 'VND',
 		maximumFractionDigits: 0,
 	}).format(value)
 
@@ -80,5 +87,5 @@ export function generateOrderId() {
 	const datePart = `${day}`
 	const random = Math.floor(1000 + Math.random() * 9000) // Random 4 số
 
-	return `DH-${datePart}${random}`
+	return `DH${datePart}${random}`
 }

@@ -15,7 +15,7 @@ export default async function () {
 	return (
 		<>
 			<Announcement data={site?.announcements} />
-			<Wrapper className="bg-header text-header-foreground max-md:header-open:shadow-xl sticky top-0 z-10 border-b border-[#e5e7eb]">
+			<Wrapper className="bg-header text-header-foreground max-md:header-open:shadow-xl sticky top-0 z-10 shadow-sm">
 				<div className={cn(css.root, 'section grid items-center gap-x-4 p-4')}>
 					<div className="flex items-center justify-between gap-4 [grid-area:top] has-[img]:h-[2lh]">
 						<MobileToggle />

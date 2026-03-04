@@ -234,7 +234,7 @@ function ProductCard({ product }: { product: Product }) {
 					{product.compareAtPrice &&
 						product.compareAtPrice > product.price &&
 						product.price != 0 && (
-							<span className="absolute top-2 left-2 hidden rounded bg-red-600 px-2 py-1 text-[10px] font-semibold text-white lg:text-xs">
+							<span className="absolute top-2 left-2 rounded bg-red-600 px-2 py-1 text-[10px] font-semibold text-white lg:text-xs">
 								-
 								{Math.round(
 									((product.compareAtPrice - product.price) /
@@ -251,11 +251,11 @@ function ProductCard({ product }: { product: Product }) {
 						{product.title}
 					</h3>
 
-					<div className="mt-2 hidden">
+					<div className="mt-2">
 						{product.compareAtPrice &&
 						product.compareAtPrice > product.price &&
 						product.price != 0 ? (
-							<div className="flex flex-wrap items-baseline gap-2">
+							<div className="flex flex-wrap items-baseline justify-center gap-2">
 								<span className="text-sm font-bold text-red-600 lg:text-base">
 									{formatVND(product.price)}
 								</span>

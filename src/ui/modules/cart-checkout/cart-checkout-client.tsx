@@ -24,7 +24,7 @@ export default function CartCheckoutClient({
 	title,
 	description,
 	webhookUrl,
-	submitText = 'Place Order',
+	submitText = 'Đặt hàng',
 	priceShipping = 0,
 }: Props) {
 	const mounted = useMounted()
@@ -94,31 +94,33 @@ export default function CartCheckoutClient({
 							</svg>
 						</div>
 						<span className="text-xl font-bold text-gray-800">
-							Order Placed!
+							Đặt hàng thành công!
 						</span>
 					</div>
 				),
 				html: (
 					<div className="mt-4 space-y-2 border-t pt-4 text-left text-sm text-gray-600">
 						<div className="grid grid-cols-3 gap-2">
-							<span className="font-semibold text-gray-900">Order ID:</span>
+							<span className="font-semibold text-gray-900">Mã đơn hàng:</span>
 							<span className="col-span-2">{orderData.orderId}</span>
 						</div>
 						<div className="grid grid-cols-3 gap-2">
-							<span className="font-semibold text-gray-900">Name:</span>
+							<span className="font-semibold text-gray-900">Tên:</span>
 							<span className="col-span-2">{formData.name}</span>
 						</div>
 						<div className="grid grid-cols-3 gap-2">
-							<span className="font-semibold text-gray-900">Phone:</span>
+							<span className="font-semibold text-gray-900">
+								Số điện thoại:
+							</span>
 							<span className="col-span-2">{formData.phone}</span>
 						</div>
 						<div className="grid grid-cols-3 gap-2">
-							<span className="font-semibold text-gray-900">Address:</span>
+							<span className="font-semibold text-gray-900">Địa chỉ:</span>
 							<span className="col-span-2">{formData.address}</span>
 						</div>
 
 						<div className="py-2">
-							<span className="font-semibold text-gray-900">Products:</span>
+							<span className="font-semibold text-gray-900">Sản phẩm:</span>
 							<ul className="mt-1 ml-4 list-disc space-y-1 text-gray-500">
 								{items.map((item, i) => (
 									<li key={i}>
@@ -129,26 +131,26 @@ export default function CartCheckoutClient({
 						</div>
 
 						<div className="py-2">
-							<span className="font-semibold text-gray-900">Note:</span>
+							<span className="font-semibold text-gray-900">Ghi chú:</span>
 							<p className="mt-1 text-gray-500">{formData.note || 'No note'}</p>
 						</div>
 
 						<div className="flex justify-between border-t pt-2">
-							<span>Shipping:</span>
+							<span>Phí vận chuyển:</span>
 							<span>{orderData.shipping}</span>
 						</div>
 						<div className="flex justify-between border-t pt-2">
-							<span>Payment Method:</span>
+							<span>Phương thức thanh toán:</span>
 							<span>COD</span>
 						</div>
 
 						<div className="flex justify-between text-base font-bold text-red-600">
-							<span>Total:</span>
+							<span>Tổng cộng:</span>
 							<span>{orderData.total}</span>
 						</div>
 					</div>
 				),
-				confirmButtonText: 'Done',
+				confirmButtonText: 'OK',
 				confirmButtonColor: '#000000',
 				customClass: {
 					popup: 'rounded-xl',
@@ -163,7 +165,7 @@ export default function CartCheckoutClient({
 			console.error('Error checkout:', error)
 			MySwal.fire({
 				title: 'Error!',
-				text: 'Error placing order. Please try again.',
+				text: 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.',
 				icon: 'error',
 				confirmButtonColor: '#d33',
 			})
@@ -180,7 +182,7 @@ export default function CartCheckoutClient({
 					<div className="flex flex-col items-center gap-3 rounded-xl bg-white p-6 shadow-2xl">
 						<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-black"></div>
 						<span className="text-sm font-medium text-gray-600">
-							Submitting order...
+							Đang xử lý...
 						</span>
 					</div>
 				</div>
@@ -196,7 +198,9 @@ export default function CartCheckoutClient({
 						<div className="space-y-4">
 							{items.length === 0 ? (
 								<div className="rounded-lg border bg-gray-50 py-10 text-center">
-									<p className="text-gray-500 italic">Your cart is empty.</p>
+									<p className="text-gray-500 italic">
+										Giỏ hàng của bạn đang trống.
+									</p>
 								</div>
 							) : (
 								items.map((item) => (
@@ -321,14 +325,14 @@ function OrderForm({
 			className="top-4 space-y-4 rounded-xl border bg-white p-6 shadow-sm lg:sticky"
 		>
 			<h2 className="border-b pb-3 text-xl font-semibold text-gray-800">
-				Customer Information
+				Thông tin đơn hàng
 			</h2>
 
 			<div className="space-y-3">
 				<input
 					required
 					type="text"
-					placeholder="Name *"
+					placeholder="Tên *"
 					className="w-full rounded-lg border px-4 py-2 text-sm transition-all outline-none focus:border-black"
 					value={form.name}
 					onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -336,7 +340,7 @@ function OrderForm({
 				<input
 					required
 					type="tel"
-					placeholder="Phone number *"
+					placeholder="Số điện thoại *"
 					className="w-full rounded-lg border px-4 py-2 text-sm transition-all outline-none focus:border-black"
 					value={form.phone}
 					onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -350,14 +354,14 @@ function OrderForm({
 				/>
 				<textarea
 					required
-					placeholder="Detailed delivery address *"
+					placeholder="Địa chỉ giao hàng chi tiết *"
 					className="w-full rounded-lg border px-4 py-2 text-sm transition-all outline-none focus:border-black"
 					rows={3}
 					value={form.address}
 					onChange={(e) => setForm({ ...form, address: e.target.value })}
 				/>
 				<textarea
-					placeholder="Order notes (optional)"
+					placeholder="Ghi chú đơn hàng (tùy chọn)"
 					className="w-full rounded-lg border px-4 py-2 text-sm transition-all outline-none focus:border-black"
 					rows={3}
 					value={form.note}
@@ -367,7 +371,7 @@ function OrderForm({
 
 			<div className="space-y-3">
 				<h2 className="border-b pb-3 text-xl font-semibold text-gray-800">
-					Payment Information
+					Thông tin thanh toán
 				</h2>
 				<div className="flex items-center">
 					<input
@@ -378,20 +382,20 @@ function OrderForm({
 						className="mr-2 h-4 w-4 cursor-not-allowed"
 					/>
 					<span className="text-sm text-gray-600">
-						Payment upon receipt (COD)
+						Thanh toán khi nhận hàng (COD)
 					</span>
 				</div>
 			</div>
 
 			<div className="mt-2 space-y-2 border-t pt-4">
 				<div className="flex items-center justify-between">
-					<span className="text-sm text-gray-600">Temporarily:</span>
+					<span className="text-sm text-gray-600">Tạm tính:</span>
 					<span className="text-sm font-medium text-black">
 						{formatVND(itemsPrice)}
 					</span>
 				</div>
 				<div className="flex items-center justify-between">
-					<span className="text-sm text-gray-600">Shipping:</span>
+					<span className="text-sm text-gray-600">Phí vận chuyển:</span>
 					<span className="text-sm font-medium text-black">
 						{formatVND(effectiveShipping)}
 					</span>
@@ -400,7 +404,7 @@ function OrderForm({
 
 			<div className="fixed right-0 bottom-0 left-0 z-50 border-t border-[#f5f5f5] bg-white p-4 max-md:m-0 md:static md:z-0 md:border-0 md:bg-transparent md:p-0">
 				<div className="mb-3 flex items-center justify-between md:mb-4">
-					<span className="font-medium text-gray-600">Total:</span>
+					<span className="font-medium text-gray-600">Tổng cộng:</span>
 					<span className="text-xl font-bold text-red-600">
 						{formatVND(finalTotal)}
 					</span>
@@ -416,16 +420,16 @@ function OrderForm({
 					} `}
 				>
 					{isCartEmpty
-						? 'No products'
+						? 'Không có sản phẩm'
 						: isSubmitting
-							? 'Sending...'
+							? 'Đang gửi...'
 							: submitText}
 				</button>
 			</div>
 
 			{isCartEmpty && (
 				<p className="mt-2 text-center text-xs font-medium text-red-500">
-					Please select products before checkout.
+					Vui lòng chọn sản phẩm trước khi thanh toán.
 				</p>
 			)}
 		</form>

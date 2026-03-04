@@ -287,7 +287,7 @@ export default function ProductContentClient({
 					</div>
 
 					{/* PRICING (SỬA LẠI HIỂN THỊ) */}
-					<div className="flex hidden items-center gap-3">
+					<div className="flex items-center gap-3">
 						{/* Giá bán chính (Màu đỏ) */}
 						<span className="text-2xl font-bold text-red-600">
 							{finalPrice <= 0 ? 'Contact' : formatVND(finalPrice)}

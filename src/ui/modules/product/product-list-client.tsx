@@ -25,11 +25,11 @@ type Product = {
 
 // 2. Options Sắp xếp
 const SORT_OPTIONS = [
-	{ value: 'default', label: 'Default' },
-	{ value: 'price_asc', label: 'Price: Low to High' },
-	{ value: 'price_desc', label: 'Price: High to Low' },
-	{ value: 'title_asc', label: 'Title: A-Z' },
-	{ value: 'title_desc', label: 'Title: Z-A' },
+	{ value: 'default', label: 'Mặc định' },
+	{ value: 'price_asc', label: 'Giá: Thấp đến Cao' },
+	{ value: 'price_desc', label: 'Giá: Cao đến Thấp' },
+	{ value: 'title_asc', label: 'Tên: A-Z' },
+	{ value: 'title_desc', label: 'Tên: Z-A' },
 ]
 
 export default function ProductListClient({
@@ -116,13 +116,13 @@ export default function ProductListClient({
 			{enableFilter && (
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div className="text-sm">
-						Show <strong>{visibleProducts.length}</strong> of{' '}
-						<strong>{processedProducts.length}</strong> products
+						Hiển thị <strong>{visibleProducts.length}</strong> of{' '}
+						<strong>{processedProducts.length}</strong> sản phẩm
 					</div>
 
 					<div className="flex items-center gap-2">
 						<label htmlFor="sort-select" className="text-sm whitespace-nowrap">
-							Filter:
+							Sắp xếp:
 						</label>
 						<div className="relative">
 							<select
@@ -151,7 +151,7 @@ export default function ProductListClient({
 
 			{processedProducts.length === 0 ? (
 				<div className="py-12 text-center">
-					<p className="text-gray-500">No suitable products were found.</p>
+					<p className="text-gray-500">Không tìm thấy sản phẩm phù hợp.</p>
 				</div>
 			) : (
 				<>
@@ -207,8 +207,8 @@ export default function ProductListClient({
 										onClick={handleLoadMore}
 										className="rounded-full border border-gray-300 bg-white px-8 py-3 text-sm font-medium transition hover:bg-gray-50"
 									>
-										Load more ({processedProducts.length - visibleCount}{' '}
-										products)
+										Xem thêm ({processedProducts.length - visibleCount} sản
+										phẩm)
 									</button>
 								</div>
 							)}

@@ -256,7 +256,7 @@ export default function ProductContentClient({
 
 					{/* META (GIỮ NGUYÊN) */}
 					<div className="flex flex-wrap items-center gap-2 text-sm">
-						{sku && <span className="font-semibold">ITEM CODE: {sku}</span>}
+						{sku && <span className="font-semibold">SKU: {sku}</span>}
 
 						{totalReviews > 0 && (
 							<>
@@ -282,7 +282,7 @@ export default function ProductContentClient({
 					</div>
 
 					<div className="categories flex items-center gap-2 text-sm">
-						<span className="font-semibold">STYLE: </span>
+						<span className="font-semibold">CATEGOTY: </span>
 						<Categories categories={category} linked />
 					</div>
 
@@ -333,7 +333,7 @@ export default function ProductContentClient({
 									onClick={handleAddToCart}
 									className="h-10 flex-1 rounded bg-amber-700 font-bold text-white transition hover:bg-amber-800"
 								>
-									ADD TO CART
+									MUA NGAY
 								</button>
 							</div>
 						</div>
@@ -377,10 +377,10 @@ export default function ProductContentClient({
 						id="product-review"
 					>
 						<div className="prose">
-							<h2 className="font-medium">Reviews & Ratings</h2>
+							<h2 className="font-medium">Đánh giá và xếp hạng</h2>
 							<div className="gap-1 text-yellow-500">
 								<p className="text-gray-900">
-									<strong>Overview</strong>
+									<strong>Tổng quan</strong>
 								</p>
 								<span className="text-gray-500">
 									{averageRating.toFixed(1)}
@@ -437,12 +437,12 @@ export default function ProductContentClient({
 									disabled={currentPage === 1}
 									className="rounded border border-gray-300 px-3 py-1 text-sm hover:bg-gray-100 disabled:opacity-50"
 								>
-									Previous
+									Trước
 								</button>
 
 								{/* Số trang */}
 								<span className="text-sm text-gray-600">
-									Page {currentPage} / {totalPages}
+									Trang {currentPage} / {totalPages}
 								</span>
 
 								{/* Nút Next */}
@@ -453,7 +453,7 @@ export default function ProductContentClient({
 									disabled={currentPage === totalPages}
 									className="rounded border border-gray-300 px-3 py-1 text-sm hover:bg-gray-100 disabled:opacity-50"
 								>
-									Next
+									Sau
 								</button>
 							</div>
 						)}

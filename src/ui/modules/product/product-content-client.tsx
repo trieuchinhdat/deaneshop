@@ -276,7 +276,7 @@ export default function ProductContentClient({
 						{typeof sales === 'number' && sales > 0 && (
 							<>
 								<span className="text-gray-300">|</span>
-								<span className="text-green-600">🔥 {sales} sold</span>
+								<span className="text-green-600">Đã bán {sales}</span>
 							</>
 						)}
 					</div>

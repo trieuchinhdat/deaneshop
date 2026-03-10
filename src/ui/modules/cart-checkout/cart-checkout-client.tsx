@@ -347,7 +347,7 @@ function OrderForm({
 				/>
 				<input
 					type="email"
-					placeholder="Email (optional)"
+					placeholder="Email (tùy chọn)"
 					className="w-full rounded-lg border px-4 py-2 text-sm transition-all outline-none focus:border-black"
 					value={form.email}
 					onChange={(e) => setForm({ ...form, email: e.target.value })}

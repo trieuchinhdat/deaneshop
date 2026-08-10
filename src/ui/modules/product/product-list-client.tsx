@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useQueryState } from 'nuqs'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, Suspense } from 'react'
 import { Autoplay, Grid, Navigation } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css'
@@ -32,15 +32,7 @@ const SORT_OPTIONS = [
 	{ value: 'title_desc', label: 'Tên: Z-A' },
 ]
 
-export default function ProductListClient({
-	products,
-	layout,
-	itemsPerPage = 4,
-	rowsDesktop,
-	rowsMobile,
-	autoSlide = false,
-	enableFilter = false,
-}: {
+type ProductListClientProps = {
 	products: any[] | undefined
 	layout: string
 	itemsPerPage?: number
@@ -48,7 +40,17 @@ export default function ProductListClient({
 	rowsMobile: number
 	autoSlide: boolean
 	enableFilter: boolean
-}) {
+}
+
+function ProductListClientContent({
+	products,
+	layout,
+	itemsPerPage = 4,
+	rowsDesktop,
+	rowsMobile,
+	autoSlide = false,
+	enableFilter = false,
+}: ProductListClientProps) {
 	// 3. Vẫn gọi Hooks (Bắt buộc phải gọi ở top-level, không được đưa vào if)
 	const [urlCategory] = useQueryState('category')
 	const [urlSort, setUrlSort] = useQueryState('sort', {
@@ -217,6 +219,14 @@ export default function ProductListClient({
 				</>
 			)}
 		</div>
+	)
+}
+
+export default function ProductListClient(props: ProductListClientProps) {
+	return (
+		<Suspense fallback={null}>
+			<ProductListClientContent {...props} />
+		</Suspense>
 	)
 }
 

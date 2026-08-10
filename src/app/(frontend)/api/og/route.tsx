@@ -6,7 +6,6 @@ import { sanityFetchLive } from '@/sanity/lib/live'
 import { getSite } from '@/sanity/lib/queries'
 import type { OG_QUERY_RESULT } from '@/sanity/types'
 
-const { hostname } = new URL(process.env.NEXT_PUBLIC_BASE_URL!)
 const blogDir = `${ROUTES.blog}/`
 
 const OG_QUERY = groq`*[_type == $type && metadata.slug.current == $slug][0]{
@@ -14,7 +13,16 @@ const OG_QUERY = groq`*[_type == $type && metadata.slug.current == $slug][0]{
 }`
 
 export async function GET(request: Request) {
-	const { searchParams } = new URL(request.url)
+	const { searchParams, hostname: reqHostname } = new URL(request.url)
+	let hostname = reqHostname
+	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+	if (baseUrl) {
+		try {
+			hostname = new URL(baseUrl).hostname
+		} catch {
+			// keep reqHostname fallback if BASE_URL is invalid
+		}
+	}
 	const slug = searchParams.get('slug') ?? 'index'
 	const invert = ['1', 'true'].includes(searchParams.get('invert')!)
 

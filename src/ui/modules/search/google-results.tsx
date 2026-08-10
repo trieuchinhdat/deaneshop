@@ -1,10 +1,11 @@
 'use client'
 
 import { useQueryState } from 'nuqs'
+import { Suspense } from 'react'
 import { ROUTES } from '@/lib/env'
 import type { SearchModule } from '@/sanity/types'
 
-export default function ({ scope }: { scope: SearchModule['scope'] }) {
+function GoogleResultsContent({ scope }: { scope: SearchModule['scope'] }) {
 	const [query] = useQueryState('query')
 
 	const href = [
@@ -19,5 +20,13 @@ export default function ({ scope }: { scope: SearchModule['scope'] }) {
 				Search on Google
 			</a>
 		</p>
+	)
+}
+
+export default function GoogleResults(props: { scope: SearchModule['scope'] }) {
+	return (
+		<Suspense fallback={null}>
+			<GoogleResultsContent {...props} />
+		</Suspense>
 	)
 }

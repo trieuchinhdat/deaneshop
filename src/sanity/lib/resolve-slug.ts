@@ -16,7 +16,14 @@ export default function resolveSlug({
 	if (external) return external
 
 	if (internal) {
-		const segment = _type === 'blog.post' ? `/${ROUTES.blog}/` : '/'
+		const segment =
+			_type === 'blog.post'
+				? `/${ROUTES.blog}/`
+				: _type === 'collection'
+					? `/${ROUTES.collections}/`
+					: _type === 'product'
+						? `/${ROUTES.products}/`
+						: '/'
 		const path = internal === 'index' ? null : internal
 
 		return [segment, path, params].filter(Boolean).join('')

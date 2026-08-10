@@ -3,6 +3,8 @@
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 
+import { cn } from '@/lib/utils'
+
 export default function ({
 	className,
 	children,
@@ -34,13 +36,16 @@ export default function ({
 		if (toggle) toggle.checked = false
 
 		if (!ref.current) return
-		ref.current.querySelectorAll('details').forEach((element) => {
-			if (element.open) element.open = false
-		})
+		ref.current
+			.querySelectorAll('details.group\\/dropdown, details.group\\/megamenu')
+			.forEach((element) => {
+				const detailsElement = element as HTMLDetailsElement
+				if (detailsElement.open) detailsElement.open = false
+			})
 	}, [pathname])
 
 	return (
-		<header ref={ref} className={className} role="banner">
+		<header ref={ref} className={cn('relative', className)} role="banner">
 			{children}
 		</header>
 	)

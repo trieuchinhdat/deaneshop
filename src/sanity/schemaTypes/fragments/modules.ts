@@ -25,6 +25,7 @@ export default ({ of = [] }: { of?: Array<{ type: string }> } = {}) =>
 			{ type: 'blog-post-list' },
 			{ type: 'product-content' },
 			{ type: 'product-list' },
+			{ type: 'collection-content' },
 			{ type: 'carousel-banner-list' },
 			...of,
 		],
@@ -37,7 +38,7 @@ export default ({ of = [] }: { of?: Array<{ type: string }> } = {}) =>
 					},
 					{
 						name: 'ecommerce',
-						of: ['product-content', 'product-list', 'cart-checkout'],
+						of: ['product-content', 'product-list', 'collection-content', 'cart-checkout'],
 					},
 					{
 						name: 'list',

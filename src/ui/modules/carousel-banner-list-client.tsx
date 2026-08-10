@@ -135,9 +135,20 @@ export default function CarouselBannerListClient({
 					},
 				}}
 			>
-				{items.map((item) => {
+				{items.map((item, index) => {
 					const image = item
 					let bannerHref = null
+					const isFirst = index < desktopCols
+
+					const targetDesktopWidth =
+						desktopCols === 1 ? 1440 : Math.min(1440, Math.round(1440 / desktopCols) * 2)
+					const targetMobileWidth =
+						mobileCols === 1 ? 480 : Math.min(480, Math.round(480 / mobileCols) * 2)
+
+					const bannerSizes =
+						desktopCols === 1 && mobileCols === 1
+							? '100vw'
+							: `(max-width: 768px) ${Math.round(100 / mobileCols)}vw, ${Math.round(100 / desktopCols)}vw`
 
 					if (image.linkBannerType === 'external' && image?.external) {
 						bannerHref = image.external
@@ -158,16 +169,20 @@ export default function CarouselBannerListClient({
 							<ResponsiveImage
 								image={image}
 								className="w-full rounded-md"
-								desktop={{ width: 1920 }}
-								mobile={{ width: 390 }}
+								desktop={{ width: targetDesktopWidth }}
+								mobile={{ width: targetMobileWidth }}
+								priority={isFirst}
+								sizes={bannerSizes}
 							/>
 						</Link>
 					) : (
 						<ResponsiveImage
 							image={image}
 							className="w-full rounded-md"
-							desktop={{ width: 1920 }}
-							mobile={{ width: 390 }}
+							desktop={{ width: targetDesktopWidth }}
+							mobile={{ width: targetMobileWidth }}
+							priority={isFirst}
+							sizes={bannerSizes}
 						/>
 					)
 

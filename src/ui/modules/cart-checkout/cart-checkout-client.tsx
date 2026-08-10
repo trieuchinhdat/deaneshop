@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import Swal from 'sweetalert2'
@@ -59,7 +60,18 @@ export default function CartCheckoutClient({
 		}
 
 		try {
-			const GOOGLE_SHEET_URL = webhookUrl || ''
+			const GOOGLE_SHEET_URL = webhookUrl?.trim() || ''
+
+			if (!GOOGLE_SHEET_URL) {
+				setIsSubmitting(false)
+				MySwal.fire({
+					title: 'Chưa cấu hình nhận đơn!',
+					text: 'Hệ thống chưa thiết lập URL tiếp nhận đơn hàng (Webhook URL). Vui lòng cấu hình trong Sanity CMS.',
+					icon: 'warning',
+					confirmButtonColor: '#d33',
+				})
+				return
+			}
 
 			await fetch(GOOGLE_SHEET_URL, {
 				method: 'POST',
@@ -210,11 +222,17 @@ export default function CartCheckoutClient({
 									>
 										<div className="flex items-center gap-2 lg:gap-4">
 											<Link href={`${ROUTES.products}/${item.slug}`}>
-												<img
-													src={item.image}
-													alt={item.image?.alt ?? ''}
-													className="h-14 w-14 rounded border object-cover lg:h-20 lg:w-20"
-												/>
+												{item.image ? (
+													<Image
+														src={typeof item.image === 'string' ? item.image : ''}
+														alt={item.title ?? ''}
+														width={80}
+														height={80}
+														className="h-14 w-14 rounded border object-cover lg:h-20 lg:w-20"
+													/>
+												) : (
+													<div className="h-14 w-14 rounded border bg-gray-100 lg:h-20 lg:w-20" />
+												)}
 											</Link>
 											<div className="pr-1">
 												<Link href={`${ROUTES.products}/${item.slug}`}>

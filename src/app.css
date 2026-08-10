@@ -9,21 +9,21 @@
 	/* 2. CẤU HÌNH MÀU SẮC ĐỘNG (Lấy từ biến CSS do ThemeProvider bơm vào) */
 
 	/* Background & Text toàn trang */
-	--color-background: var(--bg-color);
-	--color-foreground: var(--text-color);
+	--color-background: var(--bg-color, #ffffff);
+	--color-foreground: var(--text-color, #000000);
 
 	/* Primary Color (Màu chủ đạo) */
-	--color-primary: var(--primary-color);
+	--color-primary: var(--primary-color, #000000);
 	--color-primary-foreground: #ffffff;
 	/* Màu chữ trên nền primary */
 
 	/* Header Colors */
-	--color-header: var(--header-bg);
-	--color-header-foreground: var(--header-text);
+	--color-header: var(--header-bg, #ffffff);
+	--color-header-foreground: var(--header-text, #000000);
 
 	/* Footer Colors */
-	--color-footer: var(--footer-bg);
-	--color-footer-foreground: var(--footer-text);
+	--color-footer: var(--footer-bg, #000000);
+	--color-footer-foreground: var(--footer-text, #ffffff);
 
 	/* 3. CÁC MÀU TĨNH (Giữ nguyên hoặc dùng màu Neutral có sẵn của Tailwind) */
 	/* Dùng neutral-200 làm màu viền mặc định */

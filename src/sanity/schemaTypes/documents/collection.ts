@@ -1,50 +1,78 @@
-import { defineField, defineType } from 'sanity'
+import { defineArrayMember, defineField, defineType } from 'sanity'
 import { BsCollection } from 'react-icons/bs'
-
-type ProductCategoryDocument = {
-	products?: {
-		_ref: string
-	}[]
-}
+import { ImageIcon } from '@sanity/icons'
+import modules from '../fragments/modules'
 
 export default defineType({
 	name: 'collection',
 	title: 'Collection',
 	type: 'document',
 	icon: BsCollection,
+	groups: [{ name: 'content', default: true }, { name: 'metadata' }],
 	fields: [
 		defineField({
 			name: 'title',
 			type: 'string',
+			group: 'content',
+			validation: (Rule) => Rule.required(),
 		}),
 		defineField({
-			name: 'slug',
-			type: 'slug',
-			options: { source: 'title' },
+			name: 'image',
+			title: 'Banner Image',
+			type: 'image',
+			group: 'content',
+			options: {
+				hotspot: true,
+				metadata: ['lqip'],
+			},
+			fields: [
+				defineField({
+					name: 'alt',
+					type: 'string',
+				}),
+			],
+		}),
+		defineField({
+			name: 'description',
+			title: 'Description',
+			type: 'array',
+			group: 'content',
+			of: [
+				{ type: 'block' },
+				defineArrayMember({
+					type: 'image',
+					icon: ImageIcon,
+					options: {
+						hotspot: true,
+						metadata: ['lqip'],
+					},
+					fields: [
+						defineField({
+							name: 'alt',
+							type: 'string',
+						}),
+					],
+				}),
+			],
 		}),
 		defineField({
 			name: 'products',
 			title: 'List product',
 			type: 'array',
+			group: 'content',
 			validation: (Rule) => Rule.unique(),
-
 			of: [
 				{
 					type: 'reference',
 					to: [{ type: 'product' }],
-					// 2. Cấu hình Filter động
 					options: {
 						filter: ({ document }) => {
-							// Lấy danh sách các sản phẩm đang có trong mảng (nếu có)
-							// document là object Category hiện tại bạn đang sửa
 							const existingIds =
 								(document as any)?.products
 									?.map((item: any) => item._ref)
 									.filter((id: string) => id) || []
 
 							return {
-								// Câu truy vấn GROQ:
-								// Chọn sản phẩm VÀ ID của nó KHÔNG nằm trong danh sách đã có
 								filter: '!(_id in $existingIds) && !(_id in path("drafts.**"))',
 								params: {
 									existingIds,
@@ -55,10 +83,28 @@ export default defineType({
 				},
 			],
 		}),
+		defineField({
+			...modules(),
+			group: 'content',
+		}),
+		defineField({
+			name: 'metadata',
+			type: 'metadata',
+			group: 'metadata',
+		}),
 	],
 	preview: {
 		select: {
 			title: 'title',
+			slug: 'metadata.slug.current',
+			media: 'image',
+		},
+		prepare({ title, slug, media }) {
+			return {
+				title,
+				subtitle: slug ? `/collections/${slug}` : '/collections',
+				media,
+			}
 		},
 	},
 })

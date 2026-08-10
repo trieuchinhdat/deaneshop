@@ -10,11 +10,11 @@ export default function ({ link, items }: Megamenu) {
 			className="accordion group/megamenu [--safearea-x:20vw]!"
 			safeAreaOnHover
 		>
-			<summary className="group-open/megamenu:max-md:font-bold">
+			<summary className="group-open/megamenu:max-md:font-bold cursor-pointer">
 				{link?.label || (link?.internal as unknown as Page)?.title}
 			</summary>
 
-			<div className="anim-fade-to-b md:bg-background text-header-foreground lg:text-foreground inset-x-0 top-full md:absolute md:max-h-[calc(100vh-var(--header-height))] md:overflow-y-auto md:shadow-lg">
+			<div className="anim-fade-to-b md:bg-background text-header-foreground lg:text-foreground inset-x-0 top-full md:absolute md:max-h-[calc(100vh-var(--header-height))] md:overflow-y-auto md:shadow-lg md:before:content-[''] md:before:absolute md:before:-top-4 md:before:inset-x-0 md:before:h-4">
 				<div className="section max-md:pl-ch md:py-lh py-0 max-md:grid max-md:border-l md:grid md:grid-cols-4 md:items-start md:gap-8">
 					{items?.map((item) => {
 						switch (item._type) {

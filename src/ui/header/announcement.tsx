@@ -38,7 +38,7 @@ export default function Announcement({ data }: { data: any }) {
 				>
 					<Link
 						href={bannerHref}
-						target={data.image.type === 'external' ? '_blank' : undefined}
+						target={data.image?.type === 'external' || data.linkBannerType === 'external' ? '_blank' : undefined}
 					>
 						<ResponsiveImage
 							image={data.image}
@@ -68,7 +68,11 @@ export default function Announcement({ data }: { data: any }) {
 			return (
 				<Link
 					href={bannerHref}
-					target={data.image.type === 'external' ? '_blank' : undefined}
+						target={
+							data.image?.type === 'external' || data.linkBannerType === 'external'
+								? '_blank'
+								: undefined
+						}
 				>
 					<div
 						className="w-full px-4 py-2 text-center text-sm font-medium transition-colors"

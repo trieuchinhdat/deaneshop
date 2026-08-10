@@ -12,6 +12,9 @@ const LINK_QUERY = groq`
 			_type,
 			title,
 			'slug': select(
+				_type == 'collection' => '/collections/' + metadata.slug.current,
+				_type == 'product' => '/products/' + metadata.slug.current,
+				_type == 'blog.post' => '/blog/' + metadata.slug.current,
 				metadata.slug.current == 'index' => '/',
 				'/' + metadata.slug.current
 			)
@@ -221,6 +224,9 @@ export const MODULES_QUERY = groq`
             "internalSlug": internal->metadata.slug.current 
         }
     },
+	_type == 'collection-content' => {
+		...,
+	},
 	
 `
 

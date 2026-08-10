@@ -30,6 +30,7 @@ import customHtml from './modules/custom-html'
 import heroSplit from './modules/hero.split'
 import logoList from './modules/logo-list'
 import personList from './modules/person-list'
+import collectionContent from './modules/collection-content'
 import productContent from './modules/product-content'
 import productList from './modules/product-list'
 import prose from './modules/prose'
@@ -81,6 +82,7 @@ export const schema: SchemaPluginOptions = {
 		blogIndex,
 		blogPostContent,
 		blogPostList,
+		collectionContent,
 		productList,
 		productContent,
 		breadcrumbs,

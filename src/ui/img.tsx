@@ -38,21 +38,37 @@ export default function ({
 		(image.hotspot?.height ?? 1) * dimensions.height,
 	]
 
-	const loading = stegaClean(props.loading || image.loading)
+	const targetWidth = width ?? (height ? Math.round((Number(height) * w) / h) : undefined)
+	const targetHeight = height ?? (width ? Math.round((Number(width) * h) / w) : undefined)
+
+	const isPriority =
+		Boolean(props.priority) ||
+		props.loading === 'eager' ||
+		stegaClean(image.loading) === 'eager'
+
+	const loading = isPriority
+		? 'eager'
+		: stegaClean(props.loading || image.loading)
+
+	const srcUrl =
+		urlFor(image)
+			.withOptions({
+				auto: 'format',
+				q: 80,
+				...(targetWidth ? { width: Number(targetWidth) } : {}),
+				...(targetHeight ? { height: Number(targetHeight) } : {}),
+				...imageOptions,
+			})
+			.url() ?? image.asset.url!
 
 	return (
 		<Image
-			src={
-				urlFor(image)
-					.withOptions({ auto: 'format', q: 100, ...imageOptions })
-					.url() ?? image.asset.url!
-			}
-			width={width ?? Math.round(height ? (Number(height) * w) / h : w)}
-			height={height ?? Math.round(width ? (Number(width) * h) / w : h)}
+			src={srcUrl}
+			width={targetWidth ?? w}
+			height={targetHeight ?? h}
 			loading={loading}
-			{...(loading === 'eager'
-				? { priority: true, fetchPriority: 'high' }
-				: {})}
+			priority={isPriority}
+			{...(isPriority ? { fetchPriority: 'high' } : {})}
 			placeholder={lqip ? 'blur' : undefined}
 			blurDataURL={lqip}
 			{...props}

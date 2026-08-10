@@ -145,7 +145,7 @@ export const PRODUCTS_BY_COLLECTION_QUERY = groq`
   "collectionData": *[_type == "collection" && _id == $collectionId][0]{ 
     _id, 
     title,
-    "slug": slug.current
+    "slug": metadata.slug.current
   },
 
   "products": select(

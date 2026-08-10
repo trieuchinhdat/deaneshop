@@ -18,6 +18,7 @@ import CustomHTML from './custom-html'
 import HeroSplit from './hero.split'
 import LogoList from './logo-list'
 import PersonList from './person-list'
+import CollectionContent from './collection/collection-content'
 import productContent from './product/product-content'
 import productList from './product/product-list'
 import Prose from './prose'
@@ -48,6 +49,7 @@ const MODULES_MAP = {
 	'carousel-banner-list': WrapCarouselBannerList,
 	'product-content': productContent,
 	'product-list': productList,
+	'collection-content': CollectionContent,
 	'cart-checkout': WrapCartCheckout,
 } as const
 
@@ -55,12 +57,14 @@ export default function ({
 	page,
 	post,
 	product,
+	collection,
 }: {
 	page?: PAGE_QUERY_RESULT
 	post?: BLOG_POST_QUERY_RESULT
 	product?: PRODUCT_QUERY_RESULT
+	collection?: any
 }) {
-	const modules = [page, post, product].flatMap((item) => item?.modules ?? [])
+	const modules = [page, post, product, collection].flatMap((item) => item?.modules ?? [])
 
 	const moduleSpecificProps = (module: ModuleProps) => {
 		switch (module._type) {
@@ -68,8 +72,16 @@ export default function ({
 				return { post }
 			case 'product-content':
 				return { product }
+			case 'collection-content':
+				return { collection }
 			case 'breadcrumbs':
-				return { currentPage: page || post || product }
+				return { currentPage: page || post || product || collection }
+			case 'product-list':
+				return {
+					collection:
+						(module as any).collection ||
+						(collection ? { _id: collection._id } : undefined),
+				}
 			default:
 				return {}
 		}
@@ -104,7 +116,13 @@ export default function ({
 									type: product._type,
 									path: `product[_key == "${module._key}"]`,
 								}
-							: {}
+							: collection
+								? {
+										id: collection._id,
+										type: collection._type,
+										path: `collection[_key == "${module._key}"]`,
+									}
+								: {}
 
 				return (
 					<Module

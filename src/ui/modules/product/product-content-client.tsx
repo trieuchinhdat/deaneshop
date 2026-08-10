@@ -187,6 +187,8 @@ export default function ProductContentClient({
 										<Img
 											image={img}
 											width={800}
+											priority={i === 0}
+											sizes="(max-width: 1024px) 100vw, 50vw"
 											className="h-full w-full object-cover"
 											alt={title}
 										/>
@@ -407,22 +409,22 @@ export default function ProductContentClient({
 
 								<p className="text-muted-foreground">{r.comment}</p>
 
-								{/* ẢNH CỦA TỪNG REVIEW */}
 								{r.images && r.images.length > 0 && (
 									<div className="mt-2 flex gap-2">
-										{r.images.map((img, imgIndex) => (
-											<img
-												key={imgIndex}
-												src={img.asset.url}
-												alt={img.alt || ''}
-												width={100}
-												height={100}
-												className="cursor-pointer rounded transition hover:opacity-80"
-												onClick={() =>
-													handleOpenReviewLightbox(r.images as any[], imgIndex)
-												}
-											/>
-										))}
+										{r.images.map((img, imgIndex) =>
+											img?.asset ? (
+												<Img
+													key={imgIndex}
+													image={img}
+													width={160}
+													alt={img.alt || ''}
+													className="h-16 w-16 cursor-pointer rounded object-cover transition hover:opacity-80"
+													onClick={() =>
+														handleOpenReviewLightbox(r.images as any[], imgIndex)
+													}
+												/>
+											) : null,
+										)}
 									</div>
 								)}
 							</div>

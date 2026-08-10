@@ -22,6 +22,7 @@ export default async function ({
 				<Img
 					image={logo}
 					width={100}
+					priority={true}
 					className="inline-block h-full w-auto object-contain"
 					alt={site?.title ?? ''}
 				/>

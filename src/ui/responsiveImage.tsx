@@ -8,6 +8,7 @@ type ResponsiveImageProps = {
 	desktop?: { width: number }
 	mobile?: { width: number; media?: string }
 	priority?: boolean
+	sizes?: string
 }
 
 export default function ResponsiveImage({
@@ -16,10 +17,11 @@ export default function ResponsiveImage({
 	desktop = { width: 1200 },
 	mobile = { width: 600, media: '(max-width: 767px)' },
 	priority = false,
+	sizes = '(max-width: 768px) 100vw, 100vw',
 }: ResponsiveImageProps) {
 	if (!image?.asset) return null
 
-	const loading = stegaClean(image.loading)
+	const loading = priority ? 'eager' : (stegaClean(image.loading) || 'lazy')
 	const hasMobile = Boolean(image.mobileImage?.asset)
 	const alt = image.alt ?? ''
 
@@ -37,8 +39,9 @@ export default function ResponsiveImage({
 				image={image}
 				width={desktop.width}
 				alt={alt}
+				priority={priority}
 				loading={loading}
-				sizes="(max-width: 768px) 100vw, 100vw"
+				sizes={sizes}
 			/>
 		</picture>
 	)

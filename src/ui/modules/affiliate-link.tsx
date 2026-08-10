@@ -112,7 +112,7 @@ export default function AffiliateLink({
 				className="group/card my-4 block w-full rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-300 hover:border-blue-300 hover:shadow-xl lg:my-6"
 			>
 				<div className="flex items-start gap-4">
-					{image && (
+					{image?.asset && (
 						<div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-gray-100 bg-gray-50 p-1">
 							<Image
 								src={urlFor(image).width(200).height(200).url()}
@@ -168,7 +168,7 @@ export default function AffiliateLink({
 						</div>
 					)}
 
-					{image && (
+					{image?.asset && (
 						<div className="relative mb-4 aspect-square w-full overflow-hidden rounded-lg bg-gray-50 p-4">
 							<Image
 								src={urlFor(image).width(500).url()}

@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export async function generateStaticParams() {
 	return await client.fetch<{ slug: string }[]>(
 		groq`*[_type == 'blog.post' && defined(metadata.slug.current)]{
-			'slug': '/' + metadata.slug.current
+			'slug': metadata.slug.current
 		}`,
 	)
 }

@@ -11,6 +11,11 @@ export default function ({ name, ...props }: React.ComponentProps<'details'>) {
 	const detailsProps: React.ComponentProps<'details'> = isDesktop
 		? {
 				open: true,
+				onToggle: (e) => {
+					if (!e.currentTarget.open) {
+						e.currentTarget.open = true
+					}
+				},
 				onClick: (e) => {
 					const target = e.target as HTMLElement
 

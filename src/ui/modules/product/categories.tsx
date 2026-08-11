@@ -20,7 +20,7 @@ export default function ({
 					{linked ? (
 						<Link
 							href={{
-								pathname: `/${ROUTES.products}`,
+								pathname: `/${ROUTES.collections}/all`,
 								query: { category: category.slug?.current },
 							}}
 						>

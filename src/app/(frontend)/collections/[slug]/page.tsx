@@ -5,7 +5,7 @@ import { ROUTES } from '@/lib/env'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import { sanityFetchLive } from '@/sanity/lib/live'
-import { GLOBAL_MODULE_PATH_QUERY, MODULES_QUERY } from '@/sanity/lib/queries'
+import { GLOBAL_MODULE_PATH_QUERY, MODULES_QUERY, getProductSettings } from '@/sanity/lib/queries'
 import ModulesResolver from '@/ui/modules'
 
 type Props = {
@@ -14,11 +14,14 @@ type Props = {
 
 export default async function CollectionPage({ params }: Props) {
 	const { slug } = await params
-	const collection = await getCollection(slug)
+	const [collection, productSettings] = await Promise.all([
+		getCollection(slug),
+		getProductSettings(),
+	])
 
 	if (!collection) notFound()
 
-	return <ModulesResolver collection={collection} />
+	return <ModulesResolver collection={collection} productSettings={productSettings} />
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -61,14 +64,98 @@ export async function generateStaticParams() {
 }
 
 async function getCollection(slug: string) {
-	return await sanityFetchLive<any>({
+	const collection = await sanityFetchLive<any>({
 		query: COLLECTION_QUERY,
 		params: {
 			slug,
 			collectionDir: `${ROUTES.collections}/`,
 		},
 	})
+
+	if (!collection && slug === 'all') {
+		const allProducts = await sanityFetchLive<any[]>({
+			query: ALL_PRODUCTS_QUERY,
+		})
+
+		return {
+			_id: 'all-collection',
+			_type: 'collection',
+			title: 'Tất cả sản phẩm',
+			slug: 'all',
+			products: allProducts || [],
+			modules: [
+				{
+					_type: 'collection-content',
+					_key: 'all-collection-content',
+					showTitle: true,
+					showDescription: false,
+					enableFilter: true,
+					itemsPerPage: 12,
+					layout: 'grid',
+				},
+			],
+		}
+	}
+
+	if (collection && (!collection.modules || collection.modules.length === 0)) {
+		collection.modules = [
+			{
+				_type: 'collection-content',
+				_key: `${collection._id}-content`,
+				showTitle: true,
+				showDescription: true,
+				enableFilter: true,
+				itemsPerPage: 12,
+				layout: 'grid',
+			},
+		]
+	}
+
+	return collection
 }
+
+const ALL_PRODUCTS_QUERY = groq`
+*[_type == "product"] | order(_createdAt desc) {
+	_id,
+	title,
+	price,
+	compareAtPrice,
+	tags,
+	sold,
+	stock,
+	hasVariants,
+	options[]{
+		name,
+		values
+	},
+	variants[]{
+		_key,
+		sku,
+		title,
+		price,
+		compareAtPrice,
+		stock,
+		options[]{
+			name,
+			value
+		},
+		image{
+			...,
+			asset->
+		}
+	},
+	"slug": metadata.slug.current,
+	images[]{
+		...,
+		asset->
+	},
+	"reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },
+	categories[]->{
+		title,
+		"slug": slug.current
+	}
+}
+`
 
 const COLLECTION_QUERY = groq`
 *[_type == 'collection' && metadata.slug.current == $slug][0]{
@@ -87,12 +174,36 @@ const COLLECTION_QUERY = groq`
 		title,
 		price,
 		compareAtPrice,
+		tags,
+		sold,
+		stock,
+		hasVariants,
+		options[]{
+			name,
+			values
+		},
+		variants[]{
+			_key,
+			sku,
+			title,
+			price,
+			compareAtPrice,
+			stock,
+			options[]{
+				name,
+				value
+			},
+			image{
+				...,
+				asset->
+			}
+		},
 		"slug": metadata.slug.current,
 		images[]{
 			...,
 			asset->
 		},
-		reviews,
+		"reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },
 		categories[]->{
 			title,
 			"slug": slug.current

@@ -1,8 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-type CartItem = {
+export type CartItem = {
 	id: string
+	productId?: string
+	variantId?: string
+	variantTitle?: string
+	selectedOptions?: Record<string, string>
+	sku?: string
 	title: string
 	price: number
 	compareAtPrice?: number
@@ -28,18 +33,19 @@ export const useCartStore = create<CartState>()(
 			addItem: (item) =>
 				set((state) => {
 					const existing = state.items.find((i) => i.id === item.id)
+					const validQty = Math.max(1, Math.floor(item.quantity || 1))
 
 					if (existing) {
 						return {
 							items: state.items.map((i) =>
 								i.id === item.id
-									? { ...i, quantity: i.quantity + item.quantity }
+									? { ...i, quantity: i.quantity + validQty }
 									: i,
 							),
 						}
 					}
 
-					return { items: [...state.items, item] }
+					return { items: [...state.items, { ...item, quantity: validQty }] }
 				}),
 
 			removeItem: (id) =>
@@ -49,7 +55,11 @@ export const useCartStore = create<CartState>()(
 
 			updateQuantity: (id, quantity) =>
 				set((state) => ({
-					items: state.items.map((i) => (i.id === id ? { ...i, quantity } : i)),
+					items: state.items.map((i) =>
+						i.id === id
+							? { ...i, quantity: Math.max(1, Math.floor(quantity || 1)) }
+							: i,
+					),
 				})),
 
 			clearCart: () => set({ items: [] }),

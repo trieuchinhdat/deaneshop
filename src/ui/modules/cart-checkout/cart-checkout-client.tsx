@@ -34,15 +34,41 @@ export default function CartCheckoutClient({
 	const { items, totalPrice, updateQuantity, removeItem, clearCart } =
 		useCartStore()
 
+	// Hàm xác nhận xóa sản phẩm khỏi giỏ hàng
+	const handleRemoveItem = (id: string, title: string) => {
+		MySwal.fire({
+			title: 'Xóa sản phẩm?',
+			text: `Bạn có chắc chắn muốn xóa "${title}" khỏi giỏ hàng?`,
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonColor: '#ef4444',
+			cancelButtonColor: '#6b7280',
+			confirmButtonText: 'Xóa sản phẩm',
+			cancelButtonText: 'Hủy',
+			customClass: {
+				popup: 'rounded-2xl',
+				confirmButton: 'rounded-lg px-5 py-2 font-medium cursor-pointer',
+				cancelButton: 'rounded-lg px-5 py-2 font-medium cursor-pointer',
+			},
+		}).then((result) => {
+			if (result.isConfirmed) {
+				removeItem(id)
+			}
+		})
+	}
+
 	// Hàm xử lý gửi đơn hàng
 	const handleCheckout = async (formData: any, resetForm: () => void) => {
 		if (items.length === 0) return
 
 		setIsSubmitting(true) // Bật lớp phủ mờ
 
-		// Gom danh sách sản phẩm thành chuỗi
+		// Gom danh sách sản phẩm thành chuỗi (bao gồm mã SKU)
 		const itemsString = items
-			.map((item) => `${item.quantity}x ${item.title}`)
+			.map(
+				(item) =>
+					`${item.quantity}x ${item.title}${item.sku ? ` [SKU: ${item.sku}]` : ''}`,
+			)
 			.join('\n')
 
 		const itemsTotal = totalPrice()
@@ -137,6 +163,7 @@ export default function CartCheckoutClient({
 								{items.map((item, i) => (
 									<li key={i}>
 										{item.quantity}x {item.title}
+										{item.sku ? ` (SKU: ${item.sku})` : ''}
 									</li>
 								))}
 							</ul>
@@ -241,7 +268,7 @@ export default function CartCheckoutClient({
 													</p>
 												</Link>
 												<span className="text-xs text-gray-500">
-													SKU: {item.id}
+													SKU: {item.sku || item.id}
 												</span>
 												<div className="flex items-center gap-2">
 													<p className="text-sm font-semibold text-red-600">
@@ -256,19 +283,51 @@ export default function CartCheckoutClient({
 											</div>
 										</div>
 
-										<div className="flex items-center gap-1 lg:gap-3">
-											<input
-												type="number"
-												min={1}
-												value={item.quantity}
-												onChange={(e) =>
-													updateQuantity(item.id, Number(e.target.value))
-												}
-												className="h-8 w-8 rounded border text-center text-sm focus:outline-black lg:h-8 lg:w-12"
-											/>
+										<div className="flex items-center gap-1.5 lg:gap-3">
+											<div className="flex items-center overflow-hidden rounded-lg border border-gray-300 bg-gray-50">
+												<button
+													type="button"
+													onClick={() =>
+														updateQuantity(item.id, Math.max(1, item.quantity - 1))
+													}
+													className="flex h-8 w-7 cursor-pointer items-center justify-center font-bold text-gray-600 transition hover:bg-gray-200/80"
+													aria-label="Giảm số lượng"
+												>
+													−
+												</button>
+												<input
+													type="number"
+													min={1}
+													value={item.quantity}
+													onChange={(e) => {
+														const val = parseInt(e.target.value, 10)
+														if (!isNaN(val)) {
+															updateQuantity(item.id, Math.max(1, val))
+														}
+													}}
+													onBlur={(e) => {
+														const val = parseInt(e.target.value, 10)
+														if (isNaN(val) || val < 1) {
+															updateQuantity(item.id, 1)
+														}
+													}}
+													className="h-8 w-8 text-center text-xs font-bold text-gray-900 focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none lg:w-10 lg:text-sm"
+												/>
+												<button
+													type="button"
+													onClick={() =>
+														updateQuantity(item.id, item.quantity + 1)
+													}
+													className="flex h-8 w-7 cursor-pointer items-center justify-center font-bold text-gray-600 transition hover:bg-gray-200/80"
+													aria-label="Tăng số lượng"
+												>
+													+
+												</button>
+											</div>
 											<button
-												onClick={() => removeItem(item.id)}
-												className="text-gray-400 transition-colors hover:text-red-500"
+												onClick={() => handleRemoveItem(item.id, item.title)}
+												className="p-1 text-gray-400 transition-colors hover:text-red-500 cursor-pointer"
+												title="Xóa sản phẩm"
 											>
 												✕
 											</button>

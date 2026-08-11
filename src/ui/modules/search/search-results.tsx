@@ -223,7 +223,29 @@ function PaginationControls({
 	)
 }
 
+const formatSold = (sold?: number) => {
+	if (typeof sold !== 'number' || sold <= 0) return null
+	if (sold >= 1000) {
+		const formatted = (sold / 1000).toFixed(1).replace(/\.0$/, '')
+		return `${formatted}k+ sold`
+	}
+	return `${sold} sold`
+}
+
 function ProductCard({ product }: { product: any }) {
+	const totalReviews = product.reviews?.length ?? 0
+	const averageRating =
+		totalReviews > 0
+			? product.reviews.reduce(
+					(sum: number, r: any) => sum + (r.rating || 0),
+					0,
+				) / totalReviews
+			: 0
+
+	const soldText = formatSold(product.sold)
+	const hasRating = totalReviews > 0
+	const hasSold = Boolean(soldText)
+
 	return (
 		<Link href={product.slug} className="block h-full">
 			<div className="group flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:shadow-md">
@@ -252,9 +274,33 @@ function ProductCard({ product }: { product: any }) {
 
 				{/* Content */}
 				<div className="flex flex-1 flex-col justify-between p-3">
-					<h3 className="line-clamp-2 text-xs font-semibold text-gray-900 lg:text-sm">
-						{product.title}
-					</h3>
+					<div className="space-y-1">
+						<h3 className="line-clamp-2 text-xs font-semibold text-gray-900 lg:text-sm">
+							{product.title}
+						</h3>
+
+						{(hasRating || hasSold) && (
+							<div className="flex flex-wrap items-center justify-center gap-1 text-[11px] lg:text-xs">
+								{hasRating && (
+									<>
+										<span className="font-medium text-gray-700">
+											{averageRating.toFixed(1)}
+										</span>
+										<span className="text-yellow-500">★</span>
+										<span className="text-gray-400">({totalReviews})</span>
+									</>
+								)}
+
+								{hasRating && hasSold && (
+									<span className="text-gray-300">|</span>
+								)}
+
+								{hasSold && (
+									<span className="text-gray-500">{soldText}.</span>
+								)}
+							</div>
+						)}
+					</div>
 
 					<div className="mt-2 hidden">
 						{product.compareAtPrice &&

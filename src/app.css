@@ -260,69 +260,15 @@
 }
 
 @utility carousel {
-	--anchor-name: attr(data-anchor-name type(<custom-ident>), --carousel);
-	anchor-name: var(--anchor-name);
 	display: grid;
 	grid-auto-flow: column;
 	grid-auto-columns: min(var(--container-sm), 80vw);
 	overflow-x: auto;
 	scroll-behavior: smooth;
 	scroll-snap-type: x mandatory;
-	scroll-marker-group: after;
 
-	@supports (position-anchor: var(--anchor-name)) {
-		@apply no-scrollbar;
-
-		&::scroll-button(*) {
-			cursor: pointer;
-			position: absolute;
-			position-anchor: var(--anchor-name);
-			top: anchor(center);
-			z-index: 1;
-			display: block;
-			aspect-ratio: 1;
-			width: 1.5lh;
-			margin-inline: 0.5lh;
-			translate: 0 -50%;
-			background-color: currentColor;
-		}
-
-		&::scroll-button(left) {
-			content: '' / 'Scroll left';
-			left: anchor(left);
-			mask: url('https://ic0n.dev/io5/IoChevronBackCircleSharp') center / cover;
-			display: none;
-		}
-
-		&::scroll-button(right) {
-			content: '' / 'Scroll right';
-			right: anchor(right);
-			mask: url('https://ic0n.dev/io5/IoChevronForwardCircleSharp') center / cover;
-			display: none;
-		}
-	}
-
-	&::scroll-marker-group {
-		position: absolute;
-		position-anchor: var(--anchor-name);
-		top: calc(anchor(bottom) + 1rem);
-		justify-self: center;
-		display: flex;
-		align-items: center;
-		gap: 0.5ch;
-	}
-
-	&>* {
+	& > * {
 		scroll-snap-align: center;
-
-		&::scroll-marker {
-			content: '';
-			@apply bg-foreground/25 block size-1 rounded-full;
-		}
-
-		&::scroll-marker:target-current {
-			@apply bg-foreground w-[2ch] opacity-100;
-		}
 	}
 }
 

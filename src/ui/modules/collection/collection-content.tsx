@@ -13,6 +13,7 @@ type Props = CollectionContentModuleType & {
 		image?: any
 		products?: any[]
 	}
+	productSettings?: any
 }
 
 export default function CollectionContent({
@@ -23,6 +24,7 @@ export default function CollectionContent({
 	itemsPerPage = 12,
 	enableFilter = true,
 	layout = 'grid',
+	productSettings,
 	...props
 }: Props) {
 	if (!collection) return null
@@ -74,6 +76,7 @@ export default function CollectionContent({
 						rowsMobile={1}
 						autoSlide={false}
 						enableFilter={enableFilter}
+						productSettings={productSettings}
 					/>
 				) : (
 					<div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-16 text-center">

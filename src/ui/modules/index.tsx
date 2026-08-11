@@ -4,6 +4,7 @@ import type {
 	ModuleAttributes,
 	PAGE_QUERY_RESULT,
 	PRODUCT_QUERY_RESULT,
+	PRODUCT_SETTINGS_QUERY_RESULT,
 } from '@/sanity/types'
 import AccordionList from './accordion-list'
 import BlogIndex from './blog/blog-index'
@@ -58,11 +59,13 @@ export default function ({
 	post,
 	product,
 	collection,
+	productSettings,
 }: {
 	page?: PAGE_QUERY_RESULT
 	post?: BLOG_POST_QUERY_RESULT
 	product?: PRODUCT_QUERY_RESULT
 	collection?: any
+	productSettings?: PRODUCT_SETTINGS_QUERY_RESULT
 }) {
 	const modules = [page, post, product, collection].flatMap((item) => item?.modules ?? [])
 
@@ -71,9 +74,9 @@ export default function ({
 			case 'blog-post-content':
 				return { post }
 			case 'product-content':
-				return { product }
+				return { product, productSettings }
 			case 'collection-content':
-				return { collection }
+				return { collection, productSettings }
 			case 'breadcrumbs':
 				return { currentPage: page || post || product || collection }
 			case 'product-list':
@@ -81,6 +84,7 @@ export default function ({
 					collection:
 						(module as any).collection ||
 						(collection ? { _id: collection._id } : undefined),
+					productSettings,
 				}
 			default:
 				return {}

@@ -1,5 +1,5 @@
 import { groq } from 'next-sanity'
-import type { SITE_QUERY_RESULT } from '@/sanity/types'
+import type { PRODUCT_SETTINGS_QUERY_RESULT, SITE_QUERY_RESULT } from '@/sanity/types'
 import { sanityFetchLive } from './live'
 
 /* fragments */
@@ -188,17 +188,44 @@ export const MODULES_QUERY = groq`
 			price,
 			salePrice,
 			sales,
-			reviews[]{
+			hasVariants,
+			options[]{
+				name,
+				values
+			},
+			variants[]{
 				_key,
-				author,
-				rating,
-				comment,
-				images[]{
+				title,
+				sku,
+				price,
+				compareAtPrice,
+				stock,
+				image{
 					...,
 					asset->{
 						...,
 						metadata
 					}
+				},
+				options[]{
+					name,
+					value
+				}
+			},
+			"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {
+				_id,
+				author,
+				rating,
+				comment,
+				response,
+				createdAt,
+				images[]{
+					...,
+					asset->
+				},
+				videos[]{
+					...,
+					asset->
 				}
 			},
 		}
@@ -230,6 +257,35 @@ export const MODULES_QUERY = groq`
 	
 `
 
+export const PRODUCT_CARD_SETTINGS_QUERY = groq`*[_type == 'product-card-settings'][0]{...}`
+
+export const PRODUCT_SETTINGS_QUERY = groq`*[_type == 'product-settings'][0]{
+	...,
+	defaultPromotions,
+	defaultSpecialConditions,
+	trustBadges[]{
+		...,
+		icon {
+			...,
+			asset->
+		}
+	},
+	promoBanners[]{
+		...,
+		image {
+			...,
+			asset->
+		},
+		mobileImage {
+			...,
+			asset->
+		},
+		link {
+			${LINK_QUERY}
+		}
+	}
+}`
+
 /* queries */
 
 export async function getSite() {
@@ -237,3 +293,25 @@ export async function getSite() {
 		query: SITE_QUERY,
 	})
 }
+
+export async function getProductCardSettings() {
+	return await sanityFetchLive<any>({
+		query: PRODUCT_CARD_SETTINGS_QUERY,
+	})
+}
+
+export async function getProductSettings() {
+	const [productSettings, cardSettings] = await Promise.all([
+		sanityFetchLive<PRODUCT_SETTINGS_QUERY_RESULT>({
+			query: PRODUCT_SETTINGS_QUERY,
+		}),
+		sanityFetchLive<any>({
+			query: PRODUCT_CARD_SETTINGS_QUERY,
+		}),
+	])
+	return {
+		...(productSettings || {}),
+		...(cardSettings || {}),
+	}
+}
+

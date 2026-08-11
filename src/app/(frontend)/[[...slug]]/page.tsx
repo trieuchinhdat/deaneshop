@@ -6,7 +6,7 @@ import { ROUTES } from '@/lib/env'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import { sanityFetchLive } from '@/sanity/lib/live'
-import { GLOBAL_MODULE_PATH_QUERY, MODULES_QUERY } from '@/sanity/lib/queries'
+import { GLOBAL_MODULE_PATH_QUERY, MODULES_QUERY, getProductSettings } from '@/sanity/lib/queries'
 import type { PAGE_QUERY_RESULT } from '@/sanity/types'
 import ModulesResolver from '@/ui/modules'
 
@@ -16,10 +16,13 @@ type Props = {
 
 export default async function Page({ params }: Props) {
 	const { slug } = await params
-	const page = await getPage(slug)
+	const [page, productSettings] = await Promise.all([
+		getPage(slug),
+		getProductSettings(),
+	])
 	if (!page) notFound()
 
-	return <ModulesResolver page={page} />
+	return <ModulesResolver page={page} productSettings={productSettings} />
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

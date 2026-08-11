@@ -44,8 +44,9 @@ export default async function ProductListCategory({
 	enableFilter = false,
 	backgroundColor = '#ffffff',
 	textColor = '#000000',
+	productSettings,
 	...props
-}: ProductList & { image: any; _key: string; collection?: { _id: string } }) {
+}: ProductList & { image: any; _key: string; collection?: { _id: string }; productSettings?: any }) {
 	// 2. Gọi API
 	// Kết quả trả về sẽ ép kiểu theo ProductListQueryResult
 	const result = await sanityFetchLive<ProductListQueryResult>({
@@ -123,6 +124,7 @@ export default async function ProductListCategory({
 						rowsMobile={rowsMobile}
 						autoSlide={autoSlide}
 						enableFilter={enableFilter}
+						productSettings={productSettings}
 					/>
 				</Suspense>
 			</div>
@@ -153,9 +155,35 @@ export const PRODUCTS_BY_COLLECTION_QUERY = groq`
       _id,
       title,
       price,
+      tags,
+      sold,
+      stock,
+      hasVariants,
+      options[]{
+        name,
+        values
+      },
+      variants[]{
+        _key,
+        title,
+        price,
+        compareAtPrice,
+        stock,
+        options[]{
+          name,
+          value
+        },
+        image{
+          ...,
+          asset->
+        }
+      },
       "slug": metadata.slug.current,
-      images,
-	  reviews,
+      images[]{
+        ...,
+        asset->
+      },
+	  "reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },
       "compareAtPrice": compareAtPrice,
 	  categories[]->{
         title,
@@ -167,9 +195,35 @@ export const PRODUCTS_BY_COLLECTION_QUERY = groq`
       _id,
       title,
       price,
+      tags,
+      sold,
+      stock,
+      hasVariants,
+      options[]{
+        name,
+        values
+      },
+      variants[]{
+        _key,
+        title,
+        price,
+        compareAtPrice,
+        stock,
+        options[]{
+          name,
+          value
+        },
+        image{
+          ...,
+          asset->
+        }
+      },
       "slug": metadata.slug.current,
-      images,
-	  reviews,
+      images[]{
+        ...,
+        asset->
+      },
+	  "reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },
       "compareAtPrice": compareAtPrice,
 	  categories[]->{
         title,

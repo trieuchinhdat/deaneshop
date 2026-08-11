@@ -97,6 +97,7 @@ const SEARCH_QUERY = groq`*[
     price,
     "compareAtPrice": compareAtPrice,
     images,
+    "reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },
     metadata{
         ...,
         image{

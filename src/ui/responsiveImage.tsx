@@ -19,7 +19,7 @@ export default function ResponsiveImage({
 	priority = false,
 	sizes = '(max-width: 768px) 100vw, 100vw',
 }: ResponsiveImageProps) {
-	if (!image?.asset) return null
+	if (!image) return null
 
 	const loading = priority ? 'eager' : (stegaClean(image.loading) || 'lazy')
 	const hasMobile = Boolean(image.mobileImage?.asset)

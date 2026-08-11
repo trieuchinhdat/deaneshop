@@ -12,6 +12,9 @@ import product from './documents/product'
 import productCategory from './documents/product.category'
 import quote from './documents/quote'
 import redirect from './documents/redirect'
+import review from './documents/review'
+import productSettings from './documents/product-settings'
+import productCardSettings from './documents/product-card-settings'
 import site from './documents/site'
 import trackingScript from './documents/tracking-script'
 // modules
@@ -46,15 +49,20 @@ import linkList from './objects/link.list'
 import megamenu from './objects/megamenu'
 import metadata from './objects/metadata'
 import moduleAttributes from './objects/module-attributes'
+import productOption from './objects/product.option'
+import productVariant from './objects/product.variant'
 
 export const schema: SchemaPluginOptions = {
 	types: [
 		// documents
 		site,
+		productCardSettings,
+		productSettings,
 		page,
 		globalModule,
 		blogPost,
 		product,
+		review,
 		collection,
 		redirect,
 
@@ -76,6 +84,8 @@ export const schema: SchemaPluginOptions = {
 		moduleAttributes,
 		trackingScript,
 		affiliateLink,
+		productOption,
+		productVariant,
 
 		// modules
 		accordionList,
@@ -106,4 +116,4 @@ export const schema: SchemaPluginOptions = {
 		templates.filter(({ schemaType }) => !singletonTypes.includes(schemaType)),
 }
 
-const singletonTypes = ['site']
+const singletonTypes = ['site', 'product-settings', 'product-card-settings']

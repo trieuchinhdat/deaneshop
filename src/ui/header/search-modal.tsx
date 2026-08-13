@@ -38,31 +38,38 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 	}
 
 	return (
-		<div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+		<div
+			className="fixed inset-0 z-50 overflow-y-auto"
+			role="dialog"
+			aria-modal="true"
+		>
 			{/* Backdrop */}
 			<div
-				className="fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity animate-fade-in"
+				className="animate-fade-in fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity"
 				onClick={onClose}
 			/>
 
-			<div className="relative min-h-screen flex items-start justify-center p-4 sm:p-6 md:p-20">
-				<div className="relative w-full max-w-2xl bg-background rounded-2xl shadow-2xl overflow-hidden border border-stroke/20 transition-all transform animate-scale-in">
+			<div className="relative flex min-h-screen items-start justify-center p-4 sm:p-6 md:p-20">
+				<div className="bg-background border-stroke/20 animate-scale-in relative w-full max-w-2xl transform overflow-hidden rounded-2xl border shadow-2xl transition-all">
 					{/* Search Input Bar */}
-					<form onSubmit={handleSearch} className="flex items-center px-4 py-3.5 border-b border-stroke/20">
-						<HiOutlineMagnifyingGlass className="text-2xl text-primary shrink-0 mr-3" />
+					<form
+						onSubmit={handleSearch}
+						className="border-stroke/20 flex items-center border-b px-4 py-3.5"
+					>
+						<HiOutlineMagnifyingGlass className="text-primary mr-3 shrink-0 text-2xl" />
 						<input
 							ref={inputRef}
 							type="text"
 							value={query}
 							onChange={(e) => setQuery(e.target.value)}
 							placeholder="Nhập tên sản phẩm, từ khóa cần tìm..."
-							className="w-full bg-transparent text-foreground placeholder:text-muted-foreground text-base sm:text-lg focus:outline-none"
+							className="text-foreground placeholder:text-muted-foreground w-full bg-transparent text-base focus:outline-none sm:text-lg"
 						/>
 						{query && (
 							<button
 								type="button"
 								onClick={() => setQuery('')}
-								className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-full mr-2 text-xs"
+								className="mr-2 rounded-full p-1 text-xs hover:bg-black/5 dark:hover:bg-white/10"
 							>
 								Xóa
 							</button>
@@ -70,7 +77,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 						<button
 							type="button"
 							onClick={onClose}
-							className="p-2 text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors"
+							className="text-muted-foreground hover:text-foreground rounded-full p-2 transition-colors hover:bg-black/5 dark:hover:bg-white/10"
 							aria-label="Đóng tìm kiếm"
 						>
 							<HiXMark className="text-xl" />
@@ -78,24 +85,26 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 					</form>
 
 					{/* Quick Suggestions */}
-					<div className="p-6 bg-black/[0.02] dark:bg-white/[0.02]">
-						<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+					<div className="bg-black/[0.02] p-6 dark:bg-white/[0.02]">
+						<p className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
 							Gợi ý tìm kiếm phổ biến
 						</p>
 						<div className="flex flex-wrap gap-2">
-							{['Khuyến mãi', 'Tất cả sản phẩm', 'Flash Sale', 'Bán chạy'].map((tag) => (
-								<button
-									key={tag}
-									type="button"
-									onClick={() => {
-										router.push(`/products?q=${encodeURIComponent(tag)}`)
-										onClose()
-									}}
-									className="px-3 py-1.5 rounded-full bg-background border border-stroke/30 text-xs font-medium hover:border-primary hover:text-primary transition-colors"
-								>
-									{tag}
-								</button>
-							))}
+							{['Khuyến mãi', 'Tất cả sản phẩm', 'Flash Sale', 'Bán chạy'].map(
+								(tag) => (
+									<button
+										key={tag}
+										type="button"
+										onClick={() => {
+											router.push(`/products?q=${encodeURIComponent(tag)}`)
+											onClose()
+										}}
+										className="bg-background border-stroke/30 hover:border-primary hover:text-primary rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+									>
+										{tag}
+									</button>
+								),
+							)}
 						</div>
 					</div>
 				</div>

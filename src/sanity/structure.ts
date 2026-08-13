@@ -1,5 +1,5 @@
 import { StructureBuilder, structureTool } from 'sanity/structure'
-import { VscGlobe, VscLayout, VscPackage, VscSettings } from 'react-icons/vsc'
+import { VscGlobe, VscLayout, VscLayoutMenubar, VscPackage, VscSettings } from 'react-icons/vsc'
 import { FiStar, FiClock, FiCheckCircle, FiList } from 'react-icons/fi'
 import { group, singleton } from './lib/builders'
 
@@ -12,6 +12,7 @@ export default structureTool({
 				S.divider().title('Settings'),
 				group(S, 'Site Settings', [
 					singleton(S, 'site').title('Site Global').icon(VscGlobe),
+					singleton(S, 'header-settings').title('Header Settings').icon(VscLayoutMenubar),
 					singleton(S, 'product-card-settings').title('Product Card Settings').icon(VscLayout),
 					singleton(S, 'product-settings').title('Product Page Settings').icon(VscPackage),
 				]).icon(VscSettings),

@@ -147,13 +147,46 @@ export async function generateStaticParams() {
 }
 
 async function getProduct(slug: string) {
-	return await sanityFetchLive<PRODUCT_QUERY_RESULT>({
+	const product = await sanityFetchLive<PRODUCT_QUERY_RESULT>({
 		query: PRODUCT_QUERY,
 		params: {
 			slug,
 			productDir: `${ROUTES.products}/`,
 		},
 	})
+
+	if (!product) return null
+
+	const globalBefore = (product as any).globalBefore || []
+	const customModules = (product as any).customModules || []
+	const globalAfter = (product as any).globalAfter || []
+
+	const hasBreadcrumbs = [...globalBefore, ...customModules, ...globalAfter].some(
+		(m: any) => m?._type === 'breadcrumbs',
+	)
+
+	const hasProductContent = [...globalBefore, ...customModules, ...globalAfter].some(
+		(m: any) => m?._type === 'product-content',
+	)
+
+	let finalCustomModules = [...customModules]
+	if (!hasProductContent) {
+		finalCustomModules.unshift({
+			_type: 'product-content',
+			_key: 'default-product-content',
+		})
+	}
+
+	if (!hasBreadcrumbs) {
+		finalCustomModules.unshift({
+			_type: 'breadcrumbs',
+			_key: 'default-breadcrumbs',
+		})
+	}
+
+	product.modules = [...globalBefore, ...finalCustomModules, ...globalAfter] as any
+
+	return product
 }
 
 const PRODUCT_QUERY = groq`
@@ -226,16 +259,13 @@ const PRODUCT_QUERY = groq`
 		}
 	},
 
-	'modules': (
-		// global modules (before)
+	'globalBefore': (
 		*[_type == 'global-module' && path == '*'].before[]{ ${MODULES_QUERY} }
-		// path modules (before)
 		+ *[_type == 'global-module' && path == $productDir].before[]{ ${MODULES_QUERY} }
-		// product modules
-		+ coalesce(modules, [])[]{ ${MODULES_QUERY} }
-		// product path modules (after)
-		+ *[_type == 'global-module' && path == $productDir].after[]{ ${MODULES_QUERY} }
-		// global modules (after)
+	),
+	'customModules': coalesce(modules, [])[]{ ${MODULES_QUERY} },
+	'globalAfter': (
+		*[_type == 'global-module' && path == $productDir].after[]{ ${MODULES_QUERY} }
 		+ *[_type == 'global-module' && path == '*'].after[]{ ${MODULES_QUERY} }
 	)
 }

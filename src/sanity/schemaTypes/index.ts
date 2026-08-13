@@ -6,6 +6,7 @@ import collection from './documents/collection'
 import globalModule from './documents/global-module'
 import logo from './documents/logo'
 import navigation from './documents/navigation'
+import order from './documents/order'
 import page from './documents/page'
 import person from './documents/person'
 import product from './documents/product'
@@ -15,6 +16,7 @@ import redirect from './documents/redirect'
 import review from './documents/review'
 import productSettings from './documents/product-settings'
 import productCardSettings from './documents/product-card-settings'
+import headerSettings from './documents/header-settings'
 import site from './documents/site'
 import trackingScript from './documents/tracking-script'
 // modules
@@ -56,6 +58,7 @@ export const schema: SchemaPluginOptions = {
 	types: [
 		// documents
 		site,
+		headerSettings,
 		productCardSettings,
 		productSettings,
 		page,
@@ -116,4 +119,4 @@ export const schema: SchemaPluginOptions = {
 		templates.filter(({ schemaType }) => !singletonTypes.includes(schemaType)),
 }
 
-const singletonTypes = ['site', 'product-settings', 'product-card-settings']
+const singletonTypes = ['site', 'header-settings', 'product-settings', 'product-card-settings']

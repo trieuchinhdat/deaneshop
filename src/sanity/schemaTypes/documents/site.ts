@@ -23,25 +23,6 @@ export default defineType({
 			group: 'branding',
 		}),
 		defineField({
-			name: 'announcements',
-			type: 'reference',
-			to: [{ type: 'announcement-item' }],
-			group: 'branding',
-		}),
-		defineField({
-			name: 'header',
-			type: 'reference',
-			to: [{ type: 'navigation' }],
-			group: 'navigation',
-		}),
-		defineField({
-			name: 'ctas',
-			title: 'Call-to-actions',
-			type: 'array',
-			of: [{ type: 'cta' }],
-			group: 'navigation',
-		}),
-		defineField({
 			name: 'footer',
 			type: 'reference',
 			to: [{ type: 'navigation' }],
@@ -107,11 +88,6 @@ export default defineType({
 					options: { columns: 3 },
 				},
 				{
-					name: 'headerColor',
-					title: 'Header Color',
-					options: { columns: 2 },
-				},
-				{
 					name: 'footerColor',
 					title: 'Footer Color',
 					options: { columns: 2 },
@@ -155,30 +131,6 @@ export default defineType({
 							'Invalid Hex',
 						),
 					fieldset: 'globalColor',
-				}),
-
-				// 4. MÀU HEADER
-				defineField({
-					name: 'headerBackground',
-					title: 'Header Background',
-					type: 'string',
-					initialValue: '#ffffff',
-					validation: (Rule) =>
-						Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error(
-							'Invalid Hex',
-						),
-					fieldset: 'headerColor',
-				}),
-				defineField({
-					name: 'headerText',
-					title: 'Header Text Color',
-					type: 'string',
-					initialValue: '#000000',
-					validation: (Rule) =>
-						Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error(
-							'Invalid Hex',
-						),
-					fieldset: 'headerColor',
 				}),
 
 				// 5. MÀU FOOTER

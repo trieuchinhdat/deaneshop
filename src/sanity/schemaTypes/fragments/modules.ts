@@ -9,7 +9,6 @@ export default ({ of = [] }: { of?: Array<{ type: string }> } = {}) =>
 			{ type: 'accordion-list' },
 			{ type: 'breadcrumbs' },
 			{ type: 'theme-background' },
-			{ type: 'cart-checkout' },
 			{ type: 'callout' },
 			{ type: 'card-list' },
 			{ type: 'custom-html' },
@@ -17,7 +16,6 @@ export default ({ of = [] }: { of?: Array<{ type: string }> } = {}) =>
 			{ type: 'logo-list' },
 			{ type: 'person-list' },
 			{ type: 'prose' },
-			{ type: 'search-module' },
 			{ type: 'stat-list' },
 			{ type: 'step-list' },
 			{ type: 'quote-list' },
@@ -38,7 +36,7 @@ export default ({ of = [] }: { of?: Array<{ type: string }> } = {}) =>
 					},
 					{
 						name: 'ecommerce',
-						of: ['product-content', 'product-list', 'collection-content', 'cart-checkout'],
+						of: ['product-content', 'product-list', 'collection-content'],
 					},
 					{
 						name: 'list',
@@ -59,3 +57,4 @@ export default ({ of = [] }: { of?: Array<{ type: string }> } = {}) =>
 			},
 		},
 	})
+

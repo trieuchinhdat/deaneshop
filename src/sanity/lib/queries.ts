@@ -1,6 +1,8 @@
 import { groq } from 'next-sanity'
-import type { PRODUCT_SETTINGS_QUERY_RESULT, SITE_QUERY_RESULT } from '@/sanity/types'
+import type { PAGE_QUERY_RESULT, PRODUCT_SETTINGS_QUERY_RESULT, SITE_QUERY_RESULT } from '@/sanity/types'
 import { sanityFetchLive } from './live'
+
+
 
 /* fragments */
 
@@ -43,31 +45,9 @@ const NAVIGATION_QUERY = groq`
 
 const SITE_QUERY = groq`*[_type == 'site'][0]{
 	...,
-	header->{ ${NAVIGATION_QUERY} },
-	ctas[]{
-		...,
-		link{ ${LINK_QUERY} }
-	},
 	footer->{ ${NAVIGATION_QUERY} },
 	social->{ ${NAVIGATION_QUERY} },
 	chatbox->{ ${NAVIGATION_QUERY} },
-	announcements->{ 
-		...,
-        enabled,
-        variant,
-        
-        content,
-        backgroundColor,
-        textColor,
-
-        image {
-            ...,
-            asset->,
-            mobileImage { asset-> }
-        },	
-		"internalType": internal->_type,
-		"internalSlug": internal->metadata.slug.current 
-	},
 	theme { 
         primaryColor,
         backgroundColor,
@@ -286,11 +266,44 @@ export const PRODUCT_SETTINGS_QUERY = groq`*[_type == 'product-settings'][0]{
 	}
 }`
 
+export const HEADER_SETTINGS_QUERY = groq`*[_type == 'header-settings'][0]{
+	...,
+	menu->{ ${NAVIGATION_QUERY} },
+	mobileMenu->{ ${NAVIGATION_QUERY} },
+	ctas[]{
+		...,
+		iconType,
+		actionType,
+		link{ ${LINK_QUERY} }
+	},
+	announcements[]->{
+		...,
+		enabled,
+		variant,
+		content,
+		backgroundColor,
+		textColor,
+		image {
+			...,
+			asset->,
+			mobileImage { asset-> }
+		},
+		"internalType": internal->_type,
+		"internalSlug": internal->metadata.slug.current
+	}
+}`
+
 /* queries */
 
 export async function getSite() {
 	return await sanityFetchLive<SITE_QUERY_RESULT>({
 		query: SITE_QUERY,
+	})
+}
+
+export async function getHeaderSettings() {
+	return await sanityFetchLive<any>({
+		query: HEADER_SETTINGS_QUERY,
 	})
 }
 
@@ -313,5 +326,40 @@ export async function getProductSettings() {
 		...(productSettings || {}),
 		...(cardSettings || {}),
 	}
+}
+
+export const PAGE_QUERY = groq`
+	*[_type == 'page' && metadata.slug.current == $slug][0]{
+		...,
+		'modules': (
+			// global moddules (before)
+			*[_type == 'global-module' && path == '*'].before[]{ ${MODULES_QUERY} }
+			// path modules (before)
+			+ *[_type == 'global-module' && path != '*' && ${GLOBAL_MODULE_PATH_QUERY}].before[]{ ${MODULES_QUERY} }
+			// page modules
+			+ modules[]{ ${MODULES_QUERY} }
+			// path modules (after)
+			+ *[_type == 'global-module' && path != '*' && ${GLOBAL_MODULE_PATH_QUERY}].after[]{ ${MODULES_QUERY} }
+			// global moddules (after)
+			+ *[_type == 'global-module' && path == '*'].after[]{ ${MODULES_QUERY} }
+		)
+	}
+`
+
+export async function getPage(slug?: string[]) {
+	return await sanityFetchLive<PAGE_QUERY_RESULT>({
+		query: PAGE_QUERY,
+		params: {
+			slug: slug ? slug.join('/') : 'index',
+		},
+	})
+}
+
+
+
+export async function getCartCheckoutSettings() {
+	return await sanityFetchLive<any>({
+		query: groq`*[_type == 'cart-checkout'][0]{...}`,
+	})
 }
 

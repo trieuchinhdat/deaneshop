@@ -5,6 +5,9 @@ export const ROUTES = {
 	blog: 'blog',
 	products: 'products',
 	collections: 'collections',
-	// etc. services: 'services',
-	// etc. caseStudies: 'case-studies',
+	checkout: 'checkout',
+	cart: 'checkout',
+	search: 'search',
+	orderSuccess: 'order-success',
 } as const
+

@@ -5,7 +5,7 @@ import { ROUTES } from '@/lib/env'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import { sanityFetchLive } from '@/sanity/lib/live'
-import { MODULES_QUERY } from '@/sanity/lib/queries'
+import { MODULES_QUERY, getProductSettings } from '@/sanity/lib/queries'
 import type { BLOG_POST_QUERY_RESULT } from '@/sanity/types'
 import ModulesResolver from '@/ui/modules'
 
@@ -13,12 +13,15 @@ type Props = {
 	params: Promise<{ slug: string }>
 }
 
-export default async function ({ params }: Props) {
+export default async function BlogPage({ params }: Props) {
 	const { slug } = await params
-	const post = await getPost(slug)
+	const [post, productSettings] = await Promise.all([
+		getPost(slug),
+		getProductSettings(),
+	])
 	if (!post) notFound()
 
-	return <ModulesResolver post={post} />
+	return <ModulesResolver post={post} productSettings={productSettings} />
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -59,10 +62,44 @@ export async function generateStaticParams() {
 }
 
 async function getPost(slug: string) {
-	return await sanityFetchLive<BLOG_POST_QUERY_RESULT>({
+	const post = await sanityFetchLive<BLOG_POST_QUERY_RESULT>({
 		query: BLOG_POST_QUERY,
 		params: { slug, blogDir: `${ROUTES.blog}/` },
 	})
+
+	if (!post) return null
+
+	const globalBefore = (post as any).globalBefore || []
+	const customModules = (post as any).customModules || []
+	const globalAfter = (post as any).globalAfter || []
+
+	const hasBreadcrumbs = [...globalBefore, ...customModules, ...globalAfter].some(
+		(m: any) => m?._type === 'breadcrumbs',
+	)
+
+	const hasBlogPostContent = [...globalBefore, ...customModules, ...globalAfter].some(
+		(m: any) => m?._type === 'blog-post-content',
+	)
+
+	let finalCustomModules = [...customModules]
+
+	if (!hasBlogPostContent) {
+		finalCustomModules.unshift({
+			_type: 'blog-post-content',
+			_key: `${post._id}-default-content`,
+		})
+	}
+
+	if (!hasBreadcrumbs) {
+		finalCustomModules.unshift({
+			_type: 'breadcrumbs',
+			_key: `${post._id}-default-breadcrumbs`,
+		})
+	}
+
+	post.modules = [...globalBefore, ...finalCustomModules, ...globalAfter] as any
+
+	return post
 }
 
 const BLOG_POST_QUERY = groq`*[_type == 'blog.post' && metadata.slug.current == $slug][0]{
@@ -91,14 +128,13 @@ const BLOG_POST_QUERY = groq`*[_type == 'blog.post' && metadata.slug.current == 
 			asset->
 		}
 	},
-	'modules': (
-		// global modules (before)
+	'globalBefore': (
 		*[_type == 'global-module' && path == '*'].before[]{ ${MODULES_QUERY} }
-		// path modules (before)
 		+ *[_type == 'global-module' && path == $blogDir].before[]{ ${MODULES_QUERY} }
-		// path modules (after)
-		+ *[_type == 'global-module' && path == $blogDir].after[]{ ${MODULES_QUERY} }
-		// global modules (after)
+	),
+	'customModules': coalesce(modules, [])[]{ ${MODULES_QUERY} },
+	'globalAfter': (
+		*[_type == 'global-module' && path == $blogDir].after[]{ ${MODULES_QUERY} }
 		+ *[_type == 'global-module' && path == '*'].after[]{ ${MODULES_QUERY} }
 	)
 }`

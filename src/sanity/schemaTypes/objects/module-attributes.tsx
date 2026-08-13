@@ -27,6 +27,7 @@ export default defineType({
 				input: ({ elementProps, path }) => {
 					const moduleKey = (path[1] as any)?._key
 					const [checked, setChecked] = useState(false)
+					const { style, ...restProps } = elementProps
 
 					return (
 						<Flex align="center" gap={1}>
@@ -34,7 +35,8 @@ export default defineType({
 
 							<Box flex={1}>
 								<TextInput
-									{...elementProps}
+									{...restProps}
+									style={style as React.CSSProperties}
 									placeholder={`module-${moduleKey}`}
 								/>
 							</Box>

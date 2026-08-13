@@ -14,12 +14,17 @@ export default function ({
 } & StringInputProps<StringSchemaType>) {
 	const chars = elementProps.value?.length || 0
 	const Input = as === 'textarea' ? TextArea : TextInput
+	const { style: elementStyle, ...restProps } = elementProps
+	const customStyle: React.CSSProperties =
+		as === 'textarea'
+			? { resize: 'block', height: '4lh', ...(elementStyle as React.CSSProperties) }
+			: (elementStyle as React.CSSProperties) || {}
 
 	return (
 		<Stack space={2}>
 			<Input
-				style={as === 'textarea' ? { resize: 'block', height: '4lh' } : {}}
-				{...elementProps}
+				style={customStyle}
+				{...restProps}
 			/>
 			<Flex>
 				{children}

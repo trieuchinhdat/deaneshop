@@ -97,19 +97,42 @@ async function getCollection(slug: string) {
 		}
 	}
 
-	if (collection && (!collection.modules || collection.modules.length === 0)) {
-		collection.modules = [
-			{
-				_type: 'collection-content',
-				_key: `${collection._id}-content`,
-				showTitle: true,
-				showDescription: true,
-				enableFilter: true,
-				itemsPerPage: 12,
-				layout: 'grid',
-			},
-		]
+	if (!collection) return null
+
+	const globalBefore = collection.globalBefore || []
+	const customModules = collection.customModules || []
+	const globalAfter = collection.globalAfter || []
+
+	const hasBreadcrumbs = [...globalBefore, ...customModules, ...globalAfter].some(
+		(m: any) => m?._type === 'breadcrumbs',
+	)
+
+	const hasCollectionContent = [...globalBefore, ...customModules, ...globalAfter].some(
+		(m: any) => m?._type === 'collection-content',
+	)
+
+	let finalCustomModules = [...customModules]
+
+	if (!hasCollectionContent) {
+		finalCustomModules.unshift({
+			_type: 'collection-content',
+			_key: `${collection._id}-default-content`,
+			showTitle: true,
+			showDescription: true,
+			enableFilter: true,
+			itemsPerPage: 12,
+			layout: 'grid',
+		})
 	}
+
+	if (!hasBreadcrumbs) {
+		finalCustomModules.unshift({
+			_type: 'breadcrumbs',
+			_key: `${collection._id}-default-breadcrumbs`,
+		})
+	}
+
+	collection.modules = [...globalBefore, ...finalCustomModules, ...globalAfter]
 
 	return collection
 }
@@ -210,16 +233,13 @@ const COLLECTION_QUERY = groq`
 		}
 	},
 
-	'modules': (
-		// global modules (before)
+	'globalBefore': (
 		*[_type == 'global-module' && path == '*'].before[]{ ${MODULES_QUERY} }
-		// path modules (before)
 		+ *[_type == 'global-module' && path == $collectionDir].before[]{ ${MODULES_QUERY} }
-		// collection modules
-		+ coalesce(modules, [])[]{ ${MODULES_QUERY} }
-		// path modules (after)
-		+ *[_type == 'global-module' && path == $collectionDir].after[]{ ${MODULES_QUERY} }
-		// global modules (after)
+	),
+	'customModules': coalesce(modules, [])[]{ ${MODULES_QUERY} },
+	'globalAfter': (
+		*[_type == 'global-module' && path == $collectionDir].after[]{ ${MODULES_QUERY} }
 		+ *[_type == 'global-module' && path == '*'].after[]{ ${MODULES_QUERY} }
 	),
 

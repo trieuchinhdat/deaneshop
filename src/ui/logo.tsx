@@ -1,16 +1,16 @@
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { getSite } from '@/sanity/lib/queries'
 import Img from './img'
 
-export default async function ({
+export default function Logo({
+	site,
 	variant: style = 'default',
 	className,
 }: {
+	site?: any
 	variant?: 'default' | 'light' | 'dark'
 	className?: string
 }) {
-	const site = await getSite()
 	const logo = site?.logo?.image?.[style]
 
 	return (
@@ -21,8 +21,9 @@ export default async function ({
 			{logo ? (
 				<Img
 					image={logo}
-					width={100}
+					width={400}
 					priority={true}
+					imageOptions={{ q: 95 }}
 					className="inline-block h-full w-auto object-contain"
 					alt={site?.title ?? ''}
 				/>

@@ -1,25 +1,24 @@
-import { PortableText } from 'next-sanity'
 import Link from 'next/link'
 import ResponsiveImage from '../responsiveImage'
 
 const resolveInternalLink = (slug: string, type: string) => {
 	switch (type) {
-		case 'product': // Nếu là sản phẩm
+		case 'product':
 			return `/products/${slug}`
-		case 'blog.post': // Nếu là bài viết (check tên schema trong sanity của bạn)
+		case 'blog.post':
 			return `/blog/${slug}`
-		case 'page': // Nếu là page thường
+		case 'page':
 			return slug === 'home' || slug === 'index' ? '/' : `/${slug}`
-		default: // Mặc định
+		default:
 			return `/${slug}`
 	}
 }
 
 export default function Announcement({ data }: { data: any }) {
-	if (!data?.enabled) return null
+	if (!data || data.enabled === false) return null
 
 	// Logic tạo href
-	let bannerHref = null
+	let bannerHref: string | null = null
 
 	if (data.linkBannerType === 'external' && data.external) {
 		bannerHref = data.external
@@ -27,82 +26,59 @@ export default function Announcement({ data }: { data: any }) {
 		bannerHref = resolveInternalLink(data.internalSlug, data.internalType)
 	}
 
+	const isExternal =
+		data.image?.type === 'external' || data.linkBannerType === 'external'
+
 	// --- RENDER 1: IMAGE VARIANT ---
 	if (data.variant === 'image' && data.image) {
-		if (bannerHref) {
-			return (
-				<div
-					style={{
-						backgroundColor: data.backgroundColor || '#000',
-					}}
-				>
-					<Link
-						href={bannerHref}
-						target={data.image?.type === 'external' || data.linkBannerType === 'external' ? '_blank' : undefined}
-					>
-						<ResponsiveImage
-							image={data.image}
-							className="mx-auto flex h-auto max-h-[60px] justify-center object-cover"
-						/>
-					</Link>
-				</div>
-			)
-		}
-		return (
+		const imgElement = (
 			<div
+				className="m-0 p-0"
 				style={{
-					backgroundColor: data.backgroundColor || '#000',
+					backgroundColor: data.backgroundColor || 'transparent',
 				}}
 			>
 				<ResponsiveImage
 					image={data.image}
-					className="mx-auto flex h-auto max-h-[60px] justify-center object-cover"
+					className="mx-auto flex h-auto max-h-[60px] justify-center object-cover m-0 p-0"
 				/>
 			</div>
 		)
-	}
 
-	// --- RENDER 2: TEXT VARIANT ---
-	if (data.variant === 'text' && data.content) {
 		if (bannerHref) {
 			return (
-				<Link
-					href={bannerHref}
-						target={
-							data.image?.type === 'external' || data.linkBannerType === 'external'
-								? '_blank'
-								: undefined
-						}
-				>
-					<div
-						className="w-full px-4 py-2 text-center text-sm font-medium transition-colors"
-						style={{
-							backgroundColor: data.backgroundColor || '#000',
-							color: data.textColor || '#fff',
-						}}
-					>
-						{/* PortableText để render link bên trong text */}
-						<div className="prose-a:underline hover:prose-a:opacity-80 mx-auto max-w-screen-xl">
-							<p>{data.content}</p>
-						</div>
-					</div>
+				<Link href={bannerHref} target={isExternal ? '_blank' : undefined} className="m-0 p-0 block">
+					{imgElement}
 				</Link>
 			)
 		}
-		return (
+		return imgElement
+	}
+
+	// --- RENDER 2: TEXT VARIANT ---
+	if (data.content) {
+		const textElement = (
 			<div
-				className="w-full px-4 py-2 text-center text-sm font-medium transition-colors"
+				className="w-full text-center text-sm font-medium transition-colors m-0 p-0 leading-normal"
 				style={{
-					backgroundColor: data.backgroundColor || '#000',
-					color: data.textColor || '#fff',
+					backgroundColor: data.backgroundColor || 'transparent',
+					color: data.textColor || 'inherit',
 				}}
 			>
-				{/* PortableText để render link bên trong text */}
-				<div className="prose-a:underline hover:prose-a:opacity-80 mx-auto max-w-screen-xl">
-					<p>{data.content}</p>
+				<div className="prose-a:underline hover:prose-a:opacity-80 mx-auto max-w-screen-xl m-0 p-0">
+					<p className="m-0 p-0 inline-block">{data.content}</p>
 				</div>
 			</div>
 		)
+
+		if (bannerHref) {
+			return (
+				<Link href={bannerHref} target={isExternal ? '_blank' : undefined} className="m-0 p-0 block">
+					{textElement}
+				</Link>
+			)
+		}
+		return textElement
 	}
 
 	return null

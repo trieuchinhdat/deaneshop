@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
@@ -29,6 +30,7 @@ export default function CartCheckoutClient({
 	priceShipping = 0,
 }: Props) {
 	const mounted = useMounted()
+	const router = useRouter()
 	const [isSubmitting, setIsSubmitting] = useState(false) // State quản lý loading overlay
 
 	const { items, totalPrice, updateQuantity, removeItem, clearCart } =
@@ -72,144 +74,59 @@ export default function CartCheckoutClient({
 			.join('\n')
 
 		const itemsTotal = totalPrice()
-		// Nếu có sản phẩm mới tính ship
 		const actualShipping = items.length > 0 ? priceShipping : 0
 		const finalTotal = itemsTotal + actualShipping
 
-		// Dữ liệu gửi đi (Đã bỏ paymentMethod)
 		const orderData = {
 			orderId: generateOrderId(),
 			...formData, // Bao gồm: name, phone, email, address, note
 			items: itemsString,
-			total: formatVND(finalTotal),
-			shipping: formatVND(actualShipping),
+			itemsDetail: items.map((item) => ({
+				id: item.id,
+				title: item.title,
+				sku: item.sku || item.id,
+				price: item.price,
+				quantity: item.quantity,
+				image: typeof item.image === 'string' ? item.image : '',
+			})),
+			subtotal: itemsTotal,
+			shippingFee: actualShipping,
+			grandTotal: finalTotal,
+			webhookUrl: webhookUrl?.trim() || '',
 		}
 
 		try {
-			const GOOGLE_SHEET_URL = webhookUrl?.trim() || ''
-
-			if (!GOOGLE_SHEET_URL) {
-				setIsSubmitting(false)
-				MySwal.fire({
-					title: 'Chưa cấu hình nhận đơn!',
-					text: 'Hệ thống chưa thiết lập URL tiếp nhận đơn hàng (Webhook URL). Vui lòng cấu hình trong Sanity CMS.',
-					icon: 'warning',
-					confirmButtonColor: '#d33',
-				})
-				return
-			}
-
-			await fetch(GOOGLE_SHEET_URL, {
+			const res = await fetch('/api/orders/create', {
 				method: 'POST',
-				mode: 'no-cors',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(orderData),
 			})
 
-			// Tắt overlay trước khi hiện thông báo
-			setIsSubmitting(false)
+			const result = await res.json()
 
-			// Hiển thị thông báo thành công (Icon nhỏ tinh tế)
-			MySwal.fire({
-				icon: undefined, // Tắt icon mặc định
-				title: (
-					<div className="flex flex-col items-center gap-2">
-						{/* Icon SVG Checkmark nhỏ */}
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 24 24"
-								strokeWidth={2}
-								stroke="currentColor"
-								className="h-6 w-6"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									d="M4.5 12.75l6 6 9-13.5"
-								/>
-							</svg>
-						</div>
-						<span className="text-xl font-bold text-gray-800">
-							Đặt hàng thành công!
-						</span>
-					</div>
-				),
-				html: (
-					<div className="mt-4 space-y-2 border-t pt-4 text-left text-sm text-gray-600">
-						<div className="grid grid-cols-3 gap-2">
-							<span className="font-semibold text-gray-900">Mã đơn hàng:</span>
-							<span className="col-span-2">{orderData.orderId}</span>
-						</div>
-						<div className="grid grid-cols-3 gap-2">
-							<span className="font-semibold text-gray-900">Tên:</span>
-							<span className="col-span-2">{formData.name}</span>
-						</div>
-						<div className="grid grid-cols-3 gap-2">
-							<span className="font-semibold text-gray-900">
-								Số điện thoại:
-							</span>
-							<span className="col-span-2">{formData.phone}</span>
-						</div>
-						<div className="grid grid-cols-3 gap-2">
-							<span className="font-semibold text-gray-900">Địa chỉ:</span>
-							<span className="col-span-2">{formData.address}</span>
-						</div>
+			if (!res.ok || !result.success) {
+				throw new Error(result.message || 'Có lỗi khi khởi tạo đơn hàng')
+			}
 
-						<div className="py-2">
-							<span className="font-semibold text-gray-900">Sản phẩm:</span>
-							<ul className="mt-1 ml-4 list-disc space-y-1 text-gray-500">
-								{items.map((item, i) => (
-									<li key={i}>
-										{item.quantity}x {item.title}
-										{item.sku ? ` (SKU: ${item.sku})` : ''}
-									</li>
-								))}
-							</ul>
-						</div>
-
-						<div className="py-2">
-							<span className="font-semibold text-gray-900">Ghi chú:</span>
-							<p className="mt-1 text-gray-500">{formData.note || 'No note'}</p>
-						</div>
-
-						<div className="flex justify-between border-t pt-2">
-							<span>Phí vận chuyển:</span>
-							<span>{orderData.shipping}</span>
-						</div>
-						<div className="flex justify-between border-t pt-2">
-							<span>Phương thức thanh toán:</span>
-							<span>COD</span>
-						</div>
-
-						<div className="flex justify-between text-base font-bold text-red-600">
-							<span>Tổng cộng:</span>
-							<span>{orderData.total}</span>
-						</div>
-					</div>
-				),
-				confirmButtonText: 'OK',
-				confirmButtonColor: '#000000',
-				customClass: {
-					popup: 'rounded-xl',
-					confirmButton: 'rounded-lg px-6 py-2',
-				},
-			})
-
+			// TỐI ƯU SIÊU NHANH: Xóa giỏ hàng ngầm & Chuyển hướng tức thì (0s delay) sang /order-success
 			clearCart()
 			resetForm()
-		} catch (error) {
+			router.push(`/${ROUTES.orderSuccess}?orderId=${orderData.orderId}`)
+		} catch (error: any) {
 			setIsSubmitting(false)
 			console.error('Error checkout:', error)
 			MySwal.fire({
-				title: 'Error!',
-				text: 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.',
+				title: 'Lỗi đặt hàng!',
+				text: error?.message || 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.',
 				icon: 'error',
 				confirmButtonColor: '#d33',
+				customClass: {
+					popup: 'rounded-2xl',
+				},
 			})
 		}
 	}
+
 
 	if (!mounted) return null
 

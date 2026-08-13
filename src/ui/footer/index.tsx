@@ -12,7 +12,7 @@ export default async function () {
 			<div className="section space-y-4">
 				<div className="flex justify-between gap-4 max-md:flex-col md:items-start">
 					<div className="flex flex-col items-center gap-4 max-md:text-center md:items-start">
-						<Logo className="[&_img]:h-[2lh]" variant="light" />
+						<Logo site={site} className="[&_img]:h-[2lh]" variant="light" />
 						<PortableText value={site?.footerContent ?? []} />
 						<SocialNavigation className="[&_svg]:size-lh link flex items-center gap-4 max-md:justify-center" />
 					</div>

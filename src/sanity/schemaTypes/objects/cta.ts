@@ -12,6 +12,36 @@ export default defineType({
 			type: 'link',
 		}),
 		defineField({
+			name: 'iconType',
+			title: 'Icon Type',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Tự động / Mặc định', value: 'auto' },
+					{ title: 'Không hiển thị icon', value: 'none' },
+					{ title: 'Giỏ hàng (Cart)', value: 'cart' },
+					{ title: 'Tìm kiếm (Search)', value: 'search' },
+					{ title: 'Tài khoản (User)', value: 'user' },
+					{ title: 'Yêu thích (Wishlist)', value: 'wishlist' },
+					{ title: 'Điện thoại (Phone)', value: 'phone' },
+				],
+			},
+			initialValue: 'auto',
+		}),
+		defineField({
+			name: 'actionType',
+			title: 'Hành động khi nhấp',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Chuyển trang (Link)', value: 'link' },
+					{ title: 'Mở giỏ hàng nhanh (Cart Drawer)', value: 'cart-drawer' },
+					{ title: 'Mở ô tìm kiếm (Search Modal)', value: 'search-modal' },
+				],
+			},
+			initialValue: 'link',
+		}),
+		defineField({
 			name: 'style',
 			type: 'string',
 			options: {

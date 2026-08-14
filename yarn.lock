@@ -5955,7 +5955,7 @@ leven@^4.1.0:
 
 "libheif-js@github:catdad-experiments/libheif-js":
   version "1.19.8"
-  resolved "git+ssh://git@github.com/catdad-experiments/libheif-js.git#fe8e9c29440b839910be9dc32e8d2b826c8217ca"
+  resolved "git+https://github.com/catdad-experiments/libheif-js.git#fe8e9c29440b839910be9dc32e8d2b826c8217ca"
 
 lightbox.js-react@^1.6.7:
   version "1.6.7"

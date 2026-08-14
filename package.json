@@ -10,8 +10,7 @@
 		"lint": "next lint",
 		"typecheck": "tsc --noEmit",
 		"typegen": "sanity schema extract --path=./src/sanity/extract.json && sanity typegen generate",
-		"format": "prettier --write '**/*.{ts,tsx,js,jsx}'",
-		"preinstall": "git config --global url.\"https://github.com/\".insteadOf \"ssh://git@github.com/\" && git config --global url.\"https://github.com/\".insteadOf \"git@github.com:\" && git config --global url.\"https://github.com/\".insteadOf \"git+ssh://git@github.com/\""
+		"format": "prettier --write '**/*.{ts,tsx,js,jsx}'"
 	},
 	"dependencies": {
 		"@portabletext/to-html": "^5.0.1",

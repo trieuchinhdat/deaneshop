@@ -23,6 +23,13 @@ export default defineType({
 			],
 		}),
 		defineField({
+			name: 'customerRef',
+			title: 'Liên kết Hồ sơ Khách hàng (Customer Profile)',
+			description: 'Hồ sơ khách hàng tổng hợp tương ứng trong hệ thống CRM.',
+			type: 'reference',
+			to: [{ type: 'customer' }],
+		}),
+		defineField({
 			name: 'items',
 			title: 'Danh sách sản phẩm',
 			type: 'array',

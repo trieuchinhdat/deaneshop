@@ -11,10 +11,8 @@ export default function ({
 	return (
 		<section
 			className="section grid items-start gap-8 md:grid-cols-2"
-			{...(enableSchema && {
-				itemScope: true,
-				itemType: 'https://schema.org/HowTo',
-			})}
+			itemScope={enableSchema ? true : undefined}
+			itemType={enableSchema ? 'https://schema.org/HowTo' : undefined}
 		>
 			<header className="prose md:sticky-below-header [--offset:1rem]">
 				{enableSchema && intro && (
@@ -29,17 +27,15 @@ export default function ({
 			<ol className="grid gap-8">
 				{steps?.map((step, index) => (
 					<li
+						key={step._key || `step-${index}`}
 						className="gap-ch flex items-start [counter-increment:step]"
-						{...(enableSchema && {
-							itemScope: true,
-							itemProp: 'step',
-							itemType: 'https://schema.org/HowToStep',
-						})}
-						key={step._key || index}
+						itemScope={enableSchema ? true : undefined}
+						itemProp={enableSchema ? 'step' : undefined}
+						itemType={enableSchema ? 'https://schema.org/HowToStep' : undefined}
 					>
 						<span className="h2 bg-foreground text-background size-8 shrink-0 rounded-full text-center before:content-[counter(step)]" />
 
-						<div className="prose" {...(enableSchema && { itemProp: 'text' })}>
+						<div className="prose" itemProp={enableSchema ? 'text' : undefined}>
 							<PortableText value={step.content ?? []} />
 						</div>
 

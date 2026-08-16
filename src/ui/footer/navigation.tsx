@@ -1,15 +1,15 @@
-import { getSite } from '@/sanity/lib/queries'
+import { getFooterSettings } from '@/sanity/lib/queries'
 import type { LinkList as LinkListType } from '@/sanity/types'
 import SanityLink, { type SanityLinkType } from '@/ui/sanity-link'
 import LinkList from './link.list'
 
-export default async function () {
-	const site = await getSite()
+export default async function Navigation({ footerMenu }: { footerMenu?: any }) {
+	const menu = footerMenu || (await getFooterSettings())?.footerMenu
 
 	return (
 		<nav>
 			<ul className="flex items-start justify-center gap-x-8 gap-y-4 max-md:flex-col">
-				{site?.footer?.items?.map((item) => {
+				{menu?.items?.map((item: any) => {
 					switch (item._type) {
 						case 'link':
 							return (

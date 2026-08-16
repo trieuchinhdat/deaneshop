@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { getPage, getProductSettings } from '@/sanity/lib/queries'
 import Loading from '@/ui/loading'
-import SearchModule from '@/ui/modules/search'
 import ModulesResolver from '@/ui/modules'
+import Breadcrumbs from '@/ui/modules/breadcrumbs'
+import SearchModule from '@/ui/modules/search'
 
 export async function generateMetadata(): Promise<Metadata> {
 	const page = await getPage(['search'])
@@ -24,19 +25,37 @@ export default async function SearchPage() {
 		getProductSettings(),
 	])
 
+	const currentPage = {
+		_type: 'page',
+		title: page?.metadata?.title || page?.title || 'Tìm kiếm',
+		...page,
+	}
+
 	// Lấy module search-module từ Sanity page nếu có
 	const searchModuleData = page?.modules?.find(
 		(m: any) => m?._type === 'search-module',
 	) as any
 
-	// Loại bỏ search-module khỏi các modules còn lại để tránh render lặp
+	// Lấy breadcrumbs module cấu hình từ Sanity nếu có
+	const sanityBreadcrumbs = page?.modules?.find(
+		(m: any) => m?._type === 'breadcrumbs',
+	) as any
+
+	// Loại bỏ search-module và breadcrumbs khỏi các modules còn lại để tránh render lặp
 	const otherModules = page?.modules?.filter(
-		(m: any) => m?._type !== 'search-module',
+		(m: any) => m?._type !== 'search-module' && m?._type !== 'breadcrumbs',
 	)
 
 	return (
-		<main className="min-h-screen py-6 lg:py-10">
-			<div className="container mx-auto px-4 max-w-7xl">
+		<main className="min-h-screen">
+			{/* Breadcrumbs Navigation */}
+			<Breadcrumbs
+				_type="breadcrumbs"
+				crumbs={sanityBreadcrumbs?.crumbs}
+				currentPage={currentPage}
+			/>
+
+			<div className="container mx-auto max-w-7xl px-4 py-6 lg:py-10">
 				<Suspense fallback={<Loading>Đang tải trang tìm kiếm...</Loading>}>
 					<SearchModule
 						_type="search-module"
@@ -55,7 +74,7 @@ export default async function SearchPage() {
 					/>
 				</div>
 			)}
-
 		</main>
 	)
 }
+

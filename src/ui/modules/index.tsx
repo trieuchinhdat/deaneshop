@@ -141,11 +141,11 @@ export default function ({
 	)
 }
 
-export type ModuleProps = Partial<
-	NonNullable<
-		NonNullable<PAGE_QUERY_RESULT | BLOG_POST_QUERY_RESULT>['modules']
-	>[number]
-> & { attributes?: ModuleAttributes }
+export type ModuleProps = {
+	_key?: string
+	_type?: string
+	attributes?: ModuleAttributes
+}
 
 export function moduleAttributes({ _key, _type, attributes }: ModuleProps) {
 	return {

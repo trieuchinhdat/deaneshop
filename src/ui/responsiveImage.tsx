@@ -5,6 +5,7 @@ import Img, { Source } from '@/ui/img'
 type ResponsiveImageProps = {
 	image: any
 	className?: string
+	imgClassName?: string
 	desktop?: { width: number }
 	mobile?: { width: number; media?: string }
 	priority?: boolean
@@ -14,6 +15,7 @@ type ResponsiveImageProps = {
 export default function ResponsiveImage({
 	image,
 	className,
+	imgClassName,
 	desktop = { width: 1200 },
 	mobile = { width: 600, media: '(max-width: 767px)' },
 	priority = false,
@@ -42,6 +44,7 @@ export default function ResponsiveImage({
 				priority={priority}
 				loading={loading}
 				sizes={sizes}
+				className={imgClassName}
 			/>
 		</picture>
 	)

@@ -17,8 +17,15 @@ import review from './documents/review'
 import productSettings from './documents/product-settings'
 import productCardSettings from './documents/product-card-settings'
 import headerSettings from './documents/header-settings'
+import footerSettings from './documents/footer-settings'
 import site from './documents/site'
+import themeSettings from './documents/theme-settings'
+import widgetSettings from './documents/widget-settings'
+import systemSettings from './documents/system-settings'
 import trackingScript from './documents/tracking-script'
+import popupSettings from './documents/popup-settings'
+import lead from './documents/lead'
+import customer from './documents/customer'
 // modules
 import accordionList from './modules/accordion-list'
 import affiliateLink from './modules/affiliate-link'
@@ -58,9 +65,17 @@ export const schema: SchemaPluginOptions = {
 	types: [
 		// documents
 		site,
+		themeSettings,
+		widgetSettings,
+		systemSettings,
+		popupSettings,
 		headerSettings,
+		footerSettings,
 		productCardSettings,
 		productSettings,
+		order,
+		customer,
+		lead,
 		page,
 		globalModule,
 		blogPost,
@@ -119,4 +134,14 @@ export const schema: SchemaPluginOptions = {
 		templates.filter(({ schemaType }) => !singletonTypes.includes(schemaType)),
 }
 
-const singletonTypes = ['site', 'header-settings', 'product-settings', 'product-card-settings']
+const singletonTypes = [
+	'site',
+	'theme-settings',
+	'widget-settings',
+	'system-settings',
+	'popup-settings',
+	'header-settings',
+	'footer-settings',
+	'product-settings',
+	'product-card-settings',
+]

@@ -3,13 +3,10 @@ import type { LinkList, Megamenu as MegamenuType } from '@/sanity/types'
 import SanityLink, { type SanityLinkType } from '@/ui/sanity-link'
 import Dropdown from './dropdown'
 import Megamenu from './megamenu'
-import MobileNav from './mobile-nav'
 
 export default function Navigation({
 	items,
 	desktopItems,
-	mobileItems,
-	ctas,
 	align = 'center',
 }: {
 	items?: any[] | null
@@ -19,41 +16,42 @@ export default function Navigation({
 	align?: 'left' | 'center' | 'right'
 }) {
 	const desktopMenu = desktopItems || items
-	const mobileMenu = mobileItems || items || desktopMenu
 
 	const justifyClass =
 		align === 'left' ? 'justify-start' : align === 'right' ? 'justify-end' : 'justify-center'
 
 	return (
-		<nav className="max-md:header-not-open:hidden text-header-foreground [grid-area:navigation] max-md:my-2 w-full">
+		<nav className="text-header-foreground [grid-area:navigation] w-full">
 			{/* Desktop Navigation */}
 			<div className={cn('hidden md:flex gap-x-8 items-center', justifyClass)}>
-				{desktopMenu?.map((item) => {
-					switch (item._type) {
-						case 'link':
-							return (
-								<SanityLink
-									link={item as SanityLinkType}
-									className="text-header-foreground hover:underline"
-									key={item._key}
-								/>
-							)
+				{desktopMenu && desktopMenu.length > 0 ? (
+					desktopMenu.map((item, index) => {
+						const navKey = item._key || `nav-${index}`
+						switch (item._type) {
+							case 'link':
+								return (
+									<SanityLink
+										link={item as SanityLinkType}
+										className="group relative inline-flex items-center py-2 text-sm font-semibold tracking-normal text-header-foreground transition-colors hover:text-primary after:absolute after:bottom-0.5 after:left-0 after:h-[2px] after:w-0 after:rounded-full after:bg-primary after:transition-all after:duration-300 hover:after:w-full select-none"
+										key={navKey}
+									/>
+								)
 
-						case 'link.list':
-							return <Dropdown {...(item as LinkList)} key={item._key} />
+							case 'link.list':
+								return <Dropdown {...(item as LinkList)} key={navKey} />
 
-						case 'megamenu':
-							return <Megamenu {...(item as MegamenuType)} key={item._key} />
+							case 'megamenu':
+								return <Megamenu {...(item as MegamenuType)} key={navKey} />
 
-						default:
-							return null
-					}
-				})}
-			</div>
-
-			{/* Mobile Navigation with Drill-down Panel Stack & Position Header */}
-			<div className="md:hidden">
-				<MobileNav items={mobileMenu} ctas={ctas} />
+							default:
+								return null
+						}
+					})
+				) : (
+					<div className="text-xs text-muted-foreground opacity-60">
+						Chưa có menu
+					</div>
+				)}
 			</div>
 		</nav>
 	)

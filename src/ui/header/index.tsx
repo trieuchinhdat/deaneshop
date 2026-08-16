@@ -1,5 +1,4 @@
 import { getHeaderSettings, getSite } from '@/sanity/lib/queries'
-import Announcement from './announcement'
 import HeaderClient from './header-client'
 import Navigation from './navigation'
 
@@ -9,11 +8,10 @@ export default async function () {
 		getHeaderSettings(),
 	])
 
-	// Menu (Desktop & Mobile with Smart Fallback) & CTAs & Announcements
+	// Menu (Desktop & Mobile with Smart Fallback) & CTAs
 	const desktopNavItems = headerSettings?.menu?.items
 	const mobileNavItems = headerSettings?.mobileMenu?.items || desktopNavItems
 	const ctas = headerSettings?.ctas
-	const announcementData = headerSettings?.announcements?.[0]
 
 	return (
 		<HeaderClient
@@ -27,7 +25,6 @@ export default async function () {
 					align={headerSettings?.desktopMenuAlign || 'center'}
 				/>
 			}
-			announcement={<Announcement data={announcementData} />}
 		/>
 	)
 }

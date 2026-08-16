@@ -41,38 +41,32 @@ export default function ({
 				)}
 
 				<div className="mx-auto w-full max-w-3xl">
-					{accordions?.map(({ _key, summary, content, open }) => (
+					{accordions?.map(({ _key, summary, content, open }, index) => (
 						<details
+							key={_key || `accordion-${index}`}
 							className="accordion border-stroke not-last:border-b"
 							name={exclusive ? _module_key : undefined}
 							open={open}
-							{...(enableSchema && {
-								itemScope: true,
-								itemProp: 'mainEntity',
-								itemType: 'https://schema.org/Question',
-							})}
-							key={`accordion` + _key}
+							itemScope={enableSchema ? true : undefined}
+							itemProp={enableSchema ? 'mainEntity' : undefined}
+							itemType={enableSchema ? 'https://schema.org/Question' : undefined}
 						>
 							<summary
 								className="py-2 font-bold"
-								key={_key}
-								{...(enableSchema && { itemProp: 'name' })}
+								itemProp={enableSchema ? 'name' : undefined}
 							>
 								{summary}
 							</summary>
 
 							<div
 								className="not-supports-[interpolate-size:allow-keywords]:anim-fade-to-b pb-lh"
-								key={`text` + _key}
-								{...(enableSchema && {
-									itemScope: true,
-									itemProp: 'acceptedAnswer',
-									itemType: 'https://schema.org/Answer',
-								})}
+								itemScope={enableSchema ? true : undefined}
+								itemProp={enableSchema ? 'acceptedAnswer' : undefined}
+								itemType={enableSchema ? 'https://schema.org/Answer' : undefined}
 							>
 								<div
 									className="prose"
-									{...(enableSchema && { itemProp: 'text' })}
+									itemProp={enableSchema ? 'text' : undefined}
 								>
 									<PortableText value={content ?? []} />
 								</div>

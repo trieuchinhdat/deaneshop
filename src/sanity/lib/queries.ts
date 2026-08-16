@@ -31,6 +31,7 @@ const NAVIGATION_QUERY = groq`
 		defined(link) => { link{ ${LINK_QUERY} } },
 		defined(links[]) => { links[]{ ${LINK_QUERY} } },
 		_type == 'megamenu' => {
+			badge,
 			defined(link) => { link{ ${LINK_QUERY} } },
 			items[]{
 				...,
@@ -38,6 +39,14 @@ const NAVIGATION_QUERY = groq`
 					defined(link) => { link{ ${LINK_QUERY} } },
 					links[]{ ${LINK_QUERY} }
 				}
+			},
+			banner {
+				...,
+				image {
+					...,
+					asset->
+				},
+				link { ${LINK_QUERY} }
 			}
 		}
 	}
@@ -45,32 +54,119 @@ const NAVIGATION_QUERY = groq`
 
 const SITE_QUERY = groq`*[_type == 'site'][0]{
 	...,
-	footer->{ ${NAVIGATION_QUERY} },
-	social->{ ${NAVIGATION_QUERY} },
-	chatbox->{ ${NAVIGATION_QUERY} },
-	theme { 
-        primaryColor,
-        backgroundColor,
-        textColor,
-        headerBackground,
-        headerText,
-        footerBackground,
-        footerText
-    },
-	scripts[] {
-      _key,
-      title,
-      isActive,
-      location,
-      strategy,
-      scriptType,
-      src,
-      code,
-      attributes[] {
-        key,
-        value
-      }
-    }
+	logo {
+		...,
+		image {
+			default,
+			light,
+			dark
+		}
+	},
+	socialLinks[] {
+		_key,
+		platform,
+		title,
+		url
+	},
+	'theme': coalesce(*[_type == 'theme-settings'][0].theme, theme) { 
+		preset,
+		primaryColor,
+		onPrimaryColor,
+		secondaryColor,
+		onSecondaryColor,
+		ctaColor,
+		onCtaColor,
+		backgroundColor,
+		surfaceColor,
+		textColor,
+		textMutedColor,
+		noteBackground,
+		noteTextColor,
+		successColor,
+		warningColor,
+		destructiveColor,
+		borderColor,
+		ringColor,
+		borderRadius,
+		shadowStyle,
+		fontHeading,
+		customFontHeading,
+		fontBody,
+		customFontBody
+	},
+	'widgetPosition': coalesce(*[_type == 'widget-settings'][0].widgetPosition, widgetPosition, 'bottom-right'),
+	'displayMode': coalesce(*[_type == 'widget-settings'][0].displayMode, displayMode, 'expandable'),
+	'mainButtonLabel': coalesce(*[_type == 'widget-settings'][0].mainButtonLabel, mainButtonLabel, 'Need Help?'),
+	'mainButtonIcon': coalesce(*[_type == 'widget-settings'][0].mainButtonIcon, mainButtonIcon, 'chat'),
+	'floatingButtons': coalesce(*[_type == 'widget-settings'][0].floatingButtons, floatingButtons)[] {
+		_key,
+		type,
+		label,
+		value,
+		icon,
+		isActive,
+		pulse
+	},
+	'announcementBar': coalesce(*[_type == 'system-settings'][0].announcementBar, announcementBar) {
+		isActive,
+		text,
+		link,
+		bgColor,
+		textColor
+	},
+	'maintenanceMode': coalesce(*[_type == 'system-settings'][0].maintenanceMode, maintenanceMode, false),
+	'scripts': coalesce(*[_type == 'system-settings'][0].scripts, scripts)[] {
+		_key,
+		title,
+		isActive,
+		location,
+		strategy,
+		scriptType,
+		src,
+		code,
+		attributes[] {
+			key,
+			value
+		}
+	},
+	'popup': coalesce(*[_type == 'popup-settings'][0], popup) {
+		isActive,
+		type,
+		targetPages,
+		triggerType,
+		delaySeconds,
+		scrollPercentage,
+		frequencyDays,
+		bannerImage {
+			...,
+			asset->
+		},
+		mobileBannerImage {
+			...,
+			asset->
+		},
+		bannerBadge,
+		bannerTitle,
+		bannerDescription,
+		couponCode,
+		bannerCtaText,
+		bannerCtaUrl,
+		formImage {
+			...,
+			asset->
+		},
+		formBadge,
+		formTitle,
+		formDescription,
+		formFields,
+		formSubmitLabel,
+		formPrivacyText,
+		rewardCouponCode,
+		successTitle,
+		successDescription,
+		layoutStyle,
+		accentColor
+	}
 }`
 
 export const GLOBAL_MODULE_PATH_QUERY = groq`
@@ -268,7 +364,10 @@ export const PRODUCT_SETTINGS_QUERY = groq`*[_type == 'product-settings'][0]{
 
 export const HEADER_SETTINGS_QUERY = groq`*[_type == 'header-settings'][0]{
 	...,
+	allowDismiss,
+	autoPlayInterval,
 	menu->{ ${NAVIGATION_QUERY} },
+	categoryMenu->{ ${NAVIGATION_QUERY} },
 	mobileMenu->{ ${NAVIGATION_QUERY} },
 	ctas[]{
 		...,
@@ -280,13 +379,21 @@ export const HEADER_SETTINGS_QUERY = groq`*[_type == 'header-settings'][0]{
 		...,
 		enabled,
 		variant,
+		badgeText,
+		badgeBgColor,
+		badgeTextColor,
 		content,
 		backgroundColor,
 		textColor,
 		image {
 			...,
 			asset->,
-			mobileImage { asset-> }
+			mobileImage {
+				...,
+				asset->
+			},
+			alt,
+			loading
 		},
 		"internalType": internal->_type,
 		"internalSlug": internal->metadata.slug.current
@@ -299,6 +406,33 @@ export async function getSite() {
 	return await sanityFetchLive<SITE_QUERY_RESULT>({
 		query: SITE_QUERY,
 	})
+}
+
+export const FOOTER_SETTINGS_QUERY = groq`*[_type == 'footer-settings'][0]{
+	...,
+	footerMenu->{ ${NAVIGATION_QUERY} },
+	social->{ ${NAVIGATION_QUERY} },
+}`
+
+export async function getFooterSettings() {
+	const [footerSettings, site] = await Promise.all([
+		sanityFetchLive<any>({
+			query: FOOTER_SETTINGS_QUERY,
+		}),
+		sanityFetchLive<any>({
+			query: SITE_QUERY,
+		}),
+	])
+
+	return {
+		footerMenu: footerSettings?.footerMenu ?? site?.footer,
+		social: footerSettings?.social ?? site?.social,
+		footerContent: footerSettings?.footerContent ?? site?.footerContent,
+		copyright: footerSettings?.copyright ?? site?.copyright,
+		footerBackground: footerSettings?.footerBackground ?? site?.theme?.footerBackground,
+		footerText: footerSettings?.footerText ?? site?.theme?.footerText,
+		...(footerSettings || {}),
+	}
 }
 
 export async function getHeaderSettings() {
@@ -362,4 +496,50 @@ export async function getCartCheckoutSettings() {
 		query: groq`*[_type == 'cart-checkout'][0]{...}`,
 	})
 }
+
+export const POPUP_SETTINGS_QUERY = groq`coalesce(*[_type == 'popup-settings'][0], *[_type == 'site'][0].popup){
+	isActive,
+	type,
+	targetPages,
+	triggerType,
+	delaySeconds,
+	scrollPercentage,
+	frequencyDays,
+	bannerImage {
+		...,
+		asset->
+	},
+	mobileBannerImage {
+		...,
+		asset->
+	},
+	bannerBadge,
+	bannerTitle,
+	bannerDescription,
+	couponCode,
+	bannerCtaText,
+	bannerCtaUrl,
+	formImage {
+		...,
+		asset->
+	},
+	formBadge,
+	formTitle,
+	formDescription,
+	formFields,
+	formSubmitLabel,
+	formPrivacyText,
+	rewardCouponCode,
+	successTitle,
+	successDescription,
+	layoutStyle,
+	accentColor
+}`
+
+export async function getPopupSettings() {
+	return await sanityFetchLive<any>({
+		query: POPUP_SETTINGS_QUERY,
+	})
+}
+
 

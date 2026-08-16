@@ -1,15 +1,17 @@
 'use client'
 
+import { stegaClean } from 'next-sanity'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-
 import { cn } from '@/lib/utils'
+
 
 interface WrapperProps extends React.ComponentProps<'header'> {
 	behavior?: string
 	styleVariant?: string
 	headerBackground?: string
 	headerText?: string
+	enableScrolledEffect?: boolean
 }
 
 export default function Wrapper({
@@ -19,50 +21,95 @@ export default function Wrapper({
 	styleVariant = 'solid',
 	headerBackground,
 	headerText,
+	enableScrolledEffect = true,
 	style,
 	...props
 }: WrapperProps) {
 	const ref = useRef<HTMLDivElement>(null)
 	const pathname = usePathname()
 	const [isVisible, setIsVisible] = useState(true)
+	const [isScrolled, setIsScrolled] = useState(false)
 	const lastScrollY = useRef(0)
+	const rafId = useRef<number | null>(null)
 
-	// set --header-height
+	// Clean stega characters from Sanity visual editing
+	const cleanBg = headerBackground ? stegaClean(headerBackground).trim() : undefined
+	const cleanText = headerText ? stegaClean(headerText).trim() : undefined
+
+	// Set and sync --header-height using ResizeObserver with default fallback
+	useEffect(() => {
+		if (typeof window === 'undefined' || !ref.current) return
+
+		const updateHeight = () => {
+			if (ref.current) {
+				const height = ref.current.offsetHeight
+				document.documentElement.style.setProperty(
+					'--header-height',
+					`${height}px`,
+				)
+				ref.current.style.setProperty(
+					'--header-height',
+					`${height}px`,
+				)
+			}
+		}
+
+		updateHeight()
+
+		// ResizeObserver tracks dynamic height change (e.g. mobile search bar, window resize)
+		const resizeObserver = new ResizeObserver(() => {
+			updateHeight()
+		})
+		resizeObserver.observe(ref.current)
+
+		return () => {
+			resizeObserver.disconnect()
+		}
+	}, [])
+
+	// Scroll listener: handles smart sticky & isScrolled state
 	useEffect(() => {
 		if (typeof window === 'undefined') return
 
-		function setHeight() {
-			if (!ref.current) return
-			document.documentElement.style.setProperty(
-				'--header-height',
-				`${ref.current.offsetHeight ?? 0}px`,
-			)
-		}
-		setHeight()
-		window.addEventListener('resize', setHeight)
-
-		return () => window.removeEventListener('resize', setHeight)
-	}, [])
-
-	// smart sticky scroll listener
-	useEffect(() => {
-		if (behavior !== 'smart' || typeof window === 'undefined') return
-
 		const handleScroll = () => {
-			const currentScrollY = window.scrollY
-			if (currentScrollY > 80 && currentScrollY > lastScrollY.current) {
-				setIsVisible(false) // Scrolling down -> hide
-			} else {
-				setIsVisible(true) // Scrolling up -> show
-			}
-			lastScrollY.current = currentScrollY
+			if (rafId.current !== null) return
+
+			rafId.current = window.requestAnimationFrame(() => {
+				const currentScrollY = window.scrollY
+				const delta = currentScrollY - lastScrollY.current
+
+				// 1. Scrolled state (> 15px)
+				if (currentScrollY > 15) {
+					setIsScrolled(true)
+				} else {
+					setIsScrolled(false)
+				}
+
+				// 2. Smart sticky hide/reveal
+				if (behavior === 'smart') {
+					if (currentScrollY > 80 && delta > 5) {
+						setIsVisible((prev) => (prev ? false : prev)) // Scrolling down -> hide
+					} else if (delta < -5 || currentScrollY <= 80) {
+						setIsVisible((prev) => (!prev ? true : prev)) // Scrolling up or at top -> show
+					}
+				}
+
+				lastScrollY.current = currentScrollY
+				rafId.current = null
+			})
 		}
 
 		window.addEventListener('scroll', handleScroll, { passive: true })
-		return () => window.removeEventListener('scroll', handleScroll)
+		return () => {
+			window.removeEventListener('scroll', handleScroll)
+			if (rafId.current !== null) {
+				window.cancelAnimationFrame(rafId.current)
+				rafId.current = null
+			}
+		}
 	}, [behavior])
 
-	// close menus after navigation
+	// Close menus & open dropdowns on route navigation
 	useEffect(() => {
 		if (typeof document === 'undefined') return
 		const toggle = document.querySelector('#header-open') as HTMLInputElement
@@ -79,35 +126,57 @@ export default function Wrapper({
 
 	const positionClass =
 		behavior === 'static'
-			? 'relative'
+			? 'relative z-[60]'
 			: behavior === 'smart'
 				? cn(
-						'sticky top-0 z-10 transition-transform duration-300 ease-in-out',
+						'sticky top-0 z-[60] transition-transform duration-300 ease-in-out',
 						isVisible ? 'translate-y-0' : '-translate-y-full',
 					)
-				: 'sticky top-0 z-10'
+				: 'sticky top-0 z-[60]'
 
 	const styleClass =
 		styleVariant === 'blur'
-			? 'bg-header/80 backdrop-blur-md text-header-foreground'
+			? cn(
+					'bg-header/85 backdrop-blur-md text-header-foreground',
+					isScrolled && enableScrolledEffect && 'bg-header/95 backdrop-blur-lg shadow-md border-b border-stroke/15'
+				)
 			: styleVariant === 'transparent'
-				? 'bg-transparent text-header-foreground'
-				: 'bg-header text-header-foreground'
+				? cn(
+						'bg-transparent text-header-foreground',
+						isScrolled && enableScrolledEffect && 'bg-header/90 backdrop-blur-md shadow-md border-b border-stroke/15'
+					)
+				: cn(
+						'bg-header text-header-foreground',
+						isScrolled && enableScrolledEffect && 'shadow-md border-b border-stroke/15'
+					)
 
 	const customStyle: React.CSSProperties = {
 		...(style || {}),
-		...(headerBackground
+		...(cleanBg
 			? styleVariant === 'solid'
-				? { backgroundColor: headerBackground, '--header-bg': headerBackground }
-				: { '--header-bg': headerBackground }
+				? ({
+						backgroundColor: cleanBg,
+						'--header-bg': cleanBg,
+						'--color-header': cleanBg,
+					} as React.CSSProperties)
+				: ({
+						'--header-bg': cleanBg,
+						'--color-header': cleanBg,
+					} as React.CSSProperties)
 			: {}),
-		...(headerText ? { color: headerText, '--header-text': headerText } : {}),
+		...(cleanText
+			? ({
+					color: cleanText,
+					'--header-text': cleanText,
+					'--color-header-foreground': cleanText,
+				} as React.CSSProperties)
+			: {}),
 	}
 
 	return (
 		<header
 			ref={ref}
-			className={cn(positionClass, styleClass, className)}
+			className={cn('w-full transition-all duration-300', positionClass, styleClass, className)}
 			style={customStyle}
 			role="banner"
 			{...props}
@@ -116,3 +185,6 @@ export default function Wrapper({
 		</header>
 	)
 }
+
+
+

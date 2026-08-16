@@ -97,7 +97,7 @@ async function getPost(slug: string) {
 		})
 	}
 
-	post.modules = [...globalBefore, ...finalCustomModules, ...globalAfter] as any
+	;(post as any).modules = [...globalBefore, ...finalCustomModules, ...globalAfter] as any
 
 	return post
 }

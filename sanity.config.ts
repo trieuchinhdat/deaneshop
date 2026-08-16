@@ -22,7 +22,7 @@ import structure from './src/sanity/structure'
 
 export default defineConfig({
 	title: 'ECOCROS',
-	basePath: '/admin',
+	basePath: '/studio',
 	projectId,
 	dataset,
 	// Add and edit the content schema in the './sanity/schemaTypes' folder

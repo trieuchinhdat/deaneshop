@@ -8,15 +8,22 @@ import {
 	FaXTwitter,
 	FaYoutube,
 } from 'react-icons/fa6'
-import { getSite } from '@/sanity/lib/queries'
+import { getFooterSettings } from '@/sanity/lib/queries'
 import SanityLink, { type SanityLinkType } from './sanity-link'
 
-export default async function (props: React.ComponentProps<'nav'>) {
-	const site = await getSite()
+interface SocialNavigationProps extends React.ComponentProps<'nav'> {
+	socialData?: any
+}
+
+export default async function SocialNavigation({
+	socialData,
+	...props
+}: SocialNavigationProps) {
+	const social = socialData || (await getFooterSettings())?.social
 
 	return (
 		<nav {...props}>
-			{site?.social?.items?.map((link) => {
+			{social?.items?.map((link: any) => {
 				switch (link._type) {
 					case 'link':
 						const url = link.external

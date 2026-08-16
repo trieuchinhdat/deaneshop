@@ -41,11 +41,11 @@ export default function CtaList({
 	return (
 		<div
 			className={cn(
-				'flex flex-wrap items-center gap-x-[.5em] gap-y-[.25em]',
+				'flex flex-wrap items-center gap-1 sm:gap-1.5',
 				className,
 			)}
 		>
-			{ctas.map((cta) => {
+			{ctas.map((cta, index) => {
 				const linkData = cta.link as SanityLinkType
 				const labelClean = linkData?.label?.toLowerCase().trim() || ''
 				const configuredIcon = cta.iconType || 'auto'
@@ -80,17 +80,22 @@ export default function CtaList({
 
 				if (effectiveIcon !== 'none') {
 					content = (
-						<span className="flex items-center justify-center gap-1.5" title={linkData?.label}>
-							<span className="relative text-xl">
+						<span className="flex items-center justify-center" title={linkData?.label}>
+							<span className="relative text-xl flex items-center justify-center">
 								{effectiveIcon === 'search' && <IoIosSearch />}
 								{effectiveIcon === 'cart' && <HiOutlineShoppingBag />}
 								{effectiveIcon === 'user' && <HiOutlineUser />}
 								{effectiveIcon === 'wishlist' && <HiOutlineHeart />}
 								{effectiveIcon === 'phone' && <HiOutlinePhone />}
 
-								{/* Badge số lượng cho Cart */}
-								{effectiveIcon === 'cart' && mounted && totalQuantity > 0 && (
-									<span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white">
+								{/* Badge số lượng cho Cart với smooth transition */}
+								{effectiveIcon === 'cart' && mounted && (
+									<span
+										className={cn(
+											'absolute -top-1 -right-2 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-xs transition-all duration-300',
+											totalQuantity > 0 ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
+										)}
+									>
 										{totalQuantity > 9 ? '9+' : totalQuantity}
 									</span>
 								)}
@@ -103,17 +108,22 @@ export default function CtaList({
 					effectiveIcon === 'user' ||
 					(effectiveIcon === 'search' && mobileSearchDisplay !== 'icon')
 
+				const baseBtnClass = cn(
+					stegaClean(cta.style),
+					'p-2 min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-header-foreground cursor-pointer',
+					isMobileHiddenIcon && 'max-md:hidden',
+				)
+
+				const ctaKey = cta._key || `cta-${index}`
+
 				if (shouldOpenCart) {
 					return (
 						<button
-							key={cta._key}
+							key={ctaKey}
 							type="button"
 							onClick={onOpenCart}
-							className={cn(
-								stegaClean(cta.style),
-								'p-2 flex items-center justify-center cursor-pointer',
-								isMobileHiddenIcon && 'max-md:hidden',
-							)}
+							className={baseBtnClass}
+							aria-label={linkData?.label || 'Giỏ hàng'}
 							title={linkData?.label || 'Giỏ hàng'}
 						>
 							{content}
@@ -124,14 +134,11 @@ export default function CtaList({
 				if (shouldOpenSearch) {
 					return (
 						<button
-							key={cta._key}
+							key={ctaKey}
 							type="button"
 							onClick={onOpenSearch}
-							className={cn(
-								stegaClean(cta.style),
-								'p-2 flex items-center justify-center cursor-pointer',
-								isMobileHiddenIcon && 'max-md:hidden',
-							)}
+							className={baseBtnClass}
+							aria-label={linkData?.label || 'Tìm kiếm'}
 							title={linkData?.label || 'Tìm kiếm'}
 						>
 							{content}
@@ -142,12 +149,9 @@ export default function CtaList({
 				return (
 					<SanityLink
 						link={linkData}
-						className={cn(
-							stegaClean(cta.style),
-							'p-2 flex items-center justify-center',
-							isMobileHiddenIcon && 'max-md:hidden',
-						)}
-						key={cta._key}
+						className={baseBtnClass}
+						key={ctaKey}
+						aria-label={linkData?.label}
 					>
 						{content}
 					</SanityLink>
@@ -156,3 +160,4 @@ export default function CtaList({
 		</div>
 	)
 }
+

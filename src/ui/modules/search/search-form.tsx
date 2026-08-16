@@ -1,7 +1,8 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation'
 import { useQueryState } from 'nuqs'
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { IoIosSearch } from 'react-icons/io'
 import { debounce } from '@/lib/utils'
 import type { SearchModule } from '@/sanity/types'
@@ -11,6 +12,7 @@ import SearchResults from './search-results'
 import { useSearchStore } from './store'
 
 export default function SearchPage({ scope }: Partial<SearchModule>) {
+	const searchParams = useSearchParams()
 	const [query, setQuery] = useQueryState('query', {
 		defaultValue: '',
 		shallow: true,
@@ -18,6 +20,14 @@ export default function SearchPage({ scope }: Partial<SearchModule>) {
 	})
 
 	const { loading } = useSearchStore()
+
+	// Fallback nếu người dùng truy cập qua ?q= thay vì ?query=
+	useEffect(() => {
+		const qParam = searchParams.get('q')
+		if (!query && qParam) {
+			setQuery(qParam)
+		}
+	}, [searchParams, query, setQuery])
 
 	// 👇 TỐI ƯU: Sử dụng useCallback để tạo hàm debounce một lần duy nhất
 	// Tăng thời gian lên 600ms hoặc 800ms để chờ người dùng gõ xong hẳn mới chạy

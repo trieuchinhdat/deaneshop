@@ -1,80 +1,88 @@
 import { StructureBuilder, structureTool } from 'sanity/structure'
-import { VscGlobe, VscLayout, VscLayoutMenubar, VscPackage, VscSettings } from 'react-icons/vsc'
-import { FiStar, FiClock, FiCheckCircle, FiList } from 'react-icons/fi'
+import {
+	VscGlobe,
+	VscLayout,
+	VscLayoutMenubar,
+	VscPackage,
+	VscSettings,
+	VscColorMode,
+	VscMegaphone,
+	VscCommentDiscussion,
+	VscCode,
+} from 'react-icons/vsc'
+import {
+	FiExternalLink,
+	FiShoppingBag,
+	FiFileText,
+	FiFolder,
+	FiLayers,
+	FiNavigation,
+	FiShuffle,
+	FiSmile,
+	FiUsers,
+	FiMessageCircle,
+} from 'react-icons/fi'
 import { group, singleton } from './lib/builders'
+import ManagementHubLauncher from './ui/management-hub-launcher'
 
 export default structureTool({
 	structure: (S: StructureBuilder) =>
 		S.list()
-			.title('Content')
+			.title('Content Studio')
 			.items([
-				/* ================= SITE SETTINGS ================= */
-				S.divider().title('Settings'),
-				group(S, 'Site Settings', [
-					singleton(S, 'site').title('Site Global').icon(VscGlobe),
+				/* ================= 1. PRODUCTS & CATALOG (TOP PRIORITY) ================= */
+				S.documentTypeListItem('product').title('Products').icon(FiShoppingBag),
+				S.documentTypeListItem('collection').title('Collections').icon(FiFolder),
+
+				S.divider(),
+
+				/* ================= 2. PAGES & EDITORIAL ================= */
+				S.documentTypeListItem('page').title('Pages').icon(FiFileText),
+				S.documentTypeListItem('blog.post').title('Blog Posts').icon(FiFileText),
+				S.documentTypeListItem('blog.category').title('Blog Categories').icon(FiFolder),
+				S.documentTypeListItem('global-module').title('Global Modules').icon(FiLayers),
+
+				S.divider(),
+
+				/* ================= 3. GLOBAL & MARKETING SETTINGS ================= */
+				group(S, 'Global Settings', [
+					singleton(S, 'site').title('1. Branding & Business Profile').icon(VscGlobe),
+					singleton(S, 'theme-settings').title('2. Theme & Design Tokens').icon(VscColorMode),
+					singleton(S, 'popup-settings').title('3. Popup Marketing (Banner & Form)').icon(VscMegaphone),
+					singleton(S, 'widget-settings').title('4. Floating Widgets & Contact').icon(VscCommentDiscussion),
+					singleton(S, 'system-settings').title('5. System & Tracking Scripts').icon(VscCode),
+				]).icon(VscGlobe),
+
+				S.divider(),
+
+				/* ================= 4. DESIGN & LAYOUT SETTINGS ================= */
+				group(S, 'Layout Settings', [
 					singleton(S, 'header-settings').title('Header Settings').icon(VscLayoutMenubar),
+					singleton(S, 'footer-settings').title('Footer Settings').icon(VscLayout),
 					singleton(S, 'product-card-settings').title('Product Card Settings').icon(VscLayout),
 					singleton(S, 'product-settings').title('Product Page Settings').icon(VscPackage),
 				]).icon(VscSettings),
-				S.documentTypeListItem('global-module').title('Global modules'),
 
-				/* ================= PAGES ================= */
-				S.divider().title('Pages'),
-				S.documentTypeListItem('page').title('Pages'),
+				S.divider(),
 
-				/* ================= Product ================= */
-				S.divider().title('Products'),
-				S.documentTypeListItem('product').title('Products'),
+				/* ================= 5. NAVIGATION & ASSETS ================= */
+				S.documentTypeListItem('navigation').title('Navigation Menus').icon(FiNavigation),
+				S.documentTypeListItem('redirect').title('URL Redirects').icon(FiShuffle),
+				S.documentTypeListItem('logo').title('Brand Logos').icon(FiSmile),
+				S.documentTypeListItem('person').title('Team & Authors').icon(FiUsers),
+				S.documentTypeListItem('quote').title('Quotes & Testimonials').icon(FiMessageCircle),
+
+				S.divider(),
+
+				/* ================= 6. OPERATIONS & COMMERCE ADMIN (BOTTOM) ================= */
 				S.listItem()
-					.title('Product Reviews')
-					.icon(FiStar)
+					.id('commerce-admin-launcher-item')
+					.title('Open Commerce Admin (Orders & CRM) ↗')
+					.icon(FiExternalLink)
 					.child(
-						S.list()
-							.title('Quản lý Review')
-							.items([
-								S.listItem()
-									.title('Review Chờ duyệt (Pending)')
-									.icon(FiClock)
-									.child(
-										S.documentList()
-											.title('Review Chờ duyệt')
-											.filter('_type == "review" && (isApproved == false || !defined(isApproved))')
-									),
-								S.listItem()
-									.title('Review Đã duyệt (Approved)')
-									.icon(FiCheckCircle)
-									.child(
-										S.documentList()
-											.title('Review Đã duyệt')
-											.filter('_type == "review" && isApproved == true')
-									),
-								S.listItem()
-									.title('Tất cả Review (All)')
-									.icon(FiList)
-									.child(
-										S.documentTypeList('review')
-											.title('Tất cả Review')
-									),
-							])
+						S.component(ManagementHubLauncher)
+							.id('commerce-admin-launcher-pane')
+							.title('Commerce Admin'),
 					),
-				// S.documentTypeListItem('productCategory').title('Categories'),
-				S.documentTypeListItem('collection').title('Collections'),
-
-
-				/* ================= BLOG ================= */
-				S.divider().title('Blog'),
-				S.documentTypeListItem('blog.post').title('Posts'),
-				S.documentTypeListItem('blog.category').title('Categories'),
-
-				/* ================= NAVIGATION ================= */
-				S.divider().title('Navigation'),
-				S.documentTypeListItem('navigation'),
-				S.documentTypeListItem('redirect').title('Redirects'),
-
-				/* ================= REFERENCES ================= */
-				S.divider().title('References'),
-				S.documentTypeListItem('logo').title('Logos'),
-				S.documentTypeListItem('person').title('People'),
-				S.documentTypeListItem('quote').title('Quotes'),
 			]),
 })

@@ -2,166 +2,168 @@ import { defineField, defineType } from 'sanity'
 
 export default defineType({
 	name: 'site',
-	title: 'Site',
+	title: 'Branding & Business Profile',
 	type: 'document',
 	groups: [
-		{ name: 'branding', default: true },
-		{ name: 'navigation' },
-		{ name: 'info' },
-		{ name: 'theme style' },
+		{ name: 'branding', title: '1. Branding & Global SEO', default: true },
+		{ name: 'business', title: '2. Business Profile & Contact' },
 	],
 	fields: [
+		// ================= GROUP 1: BRANDING & GLOBAL SEO =================
 		defineField({
 			name: 'title',
+			title: 'Website Title',
+			description:
+				'Primary title of the website used for branding, headers, and meta titles.',
 			type: 'string',
 			validation: (Rule) => Rule.required(),
 			group: 'branding',
 		}),
 		defineField({
+			name: 'siteName',
+			title: 'Site Short Name',
+			description:
+				'Short brand name used for App / PWA Manifest / Schema Organization.',
+			type: 'string',
+			group: 'branding',
+		}),
+		defineField({
 			name: 'logo',
+			title: 'Website Logo',
 			type: 'logo',
 			group: 'branding',
 		}),
 		defineField({
-			name: 'footer',
-			type: 'reference',
-			to: [{ type: 'navigation' }],
-			group: 'navigation',
+			name: 'favicon',
+			title: 'Favicon (.ico / .png / .svg)',
+			type: 'image',
+			options: { hotspot: true },
+			group: 'branding',
 		}),
 		defineField({
-			name: 'social',
-			type: 'reference',
-			to: [{ type: 'navigation' }],
-			group: 'navigation',
+			name: 'appleTouchIcon',
+			title: 'Apple Touch Icon (iOS Safari)',
+			type: 'image',
+			options: { hotspot: true },
+			group: 'branding',
 		}),
 		defineField({
-			name: 'chatbox',
-			type: 'reference',
-			to: [{ type: 'navigation' }],
-			group: 'navigation',
+			name: 'defaultSeoDescription',
+			title: 'Default Meta Description',
+			description:
+				'Fallback search engine description when individual pages do not specify SEO description.',
+			type: 'text',
+			rows: 3,
+			group: 'branding',
 		}),
 		defineField({
-			name: 'footerContent',
+			name: 'defaultOgImage',
+			title: 'Default Social Share Image (OG Image)',
+			description:
+				'Fallback image displayed when sharing links on social media (Facebook, X, LinkedIn, etc.).',
+			type: 'image',
+			options: { hotspot: true },
+			group: 'branding',
+		}),
+		defineField({
+			name: 'googleSiteVerification',
+			title: 'Google Search Console Verification Code',
+			placeholder: 'google-site-verification-code',
+			type: 'string',
+			group: 'branding',
+		}),
+
+		// ================= GROUP 2: BUSINESS PROFILE =================
+		defineField({
+			name: 'companyName',
+			title: 'Legal Business / Company Name',
+			description:
+				'Used for invoices, legal footer notices, and Schema Organization.',
+			type: 'string',
+			group: 'business',
+		}),
+		defineField({
+			name: 'hotline',
+			title: 'Customer Service Phone / Hotline',
+			type: 'string',
+			group: 'business',
+		}),
+		defineField({
+			name: 'email',
+			title: 'Support Email Address',
+			type: 'string',
+			group: 'business',
+		}),
+		defineField({
+			name: 'address',
+			title: 'Business Address / Showroom',
+			type: 'text',
+			rows: 2,
+			group: 'business',
+		}),
+		defineField({
+			name: 'taxCode',
+			title: 'Tax Identification Number (VAT/EIN)',
+			type: 'string',
+			group: 'business',
+		}),
+		defineField({
+			name: 'workingHours',
+			title: 'Business Hours',
+			placeholder: 'Mon - Sun: 8:00 AM - 9:00 PM',
+			type: 'string',
+			group: 'business',
+		}),
+		defineField({
+			name: 'socialLinks',
+			title: 'Official Social Media Links',
+			description:
+				'Used for Footer display and Google Schema Organization structured data (sameAs).',
 			type: 'array',
+			group: 'business',
 			of: [
 				{
-					type: 'block',
-					styles: [{ title: 'Normal', value: 'normal' }],
-					lists: [],
+					type: 'object',
+					fields: [
+						defineField({
+							name: 'platform',
+							title: 'Platform',
+							type: 'string',
+							options: {
+								list: [
+									{ title: 'Facebook', value: 'facebook' },
+									{ title: 'Instagram', value: 'instagram' },
+									{ title: 'X (Twitter)', value: 'twitter' },
+									{ title: 'TikTok', value: 'tiktok' },
+									{ title: 'YouTube', value: 'youtube' },
+									{ title: 'LinkedIn', value: 'linkedin' },
+									{ title: 'WhatsApp / Zalo', value: 'zalo' },
+									{ title: 'Other', value: 'other' },
+								],
+							},
+						}),
+						defineField({
+							name: 'title',
+							title: 'Display Title',
+							type: 'string',
+						}),
+						defineField({
+							name: 'url',
+							title: 'Profile URL',
+							type: 'url',
+						}),
+					],
+					preview: {
+						select: { title: 'title', subtitle: 'url' },
+					},
 				},
-			],
-			group: 'info',
-		}),
-		defineField({
-			name: 'copyright',
-			type: 'array',
-			of: [
-				{
-					type: 'block',
-					styles: [{ title: 'Normal', value: 'normal' }],
-					lists: [],
-				},
-			],
-			group: 'info',
-		}),
-		defineField({
-			name: 'scripts',
-			title: 'Mã theo dõi & Analytics',
-			description: 'Quản lý các mã GA4, Pixel, Chat...',
-			type: 'array',
-			of: [{ type: 'tracking-script' }],
-			options: {
-				layout: 'tags',
-			},
-			group: 'info',
-		}),
-		defineField({
-			name: 'theme',
-			title: 'Global Theme Settings',
-			type: 'object',
-			group: 'theme style',
-			options: { collapsible: true },
-			fieldsets: [
-				{
-					name: 'globalColor',
-					title: 'Global Color',
-					options: { columns: 3 },
-				},
-				{
-					name: 'footerColor',
-					title: 'Footer Color',
-					options: { columns: 2 },
-				},
-			],
-			fields: [
-				// 1. MÀU CHỦ ĐẠO (Primary) - Dùng cho button, link, highlight
-				defineField({
-					name: 'primaryColor',
-					title: 'Primary Color',
-					type: 'string',
-					initialValue: '#000000',
-					validation: (Rule) =>
-						Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error(
-							'Invalid Hex',
-						),
-					fieldset: 'globalColor',
-				}),
-
-				// 2. MÀU NỀN WEB (Body Background)
-				defineField({
-					name: 'backgroundColor',
-					title: 'Background Color',
-					type: 'string',
-					initialValue: '#ffffff',
-					validation: (Rule) =>
-						Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error(
-							'Invalid Hex',
-						),
-					fieldset: 'globalColor',
-				}),
-
-				// 3. MÀU CHỮ CHÍNH (Body Text)
-				defineField({
-					name: 'textColor',
-					title: 'Text Color',
-					type: 'string',
-					initialValue: '#000000',
-					validation: (Rule) =>
-						Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error(
-							'Invalid Hex',
-						),
-					fieldset: 'globalColor',
-				}),
-
-				// 5. MÀU FOOTER
-				defineField({
-					name: 'footerBackground',
-					title: 'Footer Background',
-					type: 'string',
-					initialValue: '#000000',
-					validation: (Rule) =>
-						Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error(
-							'Invalid Hex',
-						),
-					fieldset: 'footerColor',
-				}),
-				defineField({
-					name: 'footerText',
-					title: 'Footer Text Color',
-					type: 'string',
-					initialValue: '#ffffff',
-					validation: (Rule) =>
-						Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error(
-							'Invalid Hex',
-						),
-					fieldset: 'footerColor',
-				}),
 			],
 		}),
 	],
 	preview: {
 		prepare: () => ({
-			title: 'Site',
+			title: 'Branding & Business Profile',
+			subtitle: 'Logo, SEO, Contact & Social Links',
 		}),
 	},
 })

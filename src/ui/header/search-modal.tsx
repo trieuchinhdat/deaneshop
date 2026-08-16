@@ -17,7 +17,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 	useEffect(() => {
 		if (isOpen) {
 			document.body.style.overflow = 'hidden'
-			setTimeout(() => inputRef.current?.focus(), 100)
+			setTimeout(() => inputRef.current?.focus(), 80)
 		} else {
 			document.body.style.overflow = ''
 			setQuery('')
@@ -27,57 +27,80 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 		}
 	}, [isOpen])
 
+	// Đóng modal khi nhấn phím ESC
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape' && isOpen) {
+				onClose()
+			}
+		}
+		window.addEventListener('keydown', handleKeyDown)
+		return () => window.removeEventListener('keydown', handleKeyDown)
+	}, [isOpen, onClose])
+
 	if (!isOpen) return null
 
 	const handleSearch = (e: React.FormEvent) => {
 		e.preventDefault()
-		if (query.trim()) {
-			router.push(`/products?q=${encodeURIComponent(query.trim())}`)
-			onClose()
+		const trimmed = query.trim()
+		if (trimmed) {
+			router.push(`/search?query=${encodeURIComponent(trimmed)}`)
+		} else {
+			router.push('/search')
 		}
+		onClose()
 	}
 
 	return (
 		<div
-			className="fixed inset-0 z-50 overflow-y-auto"
+			className="fixed inset-0 z-[100] overflow-y-auto"
 			role="dialog"
 			aria-modal="true"
+			aria-label="Cửa sổ tìm kiếm nhanh"
 		>
-			{/* Backdrop */}
+			{/* Backdrop Overlay */}
 			<div
-				className="animate-fade-in fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity"
+				className="animate-in fade-in duration-200 fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
 				onClick={onClose}
+				aria-hidden="true"
 			/>
 
-			<div className="relative flex min-h-screen items-start justify-center p-4 sm:p-6 md:p-20">
-				<div className="bg-background border-stroke/20 animate-scale-in relative w-full max-w-2xl transform overflow-hidden rounded-2xl border shadow-2xl transition-all">
+			{/* Responsive Positioning Container (Mobile: Top Sheet with Safe Area, Desktop: Centered Top Dialog) */}
+			<div className="relative flex min-h-screen items-start justify-center px-3 pt-[max(env(safe-area-inset-top,0px),12px)] pb-6 sm:px-6 sm:pt-16 md:pt-24">
+				<div className="relative w-full max-w-2xl transform overflow-hidden rounded-2xl md:rounded-3xl border border-stroke/20 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-2xl transition-all animate-in fade-in zoom-in-95 duration-200">
 					{/* Search Input Bar */}
 					<form
 						onSubmit={handleSearch}
-						className="border-stroke/20 flex items-center border-b px-4 py-3.5"
+						className="flex items-center border-b border-stroke/15 px-3.5 py-3 sm:px-5 sm:py-4 gap-2.5"
 					>
-						<HiOutlineMagnifyingGlass className="text-primary mr-3 shrink-0 text-2xl" />
+						<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+							<HiOutlineMagnifyingGlass className="text-xl" />
+						</div>
+
 						<input
 							ref={inputRef}
-							type="text"
+							type="search"
 							value={query}
 							onChange={(e) => setQuery(e.target.value)}
-							placeholder="Nhập tên sản phẩm, từ khóa cần tìm..."
-							className="text-foreground placeholder:text-muted-foreground w-full bg-transparent text-base focus:outline-none sm:text-lg"
+							placeholder="Tìm kiếm sản phẩm, thương hiệu..."
+							className="w-full bg-transparent text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none"
+							autoComplete="off"
 						/>
+
 						{query && (
 							<button
 								type="button"
 								onClick={() => setQuery('')}
-								className="mr-2 rounded-full p-1 text-xs hover:bg-black/5 dark:hover:bg-white/10"
+								className="rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-200 transition-colors shrink-0"
 							>
 								Xóa
 							</button>
 						)}
+
 						<button
 							type="button"
 							onClick={onClose}
-							className="text-muted-foreground hover:text-foreground rounded-full p-2 transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+							className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
 							aria-label="Đóng tìm kiếm"
 						>
 							<HiXMark className="text-xl" />
@@ -85,21 +108,21 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 					</form>
 
 					{/* Quick Suggestions */}
-					<div className="bg-black/[0.02] p-6 dark:bg-white/[0.02]">
-						<p className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
+					<div className="bg-gray-50/60 dark:bg-gray-800/40 p-4 sm:p-6">
+						<p className="mb-3 text-[11px] font-bold tracking-wider text-gray-500 uppercase">
 							Gợi ý tìm kiếm phổ biến
 						</p>
 						<div className="flex flex-wrap gap-2">
-							{['Khuyến mãi', 'Tất cả sản phẩm', 'Flash Sale', 'Bán chạy'].map(
+							{['Khuyến mãi', 'Tất cả sản phẩm', 'Flash Sale', 'Bán chạy', 'Sản phẩm mới'].map(
 								(tag) => (
 									<button
 										key={tag}
 										type="button"
 										onClick={() => {
-											router.push(`/products?q=${encodeURIComponent(tag)}`)
+											router.push(`/search?query=${encodeURIComponent(tag)}`)
 											onClose()
 										}}
-										className="bg-background border-stroke/30 hover:border-primary hover:text-primary rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+										className="rounded-full border border-stroke/30 bg-white dark:bg-gray-800 px-3.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 shadow-2xs hover:border-primary hover:text-primary active:scale-95 transition-all cursor-pointer"
 									>
 										{tag}
 									</button>

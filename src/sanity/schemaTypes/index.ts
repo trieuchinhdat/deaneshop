@@ -51,6 +51,7 @@ import searchModule from './modules/search-module'
 import statList from './modules/stat-list'
 import stepList from './modules/step-list'
 import themeBackground from './modules/theme-background'
+import wishlist from './modules/wishlist'
 // objects
 import cta from './objects/cta'
 import link from './objects/link'
@@ -128,6 +129,7 @@ export const schema: SchemaPluginOptions = {
 		carouselBannerList,
 		cartCheckout,
 		themeBackground,
+		wishlist,
 	],
 
 	templates: (templates) =>

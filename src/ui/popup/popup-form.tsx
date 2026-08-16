@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FiAlertCircle, FiGift, FiLoader, FiLock, FiMail, FiPhone, FiUser } from 'react-icons/fi'
+import { FiAlertCircle, FiGift, FiLoader, FiMail, FiPhone, FiUser } from 'react-icons/fi'
 import ResponsiveImage from '@/ui/responsiveImage'
 import PopupSuccess from './popup-success'
 
@@ -12,13 +12,13 @@ type PopupFormProps = {
 
 export default function PopupForm({ settings, onClose }: PopupFormProps) {
 	const {
-		formImage,
+		bannerImage,
+		mobileBannerImage,
 		formBadge,
 		formTitle,
 		formDescription,
 		formFields = 'email',
 		formSubmitLabel,
-		formPrivacyText,
 		rewardCouponCode,
 		successTitle,
 		successDescription,
@@ -34,7 +34,11 @@ export default function PopupForm({ settings, onClose }: PopupFormProps) {
 	const showName = formFields === 'full'
 	const showEmail = formFields === 'email' || formFields === 'both' || formFields === 'full'
 	const showPhone = formFields === 'phone' || formFields === 'both' || formFields === 'full'
-	const hasImage = Boolean(formImage?.asset)
+
+	const hasBanner = Boolean(bannerImage?.asset || mobileBannerImage?.asset)
+	const imgObject = bannerImage
+		? { ...bannerImage, mobileImage: mobileBannerImage }
+		: mobileBannerImage
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -66,7 +70,7 @@ export default function PopupForm({ settings, onClose }: PopupFormProps) {
 					phone: phone.trim() || undefined,
 					couponGiven: rewardCouponCode || undefined,
 					pageUrl: typeof window !== 'undefined' ? window.location.href : undefined,
-					source: 'Popup Lead / Newsletter',
+					source: 'Popup Marketing Form',
 				}),
 			})
 
@@ -101,48 +105,51 @@ export default function PopupForm({ settings, onClose }: PopupFormProps) {
 	}
 
 	return (
-		<div className="flex flex-col md:flex-row w-full overflow-hidden rounded-2xl md:rounded-3xl bg-white text-gray-900 shadow-2xl border border-gray-100">
-			{/* Cột Ảnh Form (Nếu có) */}
-			{hasImage && (
-				<div className="relative w-full md:w-5/12 h-32 sm:h-44 md:h-auto md:min-h-[380px] bg-gradient-to-br from-neutral-100 to-neutral-200 overflow-hidden flex items-center justify-center shrink-0">
+		<div className="relative w-full overflow-hidden rounded-2xl md:rounded-3xl shadow-2xl border border-white/10 min-h-[420px] flex items-center justify-center">
+			{/* BANNER NỀN TOÀN PHẦN (FULL BACKGROUND IMAGE) */}
+			{hasBanner ? (
+				<div className="absolute inset-0 z-0">
 					<ResponsiveImage
-						image={formImage}
-						desktop={{ width: 600 }}
-						mobile={{ width: 400 }}
-						className="h-full w-full object-cover"
+						image={imgObject}
+						desktop={{ width: 1000 }}
+						mobile={{ width: 600 }}
+						className="h-full w-full object-cover scale-105 filter transition-transform duration-700 hover:scale-100"
 					/>
+					{/* Lớp phủ tối ưu tương phản text & glassmorphism */}
+					<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/65 to-black/45 backdrop-blur-[2px]" />
 				</div>
+			) : (
+				<div className="absolute inset-0 z-0 bg-gradient-to-br from-gray-900 via-neutral-900 to-gray-950" />
 			)}
 
-			{/* Cột Form Thu Thập */}
-			<div
-				className={`flex flex-col justify-center p-4 sm:p-6 md:p-8 ${
-					hasImage ? 'w-full md:w-7/12' : 'w-full max-w-xl mx-auto'
-				}`}
-			>
-				{/* Badge */}
+			{/* NỘI DUNG FORM NỔI TRÊN NỀN BANNER */}
+			<div className="relative z-10 w-full max-w-lg mx-auto p-6 sm:p-8 md:p-10 flex flex-col text-center">
+				{/* Badge Quà Tặng */}
 				{formBadge && (
-					<div className="mb-3 inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold tracking-wider text-emerald-700 uppercase border border-emerald-200/60 shadow-2xs">
-						<FiGift className="h-3.5 w-3.5 text-emerald-600" />
+					<div className="mb-3 inline-flex items-center gap-1.5 self-center rounded-full bg-emerald-500/20 px-3.5 py-1 text-xs font-bold tracking-wider text-emerald-300 uppercase border border-emerald-400/30 backdrop-blur-md shadow-xs">
+						<FiGift className="h-3.5 w-3.5 text-emerald-400" />
 						<span>{formBadge}</span>
 					</div>
 				)}
 
-				{/* Tiêu đề & Mô tả */}
-				<h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 leading-tight">
+				{/* Tiêu đề Form */}
+				<h3 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-white leading-snug drop-shadow-md">
 					{formTitle || 'Nhận Ngay Voucher Ưu Đãi Độc Quyền'}
 				</h3>
 
+				{/* Mô tả ưu đãi */}
 				{formDescription && (
-					<p className="mt-2.5 text-sm text-gray-600 leading-relaxed">{formDescription}</p>
+					<p className="mt-2.5 text-xs sm:text-sm text-gray-200 leading-relaxed max-w-md mx-auto drop-shadow-xs">
+						{formDescription}
+					</p>
 				)}
 
-				{/* Form Inputs */}
-				<form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3.5">
+				{/* Form Fields */}
+				<form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
 					{/* Error Alert */}
 					{error && (
-						<div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700 border border-red-200">
-							<FiAlertCircle className="h-4 w-4 flex-none text-red-500" />
+						<div className="flex items-center gap-2 rounded-xl bg-red-950/80 p-3 text-xs font-semibold text-red-200 border border-red-500/50 backdrop-blur-md text-left">
+							<FiAlertCircle className="h-4 w-4 flex-none text-red-400" />
 							<span>{error}</span>
 						</div>
 					)}
@@ -158,7 +165,7 @@ export default function PopupForm({ settings, onClose }: PopupFormProps) {
 								value={name}
 								onChange={(e) => setName(e.target.value)}
 								placeholder="Họ và tên của bạn"
-								className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-10 pr-4 text-sm text-gray-900 transition-all placeholder:text-gray-400 focus:border-emerald-600 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-600/20"
+								className="w-full rounded-xl border border-white/25 bg-black/40 py-3 pl-10 pr-4 text-sm text-white placeholder:text-gray-400 backdrop-blur-md transition-all focus:border-emerald-400 focus:bg-black/60 focus:outline-hidden focus:ring-2 focus:ring-emerald-400/30"
 							/>
 						</div>
 					)}
@@ -175,7 +182,7 @@ export default function PopupForm({ settings, onClose }: PopupFormProps) {
 								onChange={(e) => setEmail(e.target.value)}
 								placeholder="Nhập địa chỉ email của bạn"
 								required
-								className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-10 pr-4 text-sm text-gray-900 transition-all placeholder:text-gray-400 focus:border-emerald-600 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-600/20"
+								className="w-full rounded-xl border border-white/25 bg-black/40 py-3 pl-10 pr-4 text-sm text-white placeholder:text-gray-400 backdrop-blur-md transition-all focus:border-emerald-400 focus:bg-black/60 focus:outline-hidden focus:ring-2 focus:ring-emerald-400/30"
 							/>
 						</div>
 					)}
@@ -192,7 +199,7 @@ export default function PopupForm({ settings, onClose }: PopupFormProps) {
 								onChange={(e) => setPhone(e.target.value)}
 								placeholder="Số điện thoại nhận ưu đãi"
 								required={!showEmail}
-								className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-10 pr-4 text-sm text-gray-900 transition-all placeholder:text-gray-400 focus:border-emerald-600 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-600/20"
+								className="w-full rounded-xl border border-white/25 bg-black/40 py-3 pl-10 pr-4 text-sm text-white placeholder:text-gray-400 backdrop-blur-md transition-all focus:border-emerald-400 focus:bg-black/60 focus:outline-hidden focus:ring-2 focus:ring-emerald-400/30"
 							/>
 						</div>
 					)}
@@ -201,7 +208,7 @@ export default function PopupForm({ settings, onClose }: PopupFormProps) {
 					<button
 						type="submit"
 						disabled={loading}
-						className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+						className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 py-3.5 text-sm font-bold text-white shadow-xl shadow-emerald-950/40 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
 					>
 						{loading ? (
 							<>
@@ -212,14 +219,6 @@ export default function PopupForm({ settings, onClose }: PopupFormProps) {
 							<span>{formSubmitLabel || 'Nhận Mã Ưu Đãi Ngay'}</span>
 						)}
 					</button>
-
-					{/* Privacy Note */}
-					{formPrivacyText && (
-						<div className="mt-1 flex items-center justify-center gap-1.5 text-[11px] text-gray-500">
-							<FiLock className="h-3 w-3 text-gray-400" />
-							<span>{formPrivacyText}</span>
-						</div>
-					)}
 				</form>
 			</div>
 		</div>

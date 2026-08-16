@@ -16,13 +16,13 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 	const {
 		bannerImage,
 		mobileBannerImage,
+		transparentBackground = false,
 		bannerBadge,
 		bannerTitle,
 		bannerDescription,
 		couponCode,
 		bannerCtaText,
 		bannerCtaUrl,
-		layoutStyle = 'split',
 	} = settings || {}
 
 	const handleCopyCoupon = (e: React.MouseEvent) => {
@@ -34,26 +34,54 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 	}
 
 	const hasImage = Boolean(bannerImage?.asset || mobileBannerImage?.asset)
-	const isFullImage = layoutStyle === 'full-image' && hasImage
+	const hasText = Boolean(bannerTitle || bannerDescription)
 
 	const imgObject = bannerImage
 		? { ...bannerImage, mobileImage: mobileBannerImage }
 		: mobileBannerImage
 
-	// Nếu là dạng Full Image đơn thuần
-	if (isFullImage) {
-		const Content = (
-			<div className="relative w-full overflow-hidden rounded-2xl md:rounded-3xl bg-neutral-900 group cursor-pointer shadow-2xl">
+	// ================= 1. TRƯỜNG HỢP NỀN TRONG SUỐT (FRAMELESS / TRANSPARENT DIE-CUT BANNER) =================
+	if (transparentBackground && hasImage) {
+		const ImageElement = (
+			<div className="relative flex flex-col items-center justify-center select-none group">
 				<ResponsiveImage
 					image={imgObject}
 					desktop={{ width: 900 }}
 					mobile={{ width: 500 }}
-					className="w-full h-auto max-h-[80vh] object-cover transition-transform duration-500 group-hover:scale-105"
+					className="max-h-[80vh] w-auto max-w-full object-contain drop-shadow-2xl transition-transform duration-300 group-hover:scale-[1.02]"
 				/>
+
+				{/* Floating Coupon nếu có */}
+				{couponCode && (
+					<div className="mt-3 inline-flex items-center gap-2.5 rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-gray-900 shadow-xl backdrop-blur-md border border-white/40">
+						<span className="font-mono text-sm tracking-wider text-emerald-700 font-extrabold">
+							{couponCode}
+						</span>
+						<button
+							type="button"
+							onClick={handleCopyCoupon}
+							className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white shadow-xs hover:bg-emerald-700 transition-colors cursor-pointer"
+						>
+							{copied ? (
+								<>
+									<FiCheck className="h-3.5 w-3.5 stroke-[3]" />
+									<span>Đã sao chép</span>
+								</>
+							) : (
+								<>
+									<FiCopy className="h-3.5 w-3.5" />
+									<span>Sao chép</span>
+								</>
+							)}
+						</button>
+					</div>
+				)}
+
+				{/* Floating CTA Button nếu có */}
 				{bannerCtaText && (
-					<div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-10">
-						<span className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-gray-900 shadow-xl transition-all hover:bg-neutral-100 hover:scale-105 active:scale-95">
-							{bannerCtaText}
+					<div className="mt-3">
+						<span className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-6 py-3 text-sm font-bold text-white shadow-2xl transition-all hover:bg-gray-800 hover:scale-105 active:scale-95">
+							<span>{bannerCtaText}</span>
 							<FiArrowRight className="h-4 w-4" />
 						</span>
 					</div>
@@ -63,7 +91,58 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 
 		if (bannerCtaUrl) {
 			return (
-				<Link href={bannerCtaUrl} onClick={onClose} className="block">
+				<Link href={bannerCtaUrl} onClick={onClose} className="block cursor-pointer">
+					{ImageElement}
+				</Link>
+			)
+		}
+
+		return ImageElement
+	}
+
+	// ================= 2. TRƯỜNG HỢP BANNER ĐỒ HỌA THUẦN (FULL GRAPHIC BANNER - KHÔNG CẦN CHỮ) =================
+	if (hasImage && !hasText) {
+		const Content = (
+			<div className="relative w-full overflow-hidden rounded-2xl md:rounded-3xl bg-neutral-900 shadow-2xl group border border-neutral-800">
+				<ResponsiveImage
+					image={imgObject}
+					desktop={{ width: 900 }}
+					mobile={{ width: 500 }}
+					className="w-full h-auto max-h-[82vh] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+				/>
+
+				{/* Lớp phủ hành động dưới đáy banner nếu có CTA hoặc Coupon */}
+				{(bannerCtaText || couponCode) && (
+					<div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-6 flex flex-wrap items-center justify-between gap-3">
+						{couponCode && (
+							<button
+								type="button"
+								onClick={handleCopyCoupon}
+								className="inline-flex items-center gap-2 rounded-xl bg-white/90 backdrop-blur-md px-3.5 py-2 text-xs font-bold text-gray-900 shadow-lg hover:bg-white transition-all cursor-pointer"
+							>
+								<span className="font-mono text-emerald-800 font-extrabold">{couponCode}</span>
+								{copied ? (
+									<FiCheck className="h-4 w-4 text-emerald-600 stroke-[3]" />
+								) : (
+									<FiCopy className="h-4 w-4 text-gray-600" />
+								)}
+							</button>
+						)}
+
+						{bannerCtaText && (
+							<span className="ml-auto inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs sm:text-sm font-bold text-gray-900 shadow-xl transition-all group-hover:bg-neutral-100 group-hover:scale-105 active:scale-95">
+								<span>{bannerCtaText}</span>
+								<FiArrowRight className="h-4 w-4" />
+							</span>
+						)}
+					</div>
+				)}
+			</div>
+		)
+
+		if (bannerCtaUrl) {
+			return (
+				<Link href={bannerCtaUrl} onClick={onClose} className="block cursor-pointer">
 					{Content}
 				</Link>
 			)
@@ -72,11 +151,12 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 		return Content
 	}
 
+	// ================= 3. TRƯỜNG HỢP BANNER KÈM NỘI DUNG CHỮ (IMAGE + TEXT & COUPON) =================
 	return (
 		<div className="flex flex-col md:flex-row w-full overflow-hidden rounded-2xl md:rounded-3xl bg-white text-gray-900 shadow-2xl border border-gray-100">
-			{/* Cột Ảnh Banner (Desktop: Left, Mobile: Top) */}
+			{/* Cột Ảnh Banner */}
 			{hasImage && (
-				<div className="relative w-full md:w-1/2 h-36 sm:h-48 md:h-auto md:min-h-[360px] bg-gradient-to-br from-neutral-100 to-neutral-200 overflow-hidden flex items-center justify-center shrink-0">
+				<div className="relative w-full md:w-1/2 h-40 sm:h-52 md:h-auto md:min-h-[380px] bg-gradient-to-br from-neutral-100 to-neutral-200 overflow-hidden flex items-center justify-center shrink-0">
 					<ResponsiveImage
 						image={imgObject}
 						desktop={{ width: 700 }}
@@ -87,9 +167,9 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 				</div>
 			)}
 
-			{/* Cột Nội Dung */}
+			{/* Cột Nội Dung & Ưu Đãi */}
 			<div
-				className={`flex flex-col justify-center p-4 sm:p-6 md:p-8 ${
+				className={`flex flex-col justify-center p-5 sm:p-7 md:p-9 ${
 					hasImage ? 'w-full md:w-1/2' : 'w-full max-w-xl mx-auto text-center'
 				}`}
 			>
@@ -103,7 +183,7 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 
 				{/* Tiêu đề */}
 				<h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 leading-tight">
-					{bannerTitle || 'Ưu Đãi Đặc Biệt Dành Cho Bạn'}
+					{bannerTitle || 'Ưu Đãi Đặc Biệt'}
 				</h3>
 
 				{/* Mô tả */}
@@ -166,7 +246,7 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 							onClick={onClose}
 							className="flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-gray-800 active:scale-[0.98] cursor-pointer"
 						>
-							<span>{bannerCtaText || 'Nhận Ngay'}</span>
+							<span>{bannerCtaText || 'Đã Hiểu'}</span>
 						</button>
 					)}
 				</div>

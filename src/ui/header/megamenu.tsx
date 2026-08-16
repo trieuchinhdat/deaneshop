@@ -22,7 +22,7 @@ export default function MegamenuComponent({ link, items, banner }: Megamenu & { 
 
 			{/* Mega Menu Panel: Khóa chuẩn xác ngay mép dưới Header (top-full) */}
 			<div className="anim-fade-to-b bg-background text-foreground absolute inset-x-0 left-0 right-0 top-full z-50 max-h-[calc(100vh-var(--header-height,64px)-16px)] overflow-y-auto border-b border-stroke/20 shadow-xl before:absolute before:-top-3 before:inset-x-0 before:h-3 before:content-['']">
-				<div className="section mx-auto py-8 grid grid-cols-1 md:grid-cols-4 gap-8 items-start">
+				<div className="container-max py-8 grid grid-cols-1 md:grid-cols-4 gap-8 items-start">
 					{/* Link Groups */}
 					<div className={`grid gap-8 items-start ${hasBanner ? 'md:col-span-3 grid-cols-2 sm:grid-cols-3' : 'md:col-span-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'}`}>
 						{items?.map((item, idx) => {

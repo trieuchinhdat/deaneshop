@@ -9,9 +9,23 @@ import withReactContent from 'sweetalert2-react-content'
 import { useMounted } from '@/hooks/useMounted'
 import { ROUTES } from '@/lib/env'
 import { formatVND, generateOrderId } from '@/lib/utils'
+import { urlFor } from '@/sanity/lib/image'
 import { useCartStore } from '@/store/use-cart-store'
+import CartVariantSelector from '@/ui/cart/cart-variant-selector'
 
 const MySwal = withReactContent(Swal)
+
+// Trích xuất an toàn URL hình ảnh cho sản phẩm tránh lỗi src=""
+const getItemImageUrl = (image: any): string => {
+	if (!image) return '/fallback-image.png'
+	if (typeof image === 'string') return image.trim() || '/fallback-image.png'
+	if (image?.asset?.url) return image.asset.url
+	try {
+		return urlFor(image).width(160).height(160).url()
+	} catch {
+		return '/fallback-image.png'
+	}
+}
 
 type Props = {
 	title?: string
@@ -87,7 +101,7 @@ export default function CartCheckoutClient({
 				sku: item.sku || item.id,
 				price: item.price,
 				quantity: item.quantity,
-				image: typeof item.image === 'string' ? item.image : '',
+				image: getItemImageUrl(item.image),
 			})),
 			subtotal: itemsTotal,
 			shippingFee: actualShipping,
@@ -159,98 +173,104 @@ export default function CartCheckoutClient({
 									</p>
 								</div>
 							) : (
-								items.map((item) => (
-									<div
-										key={item.id}
-										className="flex items-center justify-between border-b pb-4"
-									>
-										<div className="flex items-center gap-2 lg:gap-4">
-											<Link href={`${ROUTES.products}/${item.slug}`}>
-												{item.image ? (
-													<Image
-														src={typeof item.image === 'string' ? item.image : ''}
+								items.map((item) => {
+									const imgSrc = getItemImageUrl(item.image)
+
+									return (
+										<div
+											key={item.id}
+											className="flex items-center justify-between border-b pb-4 gap-2"
+										>
+											<div className="flex items-center gap-2 lg:gap-4 flex-1 min-w-0">
+												<Link href={`${ROUTES.products}/${item.slug}`} className="shrink-0">
+													<img
+														src={imgSrc}
 														alt={item.title ?? ''}
 														width={80}
 														height={80}
-														className="h-14 w-14 rounded border object-cover lg:h-20 lg:w-20"
+														className="h-14 w-14 rounded border object-cover lg:h-20 lg:w-20 bg-gray-50"
+														onError={(e) => {
+															;(e.currentTarget as HTMLImageElement).src =
+																'/fallback-image.png'
+														}}
+														loading="lazy"
 													/>
-												) : (
-													<div className="h-14 w-14 rounded border bg-gray-100 lg:h-20 lg:w-20" />
-												)}
-											</Link>
-											<div className="pr-1">
-												<Link href={`${ROUTES.products}/${item.slug}`}>
-													<p className="line-clamp-2 text-xs font-medium text-gray-900 lg:text-[16px]">
-														{item.title}
-													</p>
 												</Link>
-												<span className="text-xs text-gray-500">
-													SKU: {item.sku || item.id}
-												</span>
-												<div className="flex items-center gap-2">
-													<p className="text-sm font-semibold text-red-600">
-														{formatVND(item.price)}
-													</p>
-													{(item.compareAtPrice as number) > item.price && (
-														<p className="text-xs text-gray-400 line-through">
-															{formatVND(item.compareAtPrice as number)}
+												<div className="pr-1 flex-1 min-w-0">
+													<Link href={`${ROUTES.products}/${item.slug}`}>
+														<p className="line-clamp-2 text-xs font-medium text-gray-900 lg:text-[16px] hover:text-primary transition-colors">
+															{item.productTitle || item.title.replace(/\s*\([^)]*\)$/, '').trim()}
 														</p>
-													)}
+													</Link>
+
+													{/* Inline 1-Click Variant Selector */}
+													<CartVariantSelector item={item} />
+
+													<div className="flex items-center gap-2 mt-1">
+														<p className="text-sm font-semibold text-red-600">
+															{formatVND(item.price)}
+														</p>
+														{(item.compareAtPrice as number) > item.price && (
+															<p className="text-xs text-gray-400 line-through">
+																{formatVND(item.compareAtPrice as number)}
+															</p>
+														)}
+													</div>
 												</div>
 											</div>
-										</div>
 
-										<div className="flex items-center gap-1.5 lg:gap-3">
-											<div className="flex items-center overflow-hidden rounded-lg border border-gray-300 bg-gray-50">
-												<button
-													type="button"
-													onClick={() =>
-														updateQuantity(item.id, Math.max(1, item.quantity - 1))
-													}
-													className="flex h-8 w-7 cursor-pointer items-center justify-center font-bold text-gray-600 transition hover:bg-gray-200/80"
-													aria-label="Giảm số lượng"
-												>
-													−
-												</button>
-												<input
-													type="number"
-													min={1}
-													value={item.quantity}
-													onChange={(e) => {
-														const val = parseInt(e.target.value, 10)
-														if (!isNaN(val)) {
-															updateQuantity(item.id, Math.max(1, val))
+											<div className="flex items-center gap-1.5 lg:gap-3 shrink-0">
+												<div className="flex items-center overflow-hidden rounded-lg border border-gray-300 bg-gray-50">
+													<button
+														type="button"
+														onClick={() =>
+															updateQuantity(item.id, Math.max(1, item.quantity - 1))
 														}
-													}}
-													onBlur={(e) => {
-														const val = parseInt(e.target.value, 10)
-														if (isNaN(val) || val < 1) {
-															updateQuantity(item.id, 1)
+														className="flex h-8 w-7 cursor-pointer items-center justify-center font-bold text-gray-600 transition hover:bg-gray-200/80"
+														aria-label="Giảm số lượng"
+													>
+														−
+													</button>
+													<input
+														type="number"
+														min={1}
+														value={item.quantity}
+														onChange={(e) => {
+															const val = parseInt(e.target.value, 10)
+															if (!isNaN(val)) {
+																updateQuantity(item.id, Math.max(1, val))
+															}
+														}}
+														onBlur={(e) => {
+															const val = parseInt(e.target.value, 10)
+															if (isNaN(val) || val < 1) {
+																updateQuantity(item.id, 1)
+															}
+														}}
+														className="h-8 w-8 text-center text-xs font-bold text-gray-900 focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none lg:w-10 lg:text-sm"
+													/>
+													<button
+														type="button"
+														onClick={() =>
+															updateQuantity(item.id, item.quantity + 1)
 														}
-													}}
-													className="h-8 w-8 text-center text-xs font-bold text-gray-900 focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none lg:w-10 lg:text-sm"
-												/>
+														className="flex h-8 w-7 cursor-pointer items-center justify-center font-bold text-gray-600 transition hover:bg-gray-200/80"
+														aria-label="Tăng số lượng"
+													>
+														+
+													</button>
+												</div>
 												<button
-													type="button"
-													onClick={() =>
-														updateQuantity(item.id, item.quantity + 1)
-													}
-													className="flex h-8 w-7 cursor-pointer items-center justify-center font-bold text-gray-600 transition hover:bg-gray-200/80"
-													aria-label="Tăng số lượng"
+													onClick={() => handleRemoveItem(item.id, item.title)}
+													className="p-1 text-gray-400 transition-colors hover:text-red-500 cursor-pointer"
+													title="Xóa sản phẩm"
 												>
-													+
+													✕
 												</button>
 											</div>
-											<button
-												onClick={() => handleRemoveItem(item.id, item.title)}
-												className="p-1 text-gray-400 transition-colors hover:text-red-500 cursor-pointer"
-												title="Xóa sản phẩm"
-											>
-												✕
-											</button>
 										</div>
-									</div>
-								))
+									)
+								})
 							)}
 						</div>
 					</div>

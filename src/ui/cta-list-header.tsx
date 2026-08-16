@@ -1,12 +1,17 @@
 'use client'
 
+import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { stegaClean } from 'next-sanity'
 import { useEffect, useState } from 'react'
 import { HiOutlineHeart, HiOutlinePhone, HiOutlineShoppingBag, HiOutlineUser } from 'react-icons/hi2'
 import { IoIosSearch } from 'react-icons/io'
 import { cn } from '@/lib/utils'
 import type { Cta } from '@/sanity/types'
+import { useAuthStore } from '@/store/use-auth-store'
 import { useCartStore } from '@/store/use-cart-store'
+import { useWishlistStore } from '@/store/use-wishlist-store'
 import SanityLink, { type SanityLinkType } from './sanity-link'
 
 type ExtendedCta = Cta & {
@@ -28,13 +33,20 @@ export default function CtaList({
 	onOpenSearch?: () => void
 	mobileSearchDisplay?: 'bar' | 'icon'
 } & React.ComponentProps<'div'>) {
+	const pathname = usePathname()
 	const [mounted, setMounted] = useState(false)
 	const items = useCartStore((state) => state.items)
 	const totalQuantity = items.reduce((total, item) => total + item.quantity, 0)
 
+	const wishlistItems = useWishlistStore((state) => state.items)
+	const wishlistCount = wishlistItems.length
+
+	const { user, isAuthenticated, checkSession } = useAuthStore()
+
 	useEffect(() => {
 		setMounted(true)
-	}, [])
+		checkSession()
+	}, [checkSession])
 
 	if (!ctas?.length) return null
 
@@ -84,8 +96,43 @@ export default function CtaList({
 							<span className="relative text-xl flex items-center justify-center">
 								{effectiveIcon === 'search' && <IoIosSearch />}
 								{effectiveIcon === 'cart' && <HiOutlineShoppingBag />}
-								{effectiveIcon === 'user' && <HiOutlineUser />}
-								{effectiveIcon === 'wishlist' && <HiOutlineHeart />}
+								{effectiveIcon === 'user' && (
+									mounted && isAuthenticated ? (
+										<span className="relative w-7 h-7 rounded-full overflow-hidden border border-primary/50 flex items-center justify-center bg-primary/10">
+											{user?.avatar ? (
+												<Image
+													src={user.avatar}
+													alt={user.name || 'User'}
+													fill
+													sizes="28px"
+													unoptimized
+													className="object-cover"
+												/>
+											) : (
+												<span className="text-[11px] font-bold text-primary">
+													{(user?.name || user?.email || 'U').substring(0, 1).toUpperCase()}
+												</span>
+											)}
+										</span>
+									) : (
+										<HiOutlineUser />
+									)
+								)}
+								{effectiveIcon === 'wishlist' && (
+									<>
+										<HiOutlineHeart />
+										{mounted && (
+											<span
+												className={cn(
+													'absolute -top-1 -right-2 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-xs transition-all duration-300',
+													wishlistCount > 0 ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
+												)}
+											>
+												{wishlistCount > 9 ? '9+' : wishlistCount}
+											</span>
+										)}
+									</>
+								)}
 								{effectiveIcon === 'phone' && <HiOutlinePhone />}
 
 								{/* Badge số lượng cho Cart với smooth transition */}
@@ -146,6 +193,67 @@ export default function CtaList({
 					)
 				}
 
+				// Xử lý icon User chuyển hướng thông minh
+				if (effectiveIcon === 'user') {
+					if (mounted && isAuthenticated && user) {
+						const displayName = user.name || user.email?.split('@')[0] || 'Tài khoản'
+
+						return (
+							<Link
+								key={ctaKey}
+								href="/account"
+								className={baseBtnClass}
+								aria-label={`Tài khoản của ${displayName}`}
+								title={`Tài khoản của ${displayName}`}
+							>
+								<span className="relative w-7 h-7 rounded-full overflow-hidden border border-primary/50 flex items-center justify-center bg-primary/10 shrink-0">
+									{user.avatar ? (
+										<Image
+											src={user.avatar}
+											alt={displayName}
+											fill
+											sizes="28px"
+											unoptimized
+											className="object-cover"
+										/>
+									) : (
+										<span className="text-[11px] font-bold text-primary">
+											{displayName.substring(0, 1).toUpperCase()}
+										</span>
+									)}
+								</span>
+							</Link>
+						)
+					}
+
+					return (
+						<Link
+							key={ctaKey}
+							href={`/account/login?redirect=${encodeURIComponent(pathname || '/')}`}
+							className={baseBtnClass}
+							aria-label={linkData?.label || 'Đăng nhập'}
+							title={linkData?.label || 'Đăng nhập'}
+						>
+							<HiOutlineUser className="text-xl" />
+						</Link>
+					)
+				}
+
+				// Xử lý icon Wishlist chuyển hướng mặc định tới /wishlist
+				if (effectiveIcon === 'wishlist' && !linkData?.internal && !linkData?.external) {
+					return (
+						<Link
+							key={ctaKey}
+							href="/wishlist"
+							className={baseBtnClass}
+							aria-label={linkData?.label || 'Danh sách yêu thích'}
+							title={linkData?.label || 'Danh sách yêu thích'}
+						>
+							{content}
+						</Link>
+					)
+				}
+
 				return (
 					<SanityLink
 						link={linkData}
@@ -160,4 +268,5 @@ export default function CtaList({
 		</div>
 	)
 }
+
 

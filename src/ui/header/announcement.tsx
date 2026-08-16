@@ -229,8 +229,8 @@ export default function Announcement({
 				color: currentItem.textColor || 'inherit',
 			}}
 		>
-			{/* Container chính: Đảm bảo toàn bộ nội dung và nút điều hướng nằm gọn bên trong khung section */}
-			<div className="section mx-auto relative h-full flex items-center justify-center">
+			{/* Container chính: Đảm bảo toàn bộ nội dung và nút điều hướng nằm gọn bên trong khung container-max */}
+			<div className="container-max relative h-full flex items-center justify-center">
 				{/* Active Announcement Slide Content */}
 				<div className="w-full h-full flex items-center justify-center text-center transition-all duration-500 ease-in-out">
 					<AnnouncementItemCard

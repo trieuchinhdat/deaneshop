@@ -137,7 +137,7 @@ export default function HeaderClient({
 
 				<div
 					className={cn(
-						'section mx-auto relative flex flex-col gap-2.5 sm:gap-3 px-3 sm:px-4',
+						'container-max relative flex flex-col gap-2.5 sm:gap-3 px-3 sm:px-4',
 						mobilePaddingClass,
 						desktopPaddingClass
 					)}

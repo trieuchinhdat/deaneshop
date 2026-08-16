@@ -32,19 +32,19 @@ export async function POST(request: Request) {
 		const cleanAddress = address?.trim() || ''
 		const orderAmount = Number(grandTotal) || 0
 
-		// 1. Tìm hoặc Tạo mới Hồ sơ Khách Hàng (Customer Profile)
+		// 1. Tìm hoặc Tạo mới Hồ sơ Khách Hàng (Customer Profile) - Chống trùng lặp CRM
 		let customerRefId: string | undefined = undefined
 		try {
 			let existingCustomer = null
-			if (cleanPhone) {
+
+			// Tìm kiếm chéo đồng thời theo Phone HOẶC Email để không tạo trùng lặp với tài khoản Google đã có
+			if (cleanPhone || cleanEmail) {
 				existingCustomer = await writeClient.fetch(
-					`*[_type == "customer" && phone == $phone][0]`,
-					{ phone: cleanPhone },
-				)
-			} else if (cleanEmail) {
-				existingCustomer = await writeClient.fetch(
-					`*[_type == "customer" && email == $email][0]`,
-					{ email: cleanEmail },
+					`*[_type == "customer" && (
+						(defined($phone) && $phone != "" && phone == $phone) ||
+						(defined($email) && $email != "" && email == $email)
+					)][0]`,
+					{ phone: cleanPhone, email: cleanEmail.toLowerCase() },
 				)
 			}
 
@@ -61,9 +61,12 @@ export async function POST(request: Request) {
 					lastOrderAt: new Date().toISOString(),
 					cskhStatus: newTotalSpent >= 2000000 || newOrderCount >= 5 ? 'vip' : 'customer',
 				}
-				if (cleanName) patchData.name = cleanName
+				if (cleanName && (!existingCustomer.name || existingCustomer.name === 'Khách hàng')) {
+					patchData.name = cleanName
+				}
 				if (cleanAddress) patchData.address = cleanAddress
-				if (cleanEmail && !existingCustomer.email) patchData.email = cleanEmail
+				if (cleanPhone && !existingCustomer.phone) patchData.phone = cleanPhone
+				if (cleanEmail && !existingCustomer.email) patchData.email = cleanEmail.toLowerCase()
 
 				if (customerRefId) {
 					await writeClient.patch(customerRefId).set(patchData).commit()
@@ -72,8 +75,8 @@ export async function POST(request: Request) {
 				const newCust = await writeClient.create({
 					_type: 'customer',
 					name: cleanName || undefined,
-					phone: cleanPhone || cleanEmail,
-					email: cleanEmail || undefined,
+					phone: cleanPhone || undefined,
+					email: cleanEmail ? cleanEmail.toLowerCase() : undefined,
 					address: cleanAddress || undefined,
 					source: 'checkout',
 					cskhStatus: 'customer',

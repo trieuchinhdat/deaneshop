@@ -55,15 +55,13 @@ export default async function SearchPage() {
 				currentPage={currentPage}
 			/>
 
-			<div className="container mx-auto max-w-7xl px-4 py-6 lg:py-10">
-				<Suspense fallback={<Loading>Đang tải trang tìm kiếm...</Loading>}>
-					<SearchModule
-						_type="search-module"
-						intro={searchModuleData?.intro || []}
-						scope={searchModuleData?.scope || 'all'}
-					/>
-				</Suspense>
-			</div>
+			<Suspense fallback={<Loading>Đang tải trang tìm kiếm...</Loading>}>
+				<SearchModule
+					_type="search-module"
+					intro={searchModuleData?.intro || []}
+					scope={searchModuleData?.scope || 'all'}
+				/>
+			</Suspense>
 
 			{/* Render các Global Modules hoặc Modules bổ sung từ Sanity nếu có */}
 			{otherModules && otherModules.length > 0 && (

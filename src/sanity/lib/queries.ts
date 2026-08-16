@@ -89,6 +89,16 @@ const SITE_QUERY = groq`*[_type == 'site'][0]{
 		ringColor,
 		borderRadius,
 		shadowStyle,
+		pageMaxWidth,
+		customPageMaxWidth,
+		sectionSpacingDesktop,
+		customSectionSpacingDesktop,
+		sectionSpacingMobile,
+		customSectionSpacingMobile,
+		containerPaddingDesktop,
+		customContainerPaddingDesktop,
+		containerPaddingMobile,
+		customContainerPaddingMobile,
 		fontHeading,
 		customFontHeading,
 		fontBody,
@@ -151,21 +161,15 @@ const SITE_QUERY = groq`*[_type == 'site'][0]{
 		couponCode,
 		bannerCtaText,
 		bannerCtaUrl,
-		formImage {
-			...,
-			asset->
-		},
+		transparentBackground,
 		formBadge,
 		formTitle,
 		formDescription,
 		formFields,
 		formSubmitLabel,
-		formPrivacyText,
 		rewardCouponCode,
 		successTitle,
-		successDescription,
-		layoutStyle,
-		accentColor
+		successDescription
 	}
 }`
 
@@ -330,7 +334,9 @@ export const MODULES_QUERY = groq`
 	_type == 'collection-content' => {
 		...,
 	},
-	
+	_type == 'wishlist' => {
+		...,
+	},
 `
 
 export const PRODUCT_CARD_SETTINGS_QUERY = groq`*[_type == 'product-card-settings'][0]{...}`
@@ -412,6 +418,13 @@ export const FOOTER_SETTINGS_QUERY = groq`*[_type == 'footer-settings'][0]{
 	...,
 	footerMenu->{ ${NAVIGATION_QUERY} },
 	social->{ ${NAVIGATION_QUERY} },
+	trustBadges[]{
+		...,
+		image{
+			...,
+			asset->
+		}
+	}
 }`
 
 export async function getFooterSettings() {
@@ -425,12 +438,41 @@ export async function getFooterSettings() {
 	])
 
 	return {
+		// Inherit or override
 		footerMenu: footerSettings?.footerMenu ?? site?.footer,
-		social: footerSettings?.social ?? site?.social,
-		footerContent: footerSettings?.footerContent ?? site?.footerContent,
+		social:
+			footerSettings?.socialSource === 'custom'
+				? footerSettings?.social
+				: (site?.socialLinks || site?.social),
+		footerContent: footerSettings?.customFooterContent ?? site?.footerContent,
 		copyright: footerSettings?.copyright ?? site?.copyright,
-		footerBackground: footerSettings?.footerBackground ?? site?.theme?.footerBackground,
-		footerText: footerSettings?.footerText ?? site?.theme?.footerText,
+		copyrightText: footerSettings?.copyrightText,
+		footerBackground: footerSettings?.footerBackground,
+		footerText: footerSettings?.footerText,
+		footerThemeStyle: footerSettings?.footerThemeStyle ?? 'default',
+		desktopLayout: footerSettings?.desktopLayout ?? '4-columns',
+		mobileAccordion: footerSettings?.mobileAccordion ?? true,
+		showDividers: footerSettings?.showDividers ?? true,
+		showUspBar: footerSettings?.showUspBar ?? true,
+		uspItems: footerSettings?.uspItems,
+		showLogo: footerSettings?.showLogo ?? true,
+		brandDescription: footerSettings?.brandDescription,
+		useSiteProfile: footerSettings?.useSiteProfile ?? true,
+		showHotline: footerSettings?.showHotline ?? true,
+		showEmail: footerSettings?.showEmail ?? true,
+		showAddress: footerSettings?.showAddress ?? true,
+		showTaxCode: footerSettings?.showTaxCode ?? false,
+		showWorkingHours: footerSettings?.showWorkingHours ?? true,
+		showSocialLinks: footerSettings?.showSocialLinks ?? true,
+		showNewsletter: footerSettings?.showNewsletter ?? true,
+		newsletterTitle: footerSettings?.newsletterTitle,
+		newsletterDescription: footerSettings?.newsletterDescription,
+		newsletterPlaceholder: footerSettings?.newsletterPlaceholder,
+		newsletterButtonText: footerSettings?.newsletterButtonText,
+		showPaymentMethods: footerSettings?.showPaymentMethods ?? true,
+		paymentMethods: footerSettings?.paymentMethods ?? ['visa', 'mastercard', 'momo', 'vnpay', 'cod'],
+		showTrustBadges: footerSettings?.showTrustBadges ?? false,
+		trustBadges: footerSettings?.trustBadges,
 		...(footerSettings || {}),
 	}
 }
@@ -519,21 +561,15 @@ export const POPUP_SETTINGS_QUERY = groq`coalesce(*[_type == 'popup-settings'][0
 	couponCode,
 	bannerCtaText,
 	bannerCtaUrl,
-	formImage {
-		...,
-		asset->
-	},
+	transparentBackground,
 	formBadge,
 	formTitle,
 	formDescription,
 	formFields,
 	formSubmitLabel,
-	formPrivacyText,
 	rewardCouponCode,
 	successTitle,
-	successDescription,
-	layoutStyle,
-	accentColor
+	successDescription
 }`
 
 export async function getPopupSettings() {

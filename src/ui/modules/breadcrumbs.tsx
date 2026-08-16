@@ -83,23 +83,29 @@ export default function BreadcrumbsComponent({
 			className="border-b border-gray-100 bg-gray-50/50 py-2.5"
 			{...moduleAttributes(props)}
 		>
-			<div className="section text-xs lg:text-sm">
+			<div className="section !py-0 text-xs lg:text-sm">
 				<ol
-					className="flex flex-wrap items-center gap-x-2 gap-y-1 text-gray-500"
+					className="flex items-center gap-x-2 text-gray-500 overflow-hidden whitespace-nowrap min-w-0"
 					itemScope
 					itemType="https://schema.org/BreadcrumbList"
 				>
-					{effectiveCrumbs?.map((crumb, index) => (
-						<Crumb
-							link={crumb as SanityLinkType}
-							position={index + 1}
-							key={crumb._key || index}
-						/>
-					))}
+					{effectiveCrumbs?.map((crumb, index) => {
+						const isLast = !pageTitle && index === effectiveCrumbs.length - 1
+						return (
+							<Crumb
+								link={crumb as SanityLinkType}
+								position={index + 1}
+								key={crumb._key || index}
+								isLast={isLast}
+							/>
+						)
+					})}
 
 					{pageTitle && (
-						<Crumb position={(effectiveCrumbs?.length ?? 0) + 1}>
-							<span className="font-medium text-gray-900">{pageTitle}</span>
+						<Crumb position={(effectiveCrumbs?.length ?? 0) + 1} isLast>
+							<span className="font-medium text-gray-900 truncate">
+								{pageTitle}
+							</span>
 						</Crumb>
 					)}
 				</ol>
@@ -112,13 +118,15 @@ function Crumb({
 	link,
 	position,
 	children,
+	isLast,
 }: {
 	position: number
 	link?: Partial<ComponentProps<typeof SanityLink>['link']>
+	isLast?: boolean
 } & ComponentProps<'li'>) {
 	const Content = (
 		<>
-			<span itemProp="name">
+			<span itemProp="name" className="truncate">
 				{children || link?.label || link?.internal?.title}
 			</span>
 			<meta itemProp="position" content={position.toString()} />
@@ -127,7 +135,9 @@ function Crumb({
 
 	return (
 		<li
-			className='line-clamp-1 not-first:before:mr-2 not-first:before:content-["/"] not-first:before:text-gray-400 first:shrink-0'
+			className={`inline-flex items-center min-w-0 ${
+				isLast ? 'flex-1' : 'shrink-0'
+			} truncate not-first:before:mr-2 not-first:before:content-["/"] not-first:before:text-gray-400 not-first:before:shrink-0`}
 			itemProp="itemListElement"
 			itemScope
 			itemType="https://schema.org/ListItem"
@@ -135,7 +145,7 @@ function Crumb({
 			{link ? (
 				<SanityLink
 					link={link as SanityLinkType}
-					className="hover:text-primary-600 transition-colors"
+					className="hover:text-primary-600 transition-colors truncate"
 					itemProp="item"
 				>
 					{Content}

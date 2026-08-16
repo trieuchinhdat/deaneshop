@@ -11,6 +11,7 @@ import 'swiper/css/navigation'
 import { ROUTES } from '@/lib/env'
 import { formatVND } from '@/lib/utils'
 import { useCartStore } from '@/store/use-cart-store'
+import { showWishlistToast, useWishlistStore } from '@/store/use-wishlist-store'
 import ResponsiveImage from '@/ui/responsiveImage'
 import { parseVideoMedia } from '@/ui/img'
 import QuickViewModal from './quick-view-modal'
@@ -44,7 +45,7 @@ function getHoverMediaItem(images: any[] | undefined, mainImage: any): any | nul
 }
 
 // 1. Định nghĩa Type Product
-type Product = {
+export type Product = {
 	_id: string
 	title: string
 	slug: string
@@ -57,6 +58,7 @@ type Product = {
 	sold?: number
 	stock?: number
 	hasVariants?: boolean
+	options?: Array<{ name: string; values: string[] }>
 	variants?: Array<{
 		_key?: string
 		sku?: string
@@ -358,7 +360,7 @@ export default function ProductListClient(props: ProductListClientProps) {
 	)
 }
 
-function ProductCard({
+export function ProductCard({
 	product,
 	productSettings,
 	onOpenQuickView,
@@ -368,7 +370,8 @@ function ProductCard({
 	onOpenQuickView?: (product: Product) => void
 }) {
 	const [activeImage, setActiveImage] = useState<any>(null)
-	const [isWishlisted, setIsWishlisted] = useState(false)
+	const isWishlisted = useWishlistStore((s) => s.items.some((i) => i._id === product._id))
+	const toggleWishlist = useWishlistStore((s) => s.toggleItem)
 	const addItem = useCartStore((s) => s.addItem)
 
 	const {
@@ -516,6 +519,7 @@ function ProductCard({
 		addItem({
 			id: cartItemId,
 			productId: product._id,
+			productTitle: product.title,
 			variantId,
 			variantTitle: firstVariant?.title,
 			sku: firstVariant?.sku || product.slug,
@@ -525,6 +529,10 @@ function ProductCard({
 			image: itemImage,
 			quantity: 1,
 			slug: product.slug,
+			hasVariants:
+				product.hasVariants || Boolean(product.variants?.length),
+			options: product.options,
+			variants: product.variants,
 		})
 
 		Swal.fire({
@@ -613,13 +621,14 @@ function ProductCard({
 							onClick={(e) => {
 								e.preventDefault()
 								e.stopPropagation()
-								setIsWishlisted(!isWishlisted)
+								const isAdded = toggleWishlist(product._id)
+								showWishlistToast(isAdded, product.title)
 							}}
-							className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-gray-700 backdrop-blur-sm transition-transform hover:scale-110 hover:bg-white hover:text-red-500 shadow-sm"
+							className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-gray-700 backdrop-blur-sm transition-transform hover:scale-110 hover:bg-white hover:text-red-500 shadow-sm cursor-pointer z-10"
 							aria-label="Thêm vào yêu thích"
 						>
 							<svg
-								className={`h-4 w-4 ${isWishlisted ? 'fill-red-500 text-red-500' : 'fill-none stroke-current stroke-2'}`}
+								className={`h-4 w-4 transition-colors duration-200 ${isWishlisted ? 'fill-red-500 text-red-500' : 'fill-none stroke-current stroke-2'}`}
 								viewBox="0 0 24 24"
 							>
 								<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />

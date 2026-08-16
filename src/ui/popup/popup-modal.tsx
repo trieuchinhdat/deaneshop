@@ -23,9 +23,10 @@ export default function PopupModal({ settings }: PopupModalProps) {
 		delaySeconds = 4,
 		scrollPercentage = 35,
 		frequencyDays = 3,
+		transparentBackground = false,
 	} = settings || {}
 
-	// Kiểm tra trang hợp lệ
+	// Validate target page
 	const isTargetPageMatched = () => {
 		if (targetPages === 'all') return true
 		if (targetPages === 'home') return pathname === '/' || pathname === ''
@@ -35,17 +36,17 @@ export default function PopupModal({ settings }: PopupModalProps) {
 		return true
 	}
 
-	// Kiểm tra điều kiện tần suất & localStorage
+	// Check frequency & localStorage conditions
 	const checkCanShow = () => {
 		if (!isActive || !isTargetPageMatched()) return false
 		if (typeof window === 'undefined') return false
 
-		// Đã submit form thành công trước đó
+		// Already submitted form
 		if (type === 'form' && localStorage.getItem('ecocros_popup_submitted') === 'true') {
 			return false
 		}
 
-		// Đã đóng popup và còn trong thời hạn frequencyDays
+		// Closed within frequencyDays window
 		const closedUntil = localStorage.getItem('ecocros_popup_closed_until')
 		if (closedUntil && Date.now() < Number(closedUntil)) {
 			return false
@@ -61,12 +62,12 @@ export default function PopupModal({ settings }: PopupModalProps) {
 		setIsOpen(true)
 	}
 
-	// Lắng nghe Trigger Events
+	// Listen for Trigger Events
 	useEffect(() => {
 		if (!isActive || hasTriggered) return
 		if (!checkCanShow()) return
 
-		// 1. Trigger Delay Timer
+		// 1. Time Delay Trigger
 		if (triggerType === 'delay') {
 			const timer = setTimeout(() => {
 				triggerPopup()
@@ -75,7 +76,7 @@ export default function PopupModal({ settings }: PopupModalProps) {
 			return () => clearTimeout(timer)
 		}
 
-		// 2. Trigger Scroll Depth
+		// 2. Scroll Depth Trigger
 		if (triggerType === 'scroll') {
 			const handleScroll = () => {
 				const scrollTop = window.scrollY || document.documentElement.scrollTop
@@ -93,7 +94,7 @@ export default function PopupModal({ settings }: PopupModalProps) {
 			return () => window.removeEventListener('scroll', handleScroll)
 		}
 
-		// 3. Trigger Exit-Intent (Desktop)
+		// 3. Exit-Intent Trigger (Desktop)
 		if (triggerType === 'exit-intent') {
 			const handleMouseLeave = (e: MouseEvent) => {
 				if (e.clientY <= 10 && window.innerWidth >= 768) {
@@ -106,7 +107,7 @@ export default function PopupModal({ settings }: PopupModalProps) {
 		}
 	}, [isActive, pathname, triggerType, delaySeconds, scrollPercentage, hasTriggered])
 
-	// Quản lý khóa cuộn trang & phím Escape
+	// Manage body scroll lock & Escape key
 	useEffect(() => {
 		if (isOpen) {
 			document.body.style.overflow = 'hidden'
@@ -133,29 +134,46 @@ export default function PopupModal({ settings }: PopupModalProps) {
 
 	if (!isActive || !isOpen) return null
 
+	const isBannerOnly = type === 'banner'
+	const isFrameless = isBannerOnly && transparentBackground
+
 	return (
 		<div
-			className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/65 p-3 sm:p-6 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
+			className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-3 sm:p-6 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
 			onClick={handleClose}
 			role="dialog"
 			aria-modal="true"
-			aria-label={settings?.bannerTitle || settings?.formTitle || 'Thông báo khuyến mãi'}
+			aria-label={settings?.bannerTitle || settings?.formTitle || 'Marketing Popup'}
 		>
 			<div
-				className="relative w-full max-w-3xl max-h-[88dvh] overflow-y-auto rounded-2xl md:rounded-3xl shadow-2xl transform transition-all duration-300 animate-in zoom-in-95 bg-white text-gray-900"
+				className={`relative w-full max-w-3xl max-h-[90dvh] transform transition-all duration-300 animate-in zoom-in-95 ${
+					isFrameless
+						? 'bg-transparent shadow-none border-none p-0 overflow-visible'
+						: isBannerOnly
+							? 'bg-transparent shadow-none border-none overflow-visible'
+							: 'rounded-2xl md:rounded-3xl shadow-2xl bg-neutral-900 text-white overflow-y-auto'
+				}`}
 				onClick={(e) => e.stopPropagation()}
 			>
-				{/* Nút đóng [X] Pinned High-contrast Touch target >= 44x44px */}
+				{/* 
+					Nút đóng [X]:
+					- Khi là Banner Only: Bỏ hoàn toàn màu nền và border, chỉ là icon nổi bật với drop-shadow và hiệu ứng hover mượt mà.
+					- Khi là Form: Nút tròn bán trong suốt sang trọng.
+				*/}
 				<button
 					type="button"
 					onClick={handleClose}
-					className="sticky top-2.5 right-2.5 ml-auto float-right mr-2.5 mt-2.5 sm:absolute sm:top-3 sm:right-3 sm:m-0 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/90 sm:bg-white/90 sm:text-gray-700 sm:hover:bg-white sm:hover:text-gray-900 shadow-lg backdrop-blur-xs transition-all active:scale-90 cursor-pointer"
-					aria-label="Đóng cửa sổ"
+					className={`z-50 flex items-center justify-center transition-all cursor-pointer ${
+						isBannerOnly
+							? 'absolute -top-3 -right-3 sm:-top-4 sm:-right-4 h-9 w-9 sm:h-10 sm:w-10 bg-transparent border-none text-white/90 hover:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] hover:scale-115 active:scale-95'
+							: 'absolute top-3 right-3 h-10 w-10 rounded-full bg-black/60 text-white hover:bg-black/90 border border-white/20 shadow-xl backdrop-blur-md active:scale-90'
+					}`}
+					aria-label="Close modal"
 				>
-					<FiX className="h-5 w-5 stroke-[2.5]" />
+					<FiX className={`${isBannerOnly ? 'h-7 w-7 sm:h-8 sm:w-8 stroke-[2.5]' : 'h-5 w-5 stroke-[2.5]'}`} />
 				</button>
 
-				{/* Render Banner hoặc Form theo cài đặt */}
+				{/* Render Banner hoặc Form */}
 				{type === 'form' ? (
 					<PopupForm settings={settings} onClose={handleClose} />
 				) : (

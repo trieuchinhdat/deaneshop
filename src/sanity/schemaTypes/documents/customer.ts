@@ -12,14 +12,41 @@ export default defineType({
 		}),
 		defineField({
 			name: 'phone',
-			title: 'Số điện thoại (Định danh chính)',
+			title: 'Số điện thoại',
 			type: 'string',
-			validation: (Rule) => Rule.required(),
 		}),
 		defineField({
 			name: 'email',
 			title: 'Email',
 			type: 'string',
+		}),
+		defineField({
+			name: 'avatar',
+			title: 'Ảnh đại diện (Avatar URL)',
+			type: 'url',
+		}),
+		defineField({
+			name: 'googleId',
+			title: 'Google OAuth User ID',
+			type: 'string',
+		}),
+		defineField({
+			name: 'authProvider',
+			title: 'Phương thức xác thực',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Google OAuth (Gmail)', value: 'google' },
+					{ title: 'Số điện thoại / Mật khẩu', value: 'credentials' },
+					{ title: 'Khách vãng lai (Guest Checkout)', value: 'guest' },
+				],
+			},
+			initialValue: 'guest',
+		}),
+		defineField({
+			name: 'lastLoginAt',
+			title: 'Thời gian đăng nhập gần nhất',
+			type: 'datetime',
 		}),
 		defineField({
 			name: 'address',

@@ -7,6 +7,7 @@ import { ROUTES } from '@/lib/env'
 import { cn, formatVND } from '@/lib/utils'
 import { urlFor } from '@/sanity/lib/image'
 import { useCartStore } from '@/store/use-cart-store'
+import CartVariantSelector from '@/ui/cart/cart-variant-selector'
 
 interface CartDrawerProps {
 	isOpen: boolean
@@ -114,8 +115,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 								<HiOutlineShoppingBag className="text-xl" />
 							</div>
 							<div>
-								<h2 className="text-base font-bold text-gray-900">Giỏ hàng của bạn</h2>
-								<p className="text-xs text-gray-500">{items.length} sản phẩm</p>
+								<h2 className="text-base font-bold text-gray-900">
+									Giỏ hàng của bạn
+								</h2>
+								<p className="text-xs text-gray-500">
+									{items.length} sản phẩm
+								</p>
 							</div>
 						</div>
 						<button
@@ -135,9 +140,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 								<div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4 text-gray-400">
 									<HiOutlineShoppingBag className="text-3xl" />
 								</div>
-								<h3 className="text-base font-semibold text-gray-800 mb-1">Giỏ hàng của bạn đang trống</h3>
+								<h3 className="text-base font-semibold text-gray-800 mb-1">
+									Giỏ hàng của bạn đang trống
+								</h3>
 								<p className="text-xs text-gray-500 max-w-xs mb-6">
-									Hãy khám phá các sản phẩm chất lượng và thêm vào giỏ hàng ngay hôm nay!
+									Hãy khám phá các sản phẩm chất lượng và thêm vào giỏ hàng
+									ngay hôm nay!
 								</p>
 								<button
 									type="button"
@@ -152,7 +160,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 								const imgSrc = getItemImageUrl(item.image)
 
 								return (
-									<div key={item.id} className="py-4 flex gap-3.5 items-center group">
+									<div
+										key={item.id}
+										className="py-4 flex gap-3.5 items-center group"
+									>
 										{/* Item Image */}
 										<div className="w-18 h-18 rounded-lg overflow-hidden border border-stroke/20 shrink-0 relative bg-gray-50">
 											<img
@@ -160,7 +171,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 												alt={item.title}
 												className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
 												onError={(e) => {
-													;(e.currentTarget as HTMLImageElement).src = '/fallback-image.png'
+													;(e.currentTarget as HTMLImageElement).src =
+														'/fallback-image.png'
 												}}
 												loading="lazy"
 											/>
@@ -169,24 +181,27 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 										{/* Item Details */}
 										<div className="flex-1 min-w-0">
 											<h3 className="text-sm font-semibold text-gray-900 truncate hover:text-primary transition-colors">
-												<Link href={`/${ROUTES.products}/${item.slug || ''}`} onClick={handleClose}>
-													{item.title}
+												<Link
+													href={`/${ROUTES.products}/${item.slug || ''}`}
+													onClick={handleClose}
+												>
+													{item.productTitle ||
+														item.title.replace(/\s*\([^)]*\)$/, '').trim()}
 												</Link>
 											</h3>
 
-											{item.variantTitle && (
-												<p className="text-xs text-gray-500 mt-0.5 truncate">
-													Phân loại: <span className="font-medium text-gray-700">{item.variantTitle}</span>
-												</p>
-											)}
+											{/* Inline 1-Click Variant Selector */}
+											<CartVariantSelector item={item} />
 
 											<div className="flex items-center justify-between mt-2.5">
 												{/* Quantity controls */}
 												<div className="flex items-center border border-stroke/30 rounded-md overflow-hidden bg-white shadow-2xs">
 													<button
 														type="button"
-														className="px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors"
-														onClick={() => updateQuantity(item.id, item.quantity - 1)}
+														className="px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
+														onClick={() =>
+															updateQuantity(item.id, item.quantity - 1)
+														}
 														aria-label="Giảm số lượng"
 													>
 														-
@@ -196,8 +211,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 													</span>
 													<button
 														type="button"
-														className="px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors"
-														onClick={() => updateQuantity(item.id, item.quantity + 1)}
+														className="px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
+														onClick={() =>
+															updateQuantity(item.id, item.quantity + 1)
+														}
 														aria-label="Tăng số lượng"
 													>
 														+
@@ -233,7 +250,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 					{items.length > 0 && (
 						<div className="p-5 border-t border-stroke/20 bg-gray-50/50">
 							<div className="flex justify-between items-center mb-4">
-								<span className="text-sm font-medium text-gray-600">Tổng tiền tạm tính:</span>
+								<span className="text-sm font-medium text-gray-600">
+									Tổng tiền tạm tính:
+								</span>
 								<span className="text-lg font-extrabold text-primary">
 									{formatVND(total)}
 								</span>
@@ -262,3 +281,4 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 		</div>
 	)
 }
+

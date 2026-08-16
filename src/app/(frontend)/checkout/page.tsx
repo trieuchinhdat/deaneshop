@@ -53,7 +53,7 @@ export default async function CheckoutPage() {
 
 	return (
 		<main className="min-h-screen py-6 lg:py-10 bg-gray-50/50">
-			<div className="container mx-auto px-4 max-w-7xl">
+			<div className="container-max">
 				<CartCheckoutClient
 					title={title}
 					description={description}

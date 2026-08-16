@@ -28,6 +28,7 @@ import SearchModule from './search'
 import StatList from './stat-list'
 import StepList from './step-list'
 import ThemeBackground from './theme-background'
+import WishlistModule from './wishlist'
 
 const MODULES_MAP = {
 	'accordion-list': AccordionList,
@@ -52,6 +53,7 @@ const MODULES_MAP = {
 	'product-list': productList,
 	'collection-content': CollectionContent,
 	'cart-checkout': WrapCartCheckout,
+	wishlist: WishlistModule,
 } as const
 
 export default function ({

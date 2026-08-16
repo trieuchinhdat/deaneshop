@@ -1,10 +1,13 @@
 'use client'
 
+import Image from 'next/image'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { HiOutlineUser } from 'react-icons/hi2'
 import { VscChevronLeft, VscChevronRight } from 'react-icons/vsc'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/use-auth-store'
 import SanityLink, { type SanityLinkType } from '@/ui/sanity-link'
 
 interface Panel {
@@ -30,6 +33,7 @@ export default function MobileNav({
 	ctas,
 }: MobileNavProps) {
 	const pathname = usePathname()
+	const { user, isAuthenticated } = useAuthStore()
 
 	// Find user CTA in ctas list if present
 	const userCta = ctas?.find((cta: any) => {
@@ -250,26 +254,51 @@ export default function MobileNav({
 					</div>
 				</div>
 
-				{/* Prominent User / Account CTA Button inside Mobile Menu Drawer with iOS Safe Area */}
-				<div className="mt-auto pt-3 px-4 pb-[max(env(safe-area-inset-bottom,0px),16px)] border-t border-stroke/15 bg-gray-50/80 dark:bg-gray-800/80 shrink-0">
-					{userCta ? (
-						<SanityLink
-							link={userCta.link as SanityLinkType}
-							onClick={onClose}
-							className="flex items-center justify-center gap-2.5 w-full py-3.5 px-4 rounded-xl bg-primary text-white font-bold shadow-md hover:opacity-90 active:scale-[0.98] transition-all text-sm cursor-pointer min-h-[48px]"
-						>
-							<HiOutlineUser className="text-lg" />
-							<span>{userCta.link?.label || 'Tài khoản / Đăng nhập'}</span>
-						</SanityLink>
-					) : (
-						<a
+				{/* Prominent User / Account Section inside Mobile Menu Drawer with iOS Safe Area */}
+				<div className="mt-auto pt-3 px-4 pb-[max(env(safe-area-inset-bottom,0px),16px)] border-t border-border/40 bg-muted/40 shrink-0">
+					{isAuthenticated && user ? (
+						<Link
 							href="/account"
 							onClick={onClose}
-							className="flex items-center justify-center gap-2.5 w-full py-3.5 px-4 rounded-xl bg-primary text-white font-bold shadow-md hover:opacity-90 active:scale-[0.98] transition-all text-sm cursor-pointer min-h-[48px]"
+							className="flex items-center justify-between p-3 rounded-2xl bg-card border border-border/80 shadow-xs hover:border-primary/40 transition-all cursor-pointer"
+						>
+							<div className="flex items-center gap-3">
+								<div className="relative w-10 h-10 rounded-full overflow-hidden bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
+									{user.avatar ? (
+										<Image
+											src={user.avatar}
+											alt={user.name || 'User'}
+											fill
+											sizes="40px"
+											unoptimized
+											className="object-cover"
+										/>
+									) : (
+										<span className="text-xs font-bold text-primary">
+											{(user.name || user.email || 'U').substring(0, 2).toUpperCase()}
+										</span>
+									)}
+								</div>
+								<div className="text-left">
+									<p className="text-sm font-bold text-foreground line-clamp-1">
+										{user.name || 'Tài khoản của bạn'}
+									</p>
+									<p className="text-xs text-primary font-medium">
+										Quản lý đơn hàng & Hồ sơ →
+									</p>
+								</div>
+							</div>
+							<VscChevronRight className="text-lg text-muted-foreground" />
+						</Link>
+					) : (
+						<Link
+							href={`/account/login?redirect=${encodeURIComponent(pathname || '/')}`}
+							onClick={onClose}
+							className="flex items-center justify-center gap-2.5 w-full py-3.5 px-4 rounded-2xl bg-primary text-primary-foreground font-semibold shadow-xs hover:bg-primary/90 active:scale-[0.98] transition-all text-sm cursor-pointer min-h-[48px]"
 						>
 							<HiOutlineUser className="text-lg" />
-							<span>Tài khoản / Đăng nhập</span>
-						</a>
+							<span>Đăng nhập / Đăng ký tài khoản</span>
+						</Link>
 					)}
 				</div>
 			</div>

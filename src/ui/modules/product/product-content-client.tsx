@@ -6,6 +6,7 @@ import type { Swiper as SwiperType } from 'swiper'
 import { Navigation } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { useCartStore } from '@/store/use-cart-store'
+import { showWishlistToast, useWishlistStore } from '@/store/use-wishlist-store'
 import Img from '../../img'
 import 'swiper/css'
 import 'swiper/css/navigation'
@@ -217,6 +218,8 @@ export default function ProductContentClient({
 }: Props) {
 	const router = useRouter()
 	const addItem = useCartStore((s) => s.addItem)
+	const isWishlisted = useWishlistStore((s) => s.items.some((i) => i._id === productId))
+	const toggleWishlist = useWishlistStore((s) => s.toggleItem)
 
 	const [quantity, setQuantity] = useState(1)
 	const [activeIndex, setActiveIndex] = useState(0)
@@ -511,6 +514,7 @@ export default function ProductContentClient({
 		addItem({
 			id: cartItemId,
 			productId,
+			productTitle: title,
 			variantId,
 			variantTitle: activeVariant?.title,
 			selectedOptions,
@@ -521,6 +525,9 @@ export default function ProductContentClient({
 			image: itemImage,
 			quantity,
 			slug,
+			hasVariants: effectiveHasVariants,
+			options,
+			variants,
 		})
 
 		router.push('/checkout')
@@ -550,6 +557,7 @@ export default function ProductContentClient({
 		addItem({
 			id: cartItemId,
 			productId,
+			productTitle: title,
 			variantId,
 			variantTitle: activeVariant?.title,
 			selectedOptions,
@@ -560,6 +568,9 @@ export default function ProductContentClient({
 			image: itemImage,
 			quantity,
 			slug,
+			hasVariants: effectiveHasVariants,
+			options,
+			variants,
 		})
 
 		Swal.fire({
@@ -1322,6 +1333,33 @@ export default function ProductContentClient({
 														'Mua ngay'}
 												</button>
 											)}
+
+											{/* Nút Yêu thích Wishlist */}
+											<button
+												type="button"
+												onClick={() => {
+													const isAdded = toggleWishlist(productId)
+													showWishlistToast(isAdded, title)
+												}}
+												className={`flex h-11 w-11 shrink-0 sm:h-12 sm:w-12 items-center justify-center rounded-xl border transition-all cursor-pointer ${
+													isWishlisted
+														? 'border-rose-300 bg-rose-50 text-rose-500 shadow-xs'
+														: 'border-gray-200 bg-white text-gray-600 hover:border-rose-200 hover:text-rose-500 hover:bg-rose-50/50'
+												}`}
+												title={isWishlisted ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+												aria-label="Wishlist"
+											>
+												<svg
+													className={`h-5 w-5 transition-transform duration-200 active:scale-125 ${
+														isWishlisted
+															? 'fill-rose-500 text-rose-500'
+															: 'fill-none stroke-current stroke-2'
+													}`}
+													viewBox="0 0 24 24"
+												>
+													<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+												</svg>
+											</button>
 										</div>
 
 										{/* CONTACT BUTTON ON A SEPARATE LINE */}

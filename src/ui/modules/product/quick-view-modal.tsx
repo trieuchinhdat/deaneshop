@@ -243,6 +243,7 @@ export default function QuickViewModal({
 		addItem({
 			id: cartItemId,
 			productId: product._id,
+			productTitle: product.title,
 			variantId,
 			variantTitle: activeVariant?.title,
 			selectedOptions,
@@ -255,6 +256,10 @@ export default function QuickViewModal({
 			image: itemImage,
 			quantity,
 			slug: product.slug,
+			hasVariants:
+				product.hasVariants || Boolean(product.variants?.length),
+			options: effectiveOptions,
+			variants: product.variants,
 		})
 
 		onClose()

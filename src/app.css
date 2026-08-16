@@ -388,13 +388,25 @@
 
 .section {
 	margin-inline: auto;
-	max-width: var(--container-7xl);
-	padding-inline: calc(var(--spacing) * 1.5);
-	padding-block: calc(var(--spacing) * 2);
+	width: 100%;
+	max-width: var(--page-max-width, 1280px);
+	padding-inline: var(--container-padding-mobile, 16px);
+	padding-block: var(--section-spacing-mobile, 16px);
 
-	@media (width >=48rem) {
-		padding-inline: calc(var(--spacing) * 10);
-		padding-block: calc(var(--spacing) * 4);
+	@media (width >= 48rem) {
+		padding-inline: var(--container-padding-desktop, 32px);
+		padding-block: var(--section-spacing-desktop, 32px);
+	}
+}
+
+@utility container-max {
+	margin-inline: auto;
+	width: 100%;
+	max-width: var(--page-max-width, 1280px);
+	padding-inline: var(--container-padding-mobile, 16px);
+
+	@media (width >= 48rem) {
+		padding-inline: var(--container-padding-desktop, 32px);
 	}
 }
 

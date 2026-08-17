@@ -296,6 +296,7 @@ export default function CategoryDropdown({
 													src={urlFor(activeItem.banner.image).width(600).height(450).url()}
 													alt={activeItem.banner.title || getItemLabel(activeItem)}
 													fill
+													unoptimized
 													className="object-cover group-hover/banner:scale-105 transition-transform duration-500"
 												/>
 											</div>

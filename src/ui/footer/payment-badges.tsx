@@ -170,6 +170,7 @@ export default function PaymentBadges({
 									alt={badge.title || 'Trust Badge'}
 									width={80}
 									height={28}
+									unoptimized
 									className="h-7 w-auto object-contain"
 								/>
 							</div>

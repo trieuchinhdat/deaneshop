@@ -118,6 +118,7 @@ export default function AffiliateLink({
 								src={urlFor(image).width(200).height(200).url()}
 								alt={title || ''}
 								fill
+								unoptimized
 								className="object-contain mix-blend-multiply transition-transform duration-500 group-hover/card:scale-110"
 							/>
 						</div>
@@ -174,6 +175,7 @@ export default function AffiliateLink({
 								src={urlFor(image).width(500).url()}
 								alt={title || ''}
 								fill
+								unoptimized
 								className="object-contain mix-blend-multiply transition-transform duration-500 group-hover/card:scale-105"
 							/>
 						</div>

@@ -339,6 +339,7 @@ export default function Img({
 			priority={isPriority}
 			placeholder={lqip ? 'blur' : undefined}
 			blurDataURL={lqip}
+			unoptimized
 			{...props}
 		/>
 	)
@@ -367,7 +368,13 @@ export function Source({
 
 		if (!src) return null
 
-		const { props: imageProps } = getImageProps({ src, width, height, alt: '' })
+		const { props: imageProps } = getImageProps({
+			src,
+			width,
+			height,
+			alt: '',
+			unoptimized: true,
+		})
 
 		if (stegaClean(image.loading) === 'eager') {
 			preload(imageProps.src, { as: 'image' })

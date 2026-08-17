@@ -29,6 +29,7 @@ export default function ({
 						alt={post.title ?? ''}
 						width={400}
 						height={(400 * 9) / 16}
+						unoptimized
 					/>
 				)}
 			</figure>

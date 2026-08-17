@@ -75,6 +75,7 @@ export default function MegamenuComponent({ link, items, banner }: Megamenu & { 
 									src={urlFor(banner.image).width(600).height(450).url()}
 									alt={banner.title || link?.label || 'Promo Banner'}
 									fill
+									unoptimized
 									className="object-cover group-hover/banner:scale-105 transition-transform duration-500"
 								/>
 							</div>

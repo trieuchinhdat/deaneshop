@@ -1,0 +1,16 @@
+# Ecocros
+
+> Ecocros - Modern E-Commerce Platform offering curated lifestyle, home, and tech products with guaranteed quality.
+
+Welcome to the machine-readable overview for **Ecocros**. This file is provided in the standard [llms.txt](https://llmstxt.org/) format to help Large Language Models (LLMs), AI assistants, and automated agents navigate and understand our store.
+
+## Navigation
+- [Home](https://ecocros.com/): Main storefront with featured collections and promotions
+- [Collections](https://ecocros.com/collections/all): Browse all product catalogs
+- [Blog](https://ecocros.com/blog): Articles, product reviews, and shopping guides
+- [Search](https://ecocros.com/search): Search our product catalog
+
+## Optional Feeds & Indexes
+- [Full LLM Context](https://ecocros.com/llms-full.txt): Comprehensive deep context for all products and pages
+- [XML Sitemap](https://ecocros.com/sitemap.xml): Complete URL index of all public web pages
+- [Blog RSS Feed](https://ecocros.com/blog/rss.xml): Latest published stories and updates

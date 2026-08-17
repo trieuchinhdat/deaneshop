@@ -1,0 +1,28 @@
+# https://www.robotstxt.org/robotstxt.html
+# RFC 9309 compliant robots.txt for Ecocros
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /account/
+Disallow: /studio/
+
+# AI and Agentic Crawlers
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: AnthropicAI
+User-agent: Google-Extended
+User-agent: PerplexityBot
+User-agent: Applebot-Extended
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /admin/
+Disallow: /api/
+Disallow: /account/
+Disallow: /studio/
+
+# Sitemap
+Sitemap: https://ecocros.com/sitemap.xml

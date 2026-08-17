@@ -115,9 +115,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 		category.metadata?.description ||
 		category.description ||
 		`Explore all articles and curated guides about ${category.title}.`
-	const ogImage = category.image
-		? urlFor(category.image).width(1200).height(630).url()
-		: `${baseUrl}/api/og?slug=${ROUTES.blog}/category/${slug}`
+	let ogImage = `${baseUrl}/api/og?slug=${ROUTES.blog}/category/${slug}`
+	if (category.image?.asset) {
+		try {
+			ogImage = urlFor(category.image).width(1200).height(630).url()
+		} catch {
+			ogImage = `${baseUrl}/api/og?slug=${ROUTES.blog}/category/${slug}`
+		}
+	}
 
 	return {
 		title,

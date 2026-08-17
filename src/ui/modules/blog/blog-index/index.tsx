@@ -65,10 +65,12 @@ export default async function BlogIndexModule({
 						<FilterList />
 					</Suspense>
 
-					<div className="flex flex-wrap items-center gap-3">
-						{blogSettings?.enableSearch !== false && <SearchBar />}
-						<SortBy />
-					</div>
+					<Suspense fallback={<div className="h-9 w-40" />}>
+						<div className="flex flex-wrap items-center gap-3">
+							{blogSettings?.enableSearch !== false && <SearchBar />}
+							<SortBy />
+						</div>
+					</Suspense>
 				</fieldset>
 
 				{/* Posts Grid / List & Featured Article */}

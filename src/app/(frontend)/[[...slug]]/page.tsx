@@ -27,6 +27,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const { slug } = await params
 	const page = await getPage(slug)
 	const { title, description, image, noIndex } = page?.metadata ?? {}
+	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://example.com'
+	const pagePath = slug?.join('/') || ''
+	const fullUrl = pagePath ? `${baseUrl}/${pagePath}` : baseUrl
+
+	let ogImageUrl = `${baseUrl}/api/og?slug=${pagePath}`
+	if (image?.asset) {
+		try {
+			ogImageUrl = urlFor(image).width(1200).url()
+		} catch {
+			ogImageUrl = `${baseUrl}/api/og?slug=${pagePath}`
+		}
+	}
 
 	return {
 		title,
@@ -34,14 +46,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 		openGraph: {
 			title,
 			description,
-			url: [process.env.NEXT_PUBLIC_BASE_URL, slug?.join('/')]
-				.filter(Boolean)
-				.join('/'),
-			images: [
-				image
-					? urlFor(image).width(1200).url()
-					: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?slug=${slug?.join('/')}`,
-			],
+			url: fullUrl,
+			images: [ogImageUrl],
 		},
 		robots: {
 			index: noIndex ? false : undefined,

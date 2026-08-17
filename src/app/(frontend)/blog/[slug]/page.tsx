@@ -41,9 +41,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const title = post.metadata?.title || post.title || 'Blog Post'
 	const description = post.metadata?.description || (post as any).excerpt || ''
 	const noIndex = post.metadata?.noIndex ?? false
-	const ogImage = post.metadata?.image
-		? urlFor(post.metadata.image).width(1200).height(630).url()
-		: `${baseUrl}/api/og?slug=${ROUTES.blog}/${slug}`
+	let ogImage = `${baseUrl}/api/og?slug=${ROUTES.blog}/${slug}`
+	if (post.metadata?.image?.asset) {
+		try {
+			ogImage = urlFor(post.metadata.image).width(1200).height(630).url()
+		} catch {
+			ogImage = `${baseUrl}/api/og?slug=${ROUTES.blog}/${slug}`
+		}
+	}
 
 	return {
 		title,

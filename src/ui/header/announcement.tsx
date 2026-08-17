@@ -245,7 +245,7 @@ export default function Announcement({
 						type="button"
 						onClick={prevSlide}
 						aria-label="Previous announcement"
-						className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white shadow-md backdrop-blur-xs transition-all hover:bg-black/75 hover:scale-110 focus:outline-hidden"
+						className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 flex size-8 md:size-7 items-center justify-center rounded-full bg-black/60 text-white shadow-md backdrop-blur-xs transition-all hover:bg-black/80 hover:scale-110 focus:outline-hidden cursor-pointer"
 					>
 						<IoChevronBack className="h-4 w-4" />
 					</button>
@@ -258,7 +258,7 @@ export default function Announcement({
 						onClick={nextSlide}
 						aria-label="Next announcement"
 						className={cn(
-							'absolute top-1/2 -translate-y-1/2 z-40 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white shadow-md backdrop-blur-xs transition-all hover:bg-black/75 hover:scale-110 focus:outline-hidden',
+							'absolute top-1/2 -translate-y-1/2 z-40 flex size-8 md:size-7 items-center justify-center rounded-full bg-black/60 text-white shadow-md backdrop-blur-xs transition-all hover:bg-black/80 hover:scale-110 focus:outline-hidden cursor-pointer',
 							allowDismiss ? 'right-10 md:right-12' : 'right-2 md:right-4'
 						)}
 					>
@@ -272,7 +272,7 @@ export default function Announcement({
 						type="button"
 						onClick={handleDismiss}
 						aria-label="Dismiss announcement"
-						className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-40 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white shadow-md backdrop-blur-xs transition-all hover:bg-black/75 hover:scale-110 focus:outline-hidden"
+						className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-40 flex size-8 md:size-7 items-center justify-center rounded-full bg-black/60 text-white shadow-md backdrop-blur-xs transition-all hover:bg-black/80 hover:scale-110 focus:outline-hidden cursor-pointer"
 					>
 						<IoClose className="h-4 w-4" />
 					</button>

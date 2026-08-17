@@ -28,7 +28,7 @@ export default function RelatedPosts({
 				</div>
 				<Link
 					href={`/${ROUTES.blog}`}
-					className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+					className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-zinc-700 hover:text-zinc-950 dark:text-zinc-200 dark:hover:text-white"
 				>
 					View All <ArrowRight className="size-3.5" />
 				</Link>
@@ -64,7 +64,7 @@ export default function RelatedPosts({
 									)}
 								</div>
 
-								<div className="flex items-center gap-2 text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">
+								<div className="flex items-center gap-2 text-[11px] sm:text-xs text-zinc-600 dark:text-zinc-300 font-medium">
 									<DateComponent date={post.publishDate} />
 									<span>•</span>
 									<ReadTime value={post.readTime || 3} />
@@ -78,7 +78,7 @@ export default function RelatedPosts({
 								</h4>
 
 								{post.excerpt && (
-									<p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2">
+									<p className="text-xs text-zinc-600 dark:text-zinc-300 line-clamp-2 leading-relaxed">
 										{post.excerpt}
 									</p>
 								)}

@@ -63,13 +63,13 @@ export default function PostSidebar({
 										className={cn(
 											'leading-snug transition-colors hover:text-blue-600 dark:hover:text-blue-400',
 											isSubheading
-												? 'pl-3 text-zinc-500 dark:text-zinc-400'
-												: 'font-semibold text-zinc-800 dark:text-zinc-200',
+												? 'pl-3 text-zinc-600 dark:text-zinc-300'
+												: 'font-semibold text-zinc-900 dark:text-zinc-100',
 										)}
 									>
 										<a
 											href={`#${slug}`}
-											className="block py-1 truncate hover:underline"
+											className="block py-1.5 truncate hover:underline"
 										>
 											{heading.text}
 										</a>
@@ -93,7 +93,7 @@ export default function PostSidebar({
 						</div>
 						<Link
 							href={`/${ROUTES.blog}`}
-							className="text-[11px] font-semibold text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+							className="text-[11px] font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white"
 						>
 							View All
 						</Link>
@@ -138,7 +138,7 @@ export default function PostSidebar({
 												{item.title}
 											</Link>
 										</h5>
-										<div className="flex items-center gap-1.5 text-[10px] text-zinc-400">
+										<div className="flex items-center gap-1.5 text-[10px] text-zinc-600 dark:text-zinc-400 font-medium">
 											<DateComponent date={item.publishDate} />
 											<span>•</span>
 											<ReadTime value={item.readTime || 3} />

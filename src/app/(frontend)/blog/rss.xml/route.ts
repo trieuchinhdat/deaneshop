@@ -46,7 +46,7 @@ function Item({ post }: { post: any }) {
 				?.map((category: any) => `<category>${escapeHTML(category.title)}</category>`)
 				.join(''),
 			post.author && `<dc:creator>${escapeHTML(post.author.name)}</dc:creator>`,
-			post.metadata?.image &&
+			post.metadata?.image?.asset &&
 				`<enclosure url="${urlFor(post.metadata.image).format('jpg').width(1200).url()}" length="0" type="image/jpeg" />`,
 			post.content &&
 				`<content:encoded><![CDATA[${toHTML(post.content, {
@@ -57,7 +57,7 @@ function Item({ post }: { post: any }) {
 						types: {
 							image: ({ value: { alt = '', figcaption, ...value } }) =>
 								`<figure>${[
-									`<img src="${urlFor(value).url()}" alt="${escapeHTML(alt)}" />`,
+									value?.asset ? `<img src="${urlFor(value).url()}" alt="${escapeHTML(alt)}" />` : '',
 									figcaption &&
 										`<figcaption>${escapeHTML(getBlockText(figcaption))}</figcaption>`,
 								]

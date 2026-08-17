@@ -157,7 +157,7 @@ export default function CtaList({
 
 				const baseBtnClass = cn(
 					stegaClean(cta.style),
-					'p-2 min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-header-foreground cursor-pointer',
+					'p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-header-foreground cursor-pointer select-none',
 					isMobileHiddenIcon && 'max-md:hidden',
 				)
 

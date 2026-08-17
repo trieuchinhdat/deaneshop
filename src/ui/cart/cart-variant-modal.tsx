@@ -459,10 +459,10 @@ export default function CartVariantModal({
 					<button
 						type="button"
 						onClick={handleClose}
-						className="p-1.5 rounded-full text-gray-400 hover:text-gray-900 hover:bg-black/5 transition-colors cursor-pointer"
+						className="size-11 flex items-center justify-center rounded-full text-gray-600 hover:text-gray-900 hover:bg-black/5 transition-colors cursor-pointer"
 						aria-label="Đóng cửa sổ"
 					>
-						<FiX className="text-lg" />
+						<FiX className="text-xl" />
 					</button>
 				</div>
 
@@ -498,7 +498,7 @@ export default function CartVariantModal({
 									{formatVND(displayPrice)}
 								</span>
 								{hasDiscount && (
-									<span className="text-xs text-gray-400 line-through">
+									<span className="text-xs text-gray-600 line-through">
 										{formatVND(displayCompareAtPrice as number)}
 									</span>
 								)}
@@ -646,25 +646,25 @@ export default function CartVariantModal({
 							</p>
 						</div>
 
-						<div className="flex items-center border border-stroke/40 rounded-lg overflow-hidden bg-white shadow-2xs">
+						<div className="flex items-center border border-stroke/40 rounded-xl overflow-hidden bg-white shadow-2xs">
 							<button
 								type="button"
 								onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-								className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
+								className="size-11 flex items-center justify-center text-sm font-bold text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
 								aria-label="Giảm số lượng"
 							>
-								<FiMinus className="text-xs" />
+								<FiMinus className="text-sm" />
 							</button>
-							<span className="px-3 py-1 text-xs font-bold text-gray-900 min-w-[32px] text-center">
+							<span className="px-3 py-1 text-sm font-bold text-gray-900 min-w-[36px] text-center select-none">
 								{quantity}
 							</span>
 							<button
 								type="button"
 								onClick={() => setQuantity((q) => q + 1)}
-								className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
+								className="size-11 flex items-center justify-center text-sm font-bold text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
 								aria-label="Tăng số lượng"
 							>
-								<FiPlus className="text-xs" />
+								<FiPlus className="text-sm" />
 							</button>
 						</div>
 					</div>

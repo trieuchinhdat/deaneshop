@@ -63,7 +63,7 @@ export default function AuthorBox({ author }: AuthorBoxProps) {
 					</div>
 
 					{author.shortBio && (
-						<p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-2xl">
+						<p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed max-w-2xl">
 							{author.shortBio}
 						</p>
 					)}
@@ -81,11 +81,11 @@ export default function AuthorBox({ author }: AuthorBoxProps) {
 										href={link.url}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="flex size-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-2xs transition-all hover:bg-zinc-900 hover:text-white hover:border-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-white dark:hover:text-zinc-900"
+										className="flex size-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-2xs transition-all hover:bg-zinc-900 hover:text-white hover:border-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-white dark:hover:text-zinc-900 cursor-pointer"
 										title={link.platform || 'Website'}
 										aria-label={link.platform || 'Website'}
 									>
-										<Icon className="size-3.5" />
+										<Icon className="size-4" />
 									</a>
 								)
 							})}

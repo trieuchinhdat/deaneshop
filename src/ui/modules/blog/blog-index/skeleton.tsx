@@ -24,7 +24,7 @@ export default function ({ postsPerPage }: { postsPerPage: number }) {
 
 			<hr className="max-md:full-bleed border-stroke md:order-first" />
 
-			<div className="grid items-start gap-x-4 gap-y-8 sm:grid-cols-[repeat(auto-fill,minmax(var(--container-sm),1fr))]">
+			<ul className="grid items-start gap-x-4 gap-y-8 sm:grid-cols-[repeat(auto-fill,minmax(var(--container-sm),1fr))] p-0 list-none">
 				{Array.from({ length: postsPerPage }).map((_, index) => (
 					// post-preview
 					<li
@@ -47,7 +47,7 @@ export default function ({ postsPerPage }: { postsPerPage: number }) {
 						</div>
 					</li>
 				))}
-			</div>
+			</ul>
 		</>
 	)
 }

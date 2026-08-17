@@ -126,33 +126,31 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 						<button
 							type="button"
 							onClick={handleClose}
-							className="p-2 rounded-full text-gray-500 hover:text-gray-900 hover:bg-black/5 transition-colors cursor-pointer"
+							className="size-11 flex items-center justify-center rounded-full text-gray-600 hover:text-gray-900 hover:bg-black/5 transition-colors cursor-pointer"
 							aria-label="Đóng giỏ hàng"
 						>
 							<HiXMark className="text-xl" />
 						</button>
 					</div>
 
-					{/* Cart Items List */}
 					<div className="flex-1 overflow-y-auto px-6 py-4 divide-y divide-stroke/15">
 						{items.length === 0 ? (
 							<div className="flex flex-col items-center justify-center h-full text-center py-16">
 								<div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4 text-gray-400">
 									<HiOutlineShoppingBag className="text-3xl" />
 								</div>
-								<h3 className="text-base font-semibold text-gray-800 mb-1">
-									Giỏ hàng của bạn đang trống
-								</h3>
-								<p className="text-xs text-gray-500 max-w-xs mb-6">
-									Hãy khám phá các sản phẩm chất lượng và thêm vào giỏ hàng
-									ngay hôm nay!
+								<p className="text-base font-semibold text-gray-900 mb-1">
+									Giỏ hàng trống
+								</p>
+								<p className="text-xs text-gray-500 max-w-[240px] mb-6">
+									Hiện tại bạn chưa có sản phẩm nào trong giỏ hàng.
 								</p>
 								<button
 									type="button"
 									onClick={handleClose}
-									className="px-5 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm cursor-pointer"
+									className="py-2.5 px-6 rounded-xl bg-primary text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm"
 								>
-									Khám phá sản phẩm
+									Bắt đầu mua sắm
 								</button>
 							</div>
 						) : (
@@ -162,14 +160,13 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 								return (
 									<div
 										key={item.id}
-										className="py-4 flex gap-3.5 items-center group"
+										className="py-4 flex gap-3.5 items-center first:pt-0 last:pb-0"
 									>
-										{/* Item Image */}
-										<div className="w-18 h-18 rounded-lg overflow-hidden border border-stroke/20 shrink-0 relative bg-gray-50">
+										<div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-stroke/30 shrink-0">
 											<img
 												src={imgSrc}
 												alt={item.title}
-												className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+												className="w-full h-full object-cover"
 												onError={(e) => {
 													;(e.currentTarget as HTMLImageElement).src =
 														'/fallback-image.png'
@@ -178,27 +175,19 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 											/>
 										</div>
 
-										{/* Item Details */}
 										<div className="flex-1 min-w-0">
-											<h3 className="text-sm font-semibold text-gray-900 truncate hover:text-primary transition-colors">
-												<Link
-													href={`/${ROUTES.products}/${item.slug || ''}`}
-													onClick={handleClose}
-												>
-													{item.productTitle ||
-														item.title.replace(/\s*\([^)]*\)$/, '').trim()}
-												</Link>
+											<h3 className="text-sm font-semibold text-gray-900 truncate">
+												{item.productTitle ||
+													item.title.replace(/\s*\([^)]*\)$/, '').trim()}
 											</h3>
 
-											{/* Inline 1-Click Variant Selector */}
 											<CartVariantSelector item={item} />
 
-											<div className="flex items-center justify-between mt-2.5">
-												{/* Quantity controls */}
-												<div className="flex items-center border border-stroke/30 rounded-md overflow-hidden bg-white shadow-2xs">
+											<div className="flex justify-between items-center mt-2.5">
+												<div className="flex items-center border border-stroke/40 rounded-lg overflow-hidden bg-white shadow-2xs">
 													<button
 														type="button"
-														className="px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
+														className="size-8 flex items-center justify-center text-xs font-bold text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
 														onClick={() =>
 															updateQuantity(item.id, item.quantity - 1)
 														}
@@ -206,12 +195,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 													>
 														-
 													</button>
-													<span className="px-2.5 py-0.5 text-xs font-semibold text-gray-800 min-w-[24px] text-center">
+													<span className="px-2.5 py-0.5 text-xs font-bold text-gray-900 min-w-[24px] text-center select-none">
 														{item.quantity}
 													</span>
 													<button
 														type="button"
-														className="px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
+														className="size-8 flex items-center justify-center text-xs font-bold text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
 														onClick={() =>
 															updateQuantity(item.id, item.quantity + 1)
 														}
@@ -221,7 +210,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 													</button>
 												</div>
 
-												{/* Price */}
 												<div className="text-right">
 													<span className="text-sm font-bold text-primary">
 														{formatVND(item.price * item.quantity)}
@@ -230,11 +218,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 											</div>
 										</div>
 
-										{/* Remove button */}
 										<button
 											type="button"
 											onClick={() => removeItem(item.id)}
-											className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer"
+											className="size-10 flex items-center justify-center text-gray-600 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer"
 											title="Xóa khỏi giỏ hàng"
 											aria-label="Xóa khỏi giỏ hàng"
 										>
@@ -246,7 +233,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 						)}
 					</div>
 
-					{/* Footer Checkout */}
 					{items.length > 0 && (
 						<div className="p-5 border-t border-stroke/20 bg-gray-50/50">
 							<div className="flex justify-between items-center mb-4">

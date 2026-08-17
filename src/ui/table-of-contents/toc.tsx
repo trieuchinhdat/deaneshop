@@ -202,10 +202,10 @@ export default function TOC({ headings }: { headings: any }) {
 											// Gọi hàm scroll thủ công
 											onClick={(e) => handleScrollTo(e, computedId)}
 											className={cn(
-												'block rounded-md px-3 py-2 text-sm transition-all',
+												'min-h-[40px] flex items-center rounded-lg px-3.5 py-2 text-sm transition-all',
 												isActive
 													? 'bg-gray-100 font-bold text-black'
-													: 'text-gray-600 hover:bg-gray-50 hover:text-black',
+													: 'text-gray-700 hover:bg-gray-50 hover:text-black',
 											)}
 										>
 											{h.text}

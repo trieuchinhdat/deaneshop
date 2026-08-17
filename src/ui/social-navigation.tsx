@@ -77,7 +77,7 @@ export default async function SocialNavigation({
 						target="_blank"
 						rel="noopener noreferrer"
 						aria-label={title}
-						className="flex size-9 items-center justify-center rounded-full border border-border/40 bg-surface text-muted-foreground transition-all duration-200 hover:border-primary/50 hover:bg-primary hover:text-primary-foreground hover:scale-105 active:scale-95"
+						className="flex size-11 items-center justify-center rounded-full border border-border/40 bg-surface text-muted-foreground transition-all duration-200 hover:border-primary/50 hover:bg-primary hover:text-primary-foreground hover:scale-105 active:scale-95 cursor-pointer"
 					>
 						{renderIcon()}
 					</a>

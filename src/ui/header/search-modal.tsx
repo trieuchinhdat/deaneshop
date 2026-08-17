@@ -100,7 +100,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 						<button
 							type="button"
 							onClick={onClose}
-							className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-400 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+							className="flex size-11 shrink-0 items-center justify-center rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
 							aria-label="Đóng tìm kiếm"
 						>
 							<HiXMark className="text-xl" />
@@ -109,7 +109,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
 					{/* Quick Suggestions */}
 					<div className="bg-gray-50/60 dark:bg-gray-800/40 p-4 sm:p-6">
-						<p className="mb-3 text-[11px] font-bold tracking-wider text-gray-500 uppercase">
+						<p className="mb-3 text-[11px] font-bold tracking-wider text-gray-600 dark:text-gray-400 uppercase">
 							Gợi ý tìm kiếm phổ biến
 						</p>
 						<div className="flex flex-wrap gap-2">
@@ -122,7 +122,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 											router.push(`/search?query=${encodeURIComponent(tag)}`)
 											onClose()
 										}}
-										className="rounded-full border border-stroke/30 bg-white dark:bg-gray-800 px-3.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 shadow-2xs hover:border-primary hover:text-primary active:scale-95 transition-all cursor-pointer"
+										className="rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:border-primary hover:text-primary transition-colors cursor-pointer min-h-[36px]"
 									>
 										{tag}
 									</button>

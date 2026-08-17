@@ -199,25 +199,27 @@ function PaginationControls({
 	if (totalPages <= 1) return null
 
 	return (
-		<div className="mt-4 flex items-center justify-center gap-4">
+		<div className="mt-6 flex items-center justify-center gap-4">
 			<button
 				onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
 				disabled={currentPage === 1}
-				className="flex items-center gap-1 rounded-md border px-3 py-1 text-sm hover:bg-gray-100 disabled:opacity-50"
+				className="flex min-h-[44px] items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 cursor-pointer"
+				aria-label="Previous page"
 			>
-				<VscChevronLeft /> Previous
+				<VscChevronLeft className="text-base" /> Previous
 			</button>
 
-			<span className="text-sm text-gray-600">
+			<span className="text-sm font-medium text-gray-700">
 				Page {currentPage} / {totalPages}
 			</span>
 
 			<button
 				onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
 				disabled={currentPage === totalPages}
-				className="flex items-center gap-1 rounded-md border px-3 py-1 text-sm hover:bg-gray-100 disabled:opacity-50"
+				className="flex min-h-[44px] items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 cursor-pointer"
+				aria-label="Next page"
 			>
-				Next <VscChevronRight />
+				Next <VscChevronRight className="text-base" />
 			</button>
 		</div>
 	)
@@ -283,20 +285,20 @@ function ProductCard({ product }: { product: any }) {
 							<div className="flex flex-wrap items-center justify-center gap-1 text-[11px] lg:text-xs">
 								{hasRating && (
 									<>
-										<span className="font-medium text-gray-700">
+										<span className="font-semibold text-gray-800">
 											{averageRating.toFixed(1)}
 										</span>
-										<span className="text-yellow-500">★</span>
-										<span className="text-gray-400">({totalReviews})</span>
+										<span className="text-amber-500">★</span>
+										<span className="text-gray-600">({totalReviews})</span>
 									</>
 								)}
 
 								{hasRating && hasSold && (
-									<span className="text-gray-300">|</span>
+									<span className="text-gray-400">|</span>
 								)}
 
 								{hasSold && (
-									<span className="text-gray-500">{soldText}.</span>
+									<span className="text-gray-600 font-medium">{soldText}.</span>
 								)}
 							</div>
 						)}
@@ -310,7 +312,7 @@ function ProductCard({ product }: { product: any }) {
 								<span className="text-sm font-bold text-red-600 lg:text-base">
 									{formatVND(product.price)}
 								</span>
-								<span className="text-[10px] text-gray-400 line-through lg:text-xs">
+								<span className="text-[10px] text-gray-600 line-through lg:text-xs">
 									{formatVND(product.compareAtPrice)}
 								</span>
 							</div>

@@ -88,12 +88,12 @@ export default function NewsletterForm({
 							placeholder={placeholder}
 							disabled={status === 'loading'}
 							required
-							className="w-full rounded-xl border border-border/80 bg-surface/80 py-2.5 pl-10 pr-28 text-sm text-foreground placeholder:text-muted-foreground/70 transition-all focus:border-primary focus:bg-background focus:outline-hidden focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+							className="w-full rounded-xl border border-border/80 bg-surface/80 py-3 pl-10 pr-32 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:border-primary focus:bg-background focus:outline-hidden focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
 						/>
 						<button
 							type="submit"
 							disabled={status === 'loading'}
-							className="absolute right-1.5 flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95 disabled:pointer-events-none disabled:opacity-60"
+							className="absolute right-1.5 flex min-h-[38px] items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95 disabled:pointer-events-none disabled:opacity-60 cursor-pointer"
 						>
 							{status === 'loading' ? (
 								<Loader2 className="size-3.5 animate-spin" />

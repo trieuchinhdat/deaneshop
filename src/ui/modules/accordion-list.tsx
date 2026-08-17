@@ -52,7 +52,7 @@ export default function ({
 							itemType={enableSchema ? 'https://schema.org/Question' : undefined}
 						>
 							<summary
-								className="py-2 font-bold"
+								className="py-3.5 min-h-[44px] font-bold cursor-pointer select-none text-foreground"
 								itemProp={enableSchema ? 'name' : undefined}
 							>
 								{summary}

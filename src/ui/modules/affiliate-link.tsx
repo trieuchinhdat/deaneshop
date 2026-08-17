@@ -35,8 +35,8 @@ const getButtonStyles = (color: string) => {
 const RatingStars = ({ rating }: { rating: number }) => {
 	if (!rating) return null
 	return (
-		<div className="flex items-center gap-1 text-yellow-400">
-			<span className="mr-1 text-sm font-bold text-gray-700">{rating}</span>
+		<div className="flex items-center gap-1 text-amber-500">
+			<span className="mr-1 text-sm font-bold text-gray-900">{rating}</span>
 			{[...Array(5)].map((_, i) => (
 				<Star
 					key={i}
@@ -44,7 +44,7 @@ const RatingStars = ({ rating }: { rating: number }) => {
 					fill={i < Math.floor(rating) ? 'currentColor' : 'none'}
 					strokeWidth={2}
 					className={
-						i < Math.floor(rating) ? 'text-yellow-400' : 'text-gray-200'
+						i < Math.floor(rating) ? 'text-amber-500' : 'text-gray-300'
 					}
 				/>
 			))}

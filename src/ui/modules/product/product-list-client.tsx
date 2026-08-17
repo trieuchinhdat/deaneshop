@@ -624,7 +624,7 @@ export function ProductCard({
 								const isAdded = toggleWishlist(product._id)
 								showWishlistToast(isAdded, product.title)
 							}}
-							className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-gray-700 backdrop-blur-sm transition-transform hover:scale-110 hover:bg-white hover:text-red-500 shadow-sm cursor-pointer z-10"
+							className="absolute top-1.5 right-1.5 flex size-10 items-center justify-center rounded-full bg-white/90 text-gray-700 backdrop-blur-sm transition-transform hover:scale-110 hover:bg-white hover:text-red-500 shadow-sm cursor-pointer z-10"
 							aria-label="Thêm vào yêu thích"
 						>
 							<svg
@@ -642,8 +642,9 @@ export function ProductCard({
 							<button
 								type="button"
 								onClick={handleQuickAddToCart}
-								className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-white shadow-md transition-transform hover:scale-110 hover:bg-gray-800"
+								className="flex size-10 items-center justify-center rounded-full bg-black text-white shadow-md transition-transform hover:scale-110 hover:bg-gray-800 cursor-pointer"
 								title="Thêm nhanh vào giỏ"
+								aria-label="Thêm nhanh vào giỏ"
 							>
 								<svg className="h-4 w-4 fill-none stroke-current stroke-2" viewBox="0 0 24 24">
 									<path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -660,8 +661,9 @@ export function ProductCard({
 										window.location.href = `/${ROUTES.products}/${product.slug}`
 									}
 								}}
-								className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-800 shadow-md transition-transform hover:scale-110 hover:bg-gray-100"
+								className="flex size-10 items-center justify-center rounded-full bg-white text-gray-800 shadow-md transition-transform hover:scale-110 hover:bg-gray-100 cursor-pointer"
 								title="Xem nhanh sản phẩm"
+								aria-label="Xem nhanh sản phẩm"
 							>
 								<svg className="h-4 w-4 fill-none stroke-current stroke-2" viewBox="0 0 24 24">
 									<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -676,7 +678,7 @@ export function ProductCard({
 				<div className={`flex flex-col p-3 ${alignClass}`}>
 					{/* Category if enabled & available */}
 					{cardShowCategory && product.categories?.[0]?.title && (
-						<span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+						<span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
 							{product.categories[0].title}
 						</span>
 					)}
@@ -687,7 +689,7 @@ export function ProductCard({
 
 					{/* Color Swatches */}
 					{colorSwatches.length > 0 && (
-						<div className={`mt-1.5 flex flex-wrap items-center gap-1 ${flexAlignClass}`}>
+						<div className={`mt-1.5 flex flex-wrap items-center gap-1.5 ${flexAlignClass}`}>
 							{colorSwatches.slice(0, cardMaxColorSwatches).map((swatch, idx) => (
 								<button
 									key={idx}
@@ -701,13 +703,14 @@ export function ProductCard({
 										e.stopPropagation()
 										if (swatch.image) setActiveImage(swatch.image)
 									}}
-									className="h-3.5 w-3.5 rounded-full border border-gray-300 shadow-xs transition-transform hover:scale-125 focus:outline-none"
+									className="size-4 rounded-full border border-gray-300 shadow-xs transition-transform hover:scale-125 focus:outline-none cursor-pointer"
 									style={{ backgroundColor: swatch.color }}
 									title={swatch.name}
+									aria-label={swatch.name}
 								/>
 							))}
 							{colorSwatches.length > cardMaxColorSwatches && (
-								<span className="text-[10px] text-gray-400 font-medium">
+								<span className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
 									+{colorSwatches.length - cardMaxColorSwatches}
 								</span>
 							)}
@@ -719,20 +722,20 @@ export function ProductCard({
 						<div className={`mt-1.5 flex flex-wrap items-center gap-1 text-[11px] lg:text-xs ${flexAlignClass}`}>
 							{hasRating && (
 								<div className="flex items-center gap-0.5">
-									<span className="font-medium text-gray-700">
+									<span className="font-semibold text-gray-800 dark:text-gray-200">
 										{averageRating.toFixed(1)}
 									</span>
-									<span className="text-yellow-400">★</span>
-									<span className="text-gray-400">({totalReviews})</span>
+									<span className="text-amber-500">★</span>
+									<span className="text-gray-600 dark:text-gray-300">({totalReviews})</span>
 								</div>
 							)}
 
 							{hasRating && hasSold && (
-								<span className="text-gray-300">|</span>
+								<span className="text-gray-400">|</span>
 							)}
 
 							{hasSold && (
-								<span className="text-gray-500">{soldText}</span>
+								<span className="text-gray-600 dark:text-gray-300 font-medium">{soldText}</span>
 							)}
 						</div>
 					)}
@@ -744,7 +747,7 @@ export function ProductCard({
 								<span className="text-sm font-bold text-red-600 lg:text-base">
 									{formatVND(displayPrice)}
 								</span>
-								<span className="text-[10px] text-gray-400 line-through lg:text-xs">
+								<span className="text-[10px] text-gray-600 dark:text-gray-400 line-through lg:text-xs">
 									{formatVND(displayCompareAtPrice)}
 								</span>
 							</div>

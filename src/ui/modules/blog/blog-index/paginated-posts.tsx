@@ -91,11 +91,11 @@ export default function PaginatedPosts({
 
 			{/* Empty State */}
 			{paginatedItems.length === 0 ? (
-				<div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center text-zinc-500 dark:border-zinc-700">
-					<p className="text-base font-medium">
+				<div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
+					<p className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
 						No articles found matching your criteria.
 					</p>
-					<p className="text-xs text-zinc-400 mt-1">
+					<p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1">
 						Try adjusting your search query or category filters.
 					</p>
 				</div>
@@ -123,7 +123,7 @@ export default function PaginatedPosts({
 			{/* Pagination Controls */}
 			<Pagination
 				className="flex items-center justify-center gap-2 pt-6 tabular-nums"
-				buttonClassName="cursor-pointer rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-40 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+				buttonClassName="cursor-pointer rounded-xl border border-zinc-200 bg-white min-h-[44px] min-w-[44px] px-4 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-40 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 shadow-2xs"
 			/>
 		</div>
 	)

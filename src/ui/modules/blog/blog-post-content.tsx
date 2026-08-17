@@ -120,7 +120,7 @@ export default function BlogPostContentComponent({
 							)}
 
 							{/* Meta line */}
-							<div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 pt-2">
+							<div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 font-medium pt-2">
 								<Byline author={post.author as unknown as Person} />
 								<span>•</span>
 								<DateComponent date={post.publishDate} />
@@ -229,7 +229,7 @@ export default function BlogPostContentComponent({
 						{/* Tags */}
 						{post.tags && post.tags.length > 0 && (
 							<div className="flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-6 dark:border-zinc-800">
-								<span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+								<span className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
 									Tags:
 								</span>
 								{post.tags.map((tag: string, idx: number) => (

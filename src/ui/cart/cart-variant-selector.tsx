@@ -178,7 +178,7 @@ export default function CartVariantSelector({
 						)
 					})}
 				</select>
-				<HiChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-gray-700 text-xs transition-colors" />
+				<HiChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-600 group-hover:text-gray-900 text-xs transition-colors" />
 			</div>
 		</div>
 	)

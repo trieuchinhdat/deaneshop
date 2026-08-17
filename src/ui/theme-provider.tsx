@@ -242,7 +242,7 @@ export default function ThemeProvider({ theme }: { theme: any }) {
 			--bg-color: ${resolvedTheme.backgroundColor || '#ffffff'};
 			--surface-color: ${resolvedTheme.surfaceColor || '#f9fafb'};
 			--text-color: ${resolvedTheme.textColor || '#111827'};
-			--text-muted-color: ${resolvedTheme.textMutedColor || '#6b7280'};
+			--text-muted-color: ${resolvedTheme.textMutedColor || '#4b5563'};
 
 			/* Status & Notes Colors */
 			--note-bg: ${resolvedTheme.noteBackground || '#f3f4f6'};

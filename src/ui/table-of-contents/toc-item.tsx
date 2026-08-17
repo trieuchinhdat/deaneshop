@@ -63,7 +63,7 @@ export default function ({
 		<li className="border-stroke border-l" ref={ref} {...props}>
 			<a
 				href={`#${slug(heading.text, { removeLeadingNumberAndHyphen: true })}`}
-				className={cn('text-foreground block py-1 leading-tight', {
+				className={cn('text-foreground block py-2 leading-snug hover:text-primary transition-colors', {
 					'pl-ch': stegaClean(heading.style) === 'h2',
 					'pl-[2ch]': stegaClean(heading.style) === 'h3',
 					'pl-[3ch]': stegaClean(heading.style) === 'h4',

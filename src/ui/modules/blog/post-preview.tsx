@@ -24,12 +24,15 @@ export default function PostPreview({
 	post,
 	cardSettings,
 	layout = 'grid',
+	as: Component = 'li',
 	className,
+	...props
 }: {
 	post: BlogPost & any
 	cardSettings?: BlogCardSettings
 	layout?: 'grid' | 'list'
-} & React.ComponentProps<'li'>) {
+	as?: 'li' | 'article' | 'div'
+} & React.HTMLAttributes<HTMLElement>) {
 	if (!post) return null
 
 	const {
@@ -68,7 +71,7 @@ export default function PostPreview({
 	// 1. EDITORIAL LIST LAYOUT (1 Column Wide Card)
 	if (layout === 'list') {
 		return (
-			<li
+			<Component
 				className={cn(
 					'group relative flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-7 transition-all duration-300',
 					isMinimalist
@@ -76,6 +79,7 @@ export default function PostPreview({
 						: 'overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-4 sm:p-5 shadow-2xs hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900',
 					className,
 				)}
+				{...props}
 			>
 				{/* Image */}
 				<figure
@@ -157,7 +161,7 @@ export default function PostPreview({
 								)}
 								{cardShowReadTime && (
 									<div className="inline-flex items-center gap-1">
-										<Clock className="size-3 text-zinc-400" />
+										<Clock className="size-3 text-zinc-500 dark:text-zinc-400" />
 										<ReadTime value={post.readTime || 3} />
 									</div>
 								)}
@@ -165,13 +169,13 @@ export default function PostPreview({
 						</div>
 					)}
 				</div>
-			</li>
+			</Component>
 		)
 	}
 
 	// 2. STANDARD GRID / MAGAZINE CARD LAYOUT
 	return (
-		<li
+		<Component
 			className={cn(
 				'group relative flex flex-col justify-between transition-all duration-300',
 				isMinimalist
@@ -179,6 +183,7 @@ export default function PostPreview({
 					: 'overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-2xs hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900',
 				className,
 			)}
+			{...props}
 		>
 			<div className="space-y-3">
 				{/* 1. Image Container with Aspect Ratio & Category Badge */}
@@ -225,7 +230,7 @@ export default function PostPreview({
 
 				{/* 3. Excerpt */}
 				{cardShowExcerpt && (post.excerpt || post.metadata?.description) && (
-					<p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 leading-relaxed">
+					<p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 line-clamp-2 leading-relaxed">
 						{post.excerpt || post.metadata?.description}
 					</p>
 				)}
@@ -235,7 +240,7 @@ export default function PostPreview({
 			{hasFooter && (
 				<div
 					className={cn(
-						'relative z-20 flex items-center justify-between gap-2 text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400',
+						'relative z-20 flex items-center justify-between gap-2 text-[11px] sm:text-xs text-zinc-600 dark:text-zinc-400',
 						isMinimalist
 							? 'pt-3 mt-1.5'
 							: 'pt-3.5 mt-3 border-t border-zinc-100 dark:border-zinc-800',
@@ -258,13 +263,13 @@ export default function PostPreview({
 						)}
 						{cardShowReadTime && (
 							<div className="inline-flex items-center gap-1">
-								<Clock className="size-3 text-zinc-400" />
+								<Clock className="size-3 text-zinc-500 dark:text-zinc-400" />
 								<ReadTime value={post.readTime || 3} />
 							</div>
 						)}
 					</div>
 				</div>
 			)}
-		</li>
+		</Component>
 	)
 }

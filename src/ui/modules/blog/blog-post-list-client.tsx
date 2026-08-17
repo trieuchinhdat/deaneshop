@@ -70,28 +70,31 @@ export default function BlogPostListClient({
 				>
 					{posts.map((post) => (
 						<SwiperSlide key={post._id} className="h-auto">
-							<PostPreview post={post} />
+							<PostPreview post={post} as="article" />
 						</SwiperSlide>
 					))}
 				</Swiper>
 			) : (
 				<div className="space-y-4">
-					<div className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-4">
+					<ul className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-4 list-none p-0">
 						{visiblePosts.map((post) => (
-							<div key={post._id} className="h-full">
-								<PostPreview post={post} />
-							</div>
+							<PostPreview
+								key={post._id}
+								post={post}
+								as="li"
+								className="h-full"
+							/>
 						))}
-					</div>
+					</ul>
 
 					{/* Button nằm ngoài Grid */}
 					{!isFinished && (
 						<div className="flex justify-center">
 							<button
 								onClick={handleLoadMore}
-								className="action rounded-lg px-3 py-2 text-xs font-semibold transition lg:px-8 lg:text-sm"
+								className="action min-h-[44px] rounded-lg px-6 py-2.5 text-xs font-semibold transition lg:px-8 lg:text-sm cursor-pointer"
 							>
-								Xem thêm ({posts.length - visibleCount})
+								Load More ({posts.length - visibleCount})
 							</button>
 						</div>
 					)}

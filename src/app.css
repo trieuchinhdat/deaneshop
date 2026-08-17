@@ -26,6 +26,10 @@
 	--color-footer: var(--footer-bg, #000000);
 	--color-footer-foreground: var(--footer-text, #ffffff);
 
+	/* Muted Surface & Text Colors */
+	--color-muted: var(--surface-color, #f3f4f6);
+	--color-muted-foreground: var(--text-muted-color, #4b5563);
+
 	/* 3. CÁC MÀU TĨNH (Giữ nguyên hoặc dùng màu Neutral có sẵn của Tailwind) */
 	/* Dùng neutral-200 làm màu viền mặc định */
 	--color-stroke: var(--color-neutral-200);
@@ -558,14 +562,12 @@
 	border-radius: 12px;
 
 	@media (width <=48rem) {
-		/* opacity: 0;
-		display: none; */
 		visibility: visible;
-		width: 20px;
-		border-radius: 4px;
-		height: 20px;
-		padding: 5px;
-		margin-top: -10px !important;
+		width: 36px;
+		height: 36px;
+		border-radius: 8px;
+		padding: 8px;
+		margin-top: -18px !important;
 	}
 }
 

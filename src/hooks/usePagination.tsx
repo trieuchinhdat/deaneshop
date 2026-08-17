@@ -61,10 +61,13 @@ export function usePagination<T>({
 	}: PaginationProps) => {
 		if (atStart && atEnd) return null
 
+		const defaultBtnClass =
+			'min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-lg border border-border bg-background text-sm font-semibold transition-colors hover:bg-muted disabled:opacity-40 cursor-pointer'
+
 		return (
 			<nav aria-label="Pagination" {...props}>
 				<button
-					className={prevClassName || buttonClassName}
+					className={prevClassName || buttonClassName || defaultBtnClass}
 					onClick={() => {
 						onPrev()
 						onClick()
@@ -76,13 +79,13 @@ export function usePagination<T>({
 				</button>
 
 				{!hidePage && (
-					<span>
+					<span className="px-2 text-sm font-medium text-foreground/80">
 						{page} of {totalPages}
 					</span>
 				)}
 
 				<button
-					className={nextClassName || buttonClassName}
+					className={nextClassName || buttonClassName || defaultBtnClass}
 					onClick={() => {
 						onNext()
 						onClick()

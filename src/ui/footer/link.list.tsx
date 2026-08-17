@@ -27,7 +27,7 @@ export default function LinkList({
 					<button
 						type="button"
 						onClick={() => setIsOpen(!isOpen)}
-						className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-transform md:hidden"
+						className="flex size-11 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground transition-transform md:hidden cursor-pointer"
 						aria-label={`Toggle ${link?.label} menu`}
 						aria-expanded={isOpen}
 					>
@@ -42,7 +42,7 @@ export default function LinkList({
 
 			{/* List Items */}
 			<ul
-				className={`flex flex-col gap-2.5 pt-3 transition-all duration-200 ${
+				className={`flex flex-col gap-2 pt-3 transition-all duration-200 ${
 					isMobileAccordion
 						? `${isOpen ? 'max-md:flex' : 'max-md:hidden'} md:flex`
 						: 'flex'
@@ -51,7 +51,7 @@ export default function LinkList({
 				{links?.map((item) => (
 					<li key={item._key}>
 						<SanityLink
-							className="text-sm text-muted-foreground transition-colors hover:text-primary hover:translate-x-0.5 inline-block"
+							className="text-sm text-muted-foreground transition-colors hover:text-primary hover:translate-x-0.5 inline-block py-1"
 							link={item as SanityLinkType}
 						/>
 					</li>

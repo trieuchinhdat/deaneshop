@@ -21,6 +21,7 @@ import {
 	FiSmile,
 	FiUsers,
 	FiMessageCircle,
+	FiEdit3,
 } from 'react-icons/fi'
 import { group, singleton } from './lib/builders'
 import ManagementHubLauncher from './ui/management-hub-launcher'
@@ -59,6 +60,7 @@ export default structureTool({
 				group(S, 'Layout Settings', [
 					singleton(S, 'header-settings').title('Header Settings').icon(VscLayoutMenubar),
 					singleton(S, 'footer-settings').title('Footer Settings').icon(VscLayout),
+					singleton(S, 'blog-settings').title('Blog & Editorial Settings').icon(FiEdit3),
 					singleton(S, 'product-card-settings').title('Product Card Settings').icon(VscLayout),
 					singleton(S, 'product-settings').title('Product Page Settings').icon(VscPackage),
 				]).icon(VscSettings),

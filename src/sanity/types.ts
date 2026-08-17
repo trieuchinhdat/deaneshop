@@ -490,7 +490,31 @@ export type Prose = {
 		  } & Code)
 		| ({
 				_key: string
+		  } & CalloutBox)
+		| ({
+				_key: string
+		  } & ProductEmbed)
+		| ({
+				_key: string
+		  } & ComparisonTable)
+		| ({
+				_key: string
+		  } & VideoEmbed)
+		| ({
+				_key: string
+		  } & FaqAccordion)
+		| ({
+				_key: string
+		  } & ImageGallery)
+		| ({
+				_key: string
+		  } & CtaBanner)
+		| ({
+				_key: string
 		  } & CustomHtml)
+		| ({
+				_key: string
+		  } & AffiliateLink)
 	>
 	tableOfContents?: 'left' | 'right'
 }
@@ -525,6 +549,7 @@ export type PersonList = {
 	people?: Array<
 		| {
 				name?: string
+				role?: string
 				image?: {
 					asset?: SanityImageAssetReference
 					media?: unknown
@@ -532,6 +557,18 @@ export type PersonList = {
 					crop?: SanityImageCrop
 					_type: 'image'
 				}
+				shortBio?: string
+				socialLinks?: Array<{
+					platform?:
+						| 'linkedin'
+						| 'twitter'
+						| 'website'
+						| 'instagram'
+						| 'facebook'
+						| 'youtube'
+					url?: string
+					_key: string
+				}>
 				_type: 'person'
 				_key: string
 		  }
@@ -941,6 +978,120 @@ export type AccordionList = {
 	layout?: 'vertical' | 'horizontal'
 }
 
+export type CtaBanner = {
+	_type: 'cta-banner'
+	badge?: string
+	title?: string
+	description?: string
+	buttonText?: string
+	buttonLink?: Link
+	style?: 'dark' | 'light' | 'accent'
+}
+
+export type ImageGallery = {
+	_type: 'image-gallery'
+	title?: string
+	layout?: 'grid-2' | 'grid-3' | 'slider'
+	images?: Array<{
+		asset?: SanityImageAssetReference
+		media?: unknown
+		hotspot?: SanityImageHotspot
+		crop?: SanityImageCrop
+		alt?: string
+		caption?: string
+		_type: 'image'
+		_key: string
+	}>
+}
+
+export type FaqAccordion = {
+	_type: 'faq-accordion'
+	title?: string
+	items?: Array<{
+		question?: string
+		answer?: Array<{
+			children?: Array<{
+				marks?: Array<string>
+				text?: string
+				_type: 'span'
+				_key: string
+			}>
+			style?: 'normal' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'blockquote'
+			listItem?: 'bullet' | 'number'
+			markDefs?: Array<{
+				href?: string
+				_type: 'link'
+				_key: string
+			}>
+			level?: number
+			_type: 'block'
+			_key: string
+		}>
+		_type: 'faqItem'
+		_key: string
+	}>
+}
+
+export type VideoEmbed = {
+	_type: 'video-embed'
+	url?: string
+	title?: string
+	customThumbnail?: {
+		asset?: SanityImageAssetReference
+		media?: unknown
+		hotspot?: SanityImageHotspot
+		crop?: SanityImageCrop
+		_type: 'image'
+	}
+	caption?: string
+	aspectRatio?: '16:9' | '4:3' | '1:1' | '9:16'
+}
+
+export type ComparisonTable = {
+	_type: 'comparison-table'
+	title?: string
+	caption?: string
+	headers?: Array<string>
+	highlightedColumnIndex?: number
+	rows?: Array<{
+		cells?: Array<string>
+		_type: 'tableRow'
+		_key: string
+	}>
+}
+
+export type ProductEmbed = {
+	_type: 'product-embed'
+	product?: ProductReference
+	layout?: 'card' | 'banner' | 'minimal'
+	customBadge?: string
+	customReviewSnippet?: string
+}
+
+export type CalloutBox = {
+	_type: 'callout-box'
+	type?: 'tip' | 'info' | 'warning' | 'danger' | 'quote'
+	title?: string
+	content?: Array<{
+		children?: Array<{
+			marks?: Array<string>
+			text?: string
+			_type: 'span'
+			_key: string
+		}>
+		style?: 'normal'
+		listItem?: 'bullet'
+		markDefs?: Array<{
+			href?: string
+			_type: 'link'
+			_key: string
+		}>
+		level?: number
+		_type: 'block'
+		_key: string
+	}>
+}
+
 export type ProductVariant = {
 	_type: 'product.variant'
 	title?: string
@@ -1188,7 +1339,16 @@ export type BlogCategory = {
 	_rev: string
 	title?: string
 	slug?: Slug
+	description?: string
+	image?: {
+		asset?: SanityImageAssetReference
+		media?: unknown
+		hotspot?: SanityImageHotspot
+		crop?: SanityImageCrop
+		_type: 'image'
+	}
 	postsList?: string
+	metadata?: Metadata
 }
 
 export type Redirect = {
@@ -1739,6 +1899,7 @@ export type BlogPost = {
 	_updatedAt: string
 	_rev: string
 	title?: string
+	excerpt?: string
 	content?: Array<
 		| {
 				children?: Array<{
@@ -1791,35 +1952,55 @@ export type BlogPost = {
 		  } & Code)
 		| ({
 				_key: string
+		  } & CalloutBox)
+		| ({
+				_key: string
+		  } & ProductEmbed)
+		| ({
+				_key: string
+		  } & ComparisonTable)
+		| ({
+				_key: string
+		  } & VideoEmbed)
+		| ({
+				_key: string
+		  } & FaqAccordion)
+		| ({
+				_key: string
+		  } & ImageGallery)
+		| ({
+				_key: string
+		  } & CtaBanner)
+		| ({
+				_key: string
 		  } & CustomHtml)
 		| ({
 				_key: string
 		  } & AffiliateLink)
 	>
+	isFeatured?: boolean
 	publishDate?: string
+	lastUpdatedDate?: string
 	categories?: Array<
 		{
 			_key: string
 		} & BlogCategoryReference
 	>
+	tags?: Array<string>
 	author?: PersonReference
+	tableOfContents?: 'default' | 'sticky-bar' | 'left' | 'right' | 'hidden'
+	sidebarLayout?: 'default' | 'none' | 'right' | 'left'
 	metadata?: Metadata
-}
-
-export type Person = {
-	_id: string
-	_type: 'person'
-	_createdAt: string
-	_updatedAt: string
-	_rev: string
-	name?: string
-	image?: {
-		asset?: SanityImageAssetReference
-		media?: unknown
-		hotspot?: SanityImageHotspot
-		crop?: SanityImageCrop
-		_type: 'image'
-	}
+	relatedProducts?: Array<
+		{
+			_key: string
+		} & ProductReference
+	>
+	relatedPosts?: Array<
+		{
+			_key: string
+		} & BlogPostReference
+	>
 }
 
 export type Code = {
@@ -2382,6 +2563,69 @@ export type ThemeSettings = {
 	}
 }
 
+export type BlogSettings = {
+	_id: string
+	_type: 'blog-settings'
+	_createdAt: string
+	_updatedAt: string
+	_rev: string
+	title?: string
+	subtitle?: string
+	heroBanner?: {
+		asset?: SanityImageAssetReference
+		media?: unknown
+		hotspot?: SanityImageHotspot
+		crop?: SanityImageCrop
+		_type: 'image'
+	}
+	badgeText?: string
+	postsPerPage?: number
+	defaultLayout?: 'magazine' | 'grid' | 'list'
+	enableSearch?: boolean
+	cardStyle?: 'boxed' | 'minimalist'
+	cardImageAspectRatio?: '16:9' | '3:2' | '4:3' | '1:1'
+	cardShowCategory?: boolean
+	cardShowExcerpt?: boolean
+	cardShowAuthor?: boolean
+	cardShowDate?: boolean
+	cardShowReadTime?: boolean
+	defaultAuthor?: PersonReference
+	defaultTocPosition?: 'sticky-bar' | 'left' | 'right' | 'hidden'
+	postSidebarLayout?: 'none' | 'right' | 'left'
+	readingSpeedWpm?: number
+	enableSocialShare?: boolean
+	enableAuthorBio?: boolean
+	enableNewsletter?: boolean
+	newsletterTitle?: string
+	newsletterSubtitle?: string
+	relatedPostsTitle?: string
+	relatedProductsTitle?: string
+}
+
+export type Person = {
+	_id: string
+	_type: 'person'
+	_createdAt: string
+	_updatedAt: string
+	_rev: string
+	name?: string
+	role?: string
+	image?: {
+		asset?: SanityImageAssetReference
+		media?: unknown
+		hotspot?: SanityImageHotspot
+		crop?: SanityImageCrop
+		_type: 'image'
+	}
+	shortBio?: string
+	socialLinks?: Array<{
+		platform?:
+			'linkedin' | 'twitter' | 'website' | 'instagram' | 'facebook' | 'youtube'
+		url?: string
+		_key: string
+	}>
+}
+
 export type Site = {
 	_id: string
 	_type: 'site'
@@ -2733,6 +2977,13 @@ export type AllSanitySchemaTypes =
 	| BlogPostContent
 	| BlogIndex
 	| AccordionList
+	| CtaBanner
+	| ImageGallery
+	| FaqAccordion
+	| VideoEmbed
+	| ComparisonTable
+	| ProductEmbed
+	| CalloutBox
 	| ProductVariant
 	| ProductOption
 	| AffiliateLink
@@ -2760,7 +3011,6 @@ export type AllSanitySchemaTypes =
 	| ProductCategoryReference
 	| Product
 	| BlogPost
-	| Person
 	| Code
 	| Lead
 	| CustomerReference
@@ -2777,6 +3027,8 @@ export type AllSanitySchemaTypes =
 	| SystemSettings
 	| WidgetSettings
 	| ThemeSettings
+	| BlogSettings
+	| Person
 	| Site
 	| SanityAssistInstructionTask
 	| SanityAssistTaskStatus
@@ -3071,7 +3323,7 @@ export type WISHLIST_PRODUCTS_QUERY_RESULT = Array<{
 
 // Source: src/app/(frontend)/blog/[slug]/page.tsx
 // Variable: BLOG_POST_QUERY
-// Query: *[_type == 'blog.post' && metadata.slug.current == $slug][0]{	...,	content[]{		...,		_type == 'image' => {			...,			asset->		}	},	'contentPlainText': pt::text(content),	'readTime': length(string::split(pt::text(content), ' ')) / 200,	'headings': content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{		style,		'text': pt::text(@)	},	categories[]->{		title,		slug	},	author->{		name,		image{			...,			asset->		}	},	'globalBefore': (		*[_type == 'global-module' && path == '*'].before[]{ 	...,	ctas[]{		...,		link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'breadcrumbs' => {		crumbs[]{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'card-list' => {		cards[]{			...,			ctas[]{				...,				link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }			}		}	},	_type == 'logo-list' => {		logos[]{			...,			_type == 'reference' => @->		}	},	_type == 'person-list' => {		people[]{			...,			_type == 'reference' => @->		}	},	_type == 'prose' => {		content[]{			...,			_type == 'image' => {				...,				asset->{					...,					metadata				}			}		},		'headings': select(			tableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{				style,				'text': pt::text(@)			}		)	},	_type == 'quote-list' => {		testimonials[]{			...,			_type == 'reference' => @->		}	},	_type == 'product-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         },		collection->{			_id,				title,			"slug": slug.current		},    },	_type == 'product' => {		...,		productDetail->{			_id,			_type,			title,			sku,			description,			images[]{				...,				asset->{					...,					metadata				}			},			price,			salePrice,			sales,			hasVariants,			options[]{				name,				values			},			variants[]{				_key,				title,				sku,				price,				compareAtPrice,				stock,				image{					...,					asset->{						...,						metadata					}				},				options[]{					name,					value				}			},			"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {				_id,				author,				rating,				comment,				response,				createdAt,				images[]{					...,					asset->				},				videos[]{					...,					asset->				}			},		}	},	_type == 'carousel-banner-list' => {        ...,         items[]{            ...,             asset->,             mobileImage {                asset->            },            "internalType": internal->_type,            "internalSlug": internal->metadata.slug.current,        }    },	_type == 'blog-post-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         }    },	_type == 'collection-content' => {		...,	},	_type == 'wishlist' => {		...,	}, }		+ *[_type == 'global-module' && path == $blogDir].before[]{ 	...,	ctas[]{		...,		link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'breadcrumbs' => {		crumbs[]{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'card-list' => {		cards[]{			...,			ctas[]{				...,				link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }			}		}	},	_type == 'logo-list' => {		logos[]{			...,			_type == 'reference' => @->		}	},	_type == 'person-list' => {		people[]{			...,			_type == 'reference' => @->		}	},	_type == 'prose' => {		content[]{			...,			_type == 'image' => {				...,				asset->{					...,					metadata				}			}		},		'headings': select(			tableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{				style,				'text': pt::text(@)			}		)	},	_type == 'quote-list' => {		testimonials[]{			...,			_type == 'reference' => @->		}	},	_type == 'product-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         },		collection->{			_id,				title,			"slug": slug.current		},    },	_type == 'product' => {		...,		productDetail->{			_id,			_type,			title,			sku,			description,			images[]{				...,				asset->{					...,					metadata				}			},			price,			salePrice,			sales,			hasVariants,			options[]{				name,				values			},			variants[]{				_key,				title,				sku,				price,				compareAtPrice,				stock,				image{					...,					asset->{						...,						metadata					}				},				options[]{					name,					value				}			},			"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {				_id,				author,				rating,				comment,				response,				createdAt,				images[]{					...,					asset->				},				videos[]{					...,					asset->				}			},		}	},	_type == 'carousel-banner-list' => {        ...,         items[]{            ...,             asset->,             mobileImage {                asset->            },            "internalType": internal->_type,            "internalSlug": internal->metadata.slug.current,        }    },	_type == 'blog-post-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         }    },	_type == 'collection-content' => {		...,	},	_type == 'wishlist' => {		...,	}, }	),	'customModules': coalesce(modules, [])[]{ 	...,	ctas[]{		...,		link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'breadcrumbs' => {		crumbs[]{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'card-list' => {		cards[]{			...,			ctas[]{				...,				link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }			}		}	},	_type == 'logo-list' => {		logos[]{			...,			_type == 'reference' => @->		}	},	_type == 'person-list' => {		people[]{			...,			_type == 'reference' => @->		}	},	_type == 'prose' => {		content[]{			...,			_type == 'image' => {				...,				asset->{					...,					metadata				}			}		},		'headings': select(			tableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{				style,				'text': pt::text(@)			}		)	},	_type == 'quote-list' => {		testimonials[]{			...,			_type == 'reference' => @->		}	},	_type == 'product-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         },		collection->{			_id,				title,			"slug": slug.current		},    },	_type == 'product' => {		...,		productDetail->{			_id,			_type,			title,			sku,			description,			images[]{				...,				asset->{					...,					metadata				}			},			price,			salePrice,			sales,			hasVariants,			options[]{				name,				values			},			variants[]{				_key,				title,				sku,				price,				compareAtPrice,				stock,				image{					...,					asset->{						...,						metadata					}				},				options[]{					name,					value				}			},			"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {				_id,				author,				rating,				comment,				response,				createdAt,				images[]{					...,					asset->				},				videos[]{					...,					asset->				}			},		}	},	_type == 'carousel-banner-list' => {        ...,         items[]{            ...,             asset->,             mobileImage {                asset->            },            "internalType": internal->_type,            "internalSlug": internal->metadata.slug.current,        }    },	_type == 'blog-post-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         }    },	_type == 'collection-content' => {		...,	},	_type == 'wishlist' => {		...,	}, },	'globalAfter': (		*[_type == 'global-module' && path == $blogDir].after[]{ 	...,	ctas[]{		...,		link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'breadcrumbs' => {		crumbs[]{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'card-list' => {		cards[]{			...,			ctas[]{				...,				link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }			}		}	},	_type == 'logo-list' => {		logos[]{			...,			_type == 'reference' => @->		}	},	_type == 'person-list' => {		people[]{			...,			_type == 'reference' => @->		}	},	_type == 'prose' => {		content[]{			...,			_type == 'image' => {				...,				asset->{					...,					metadata				}			}		},		'headings': select(			tableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{				style,				'text': pt::text(@)			}		)	},	_type == 'quote-list' => {		testimonials[]{			...,			_type == 'reference' => @->		}	},	_type == 'product-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         },		collection->{			_id,				title,			"slug": slug.current		},    },	_type == 'product' => {		...,		productDetail->{			_id,			_type,			title,			sku,			description,			images[]{				...,				asset->{					...,					metadata				}			},			price,			salePrice,			sales,			hasVariants,			options[]{				name,				values			},			variants[]{				_key,				title,				sku,				price,				compareAtPrice,				stock,				image{					...,					asset->{						...,						metadata					}				},				options[]{					name,					value				}			},			"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {				_id,				author,				rating,				comment,				response,				createdAt,				images[]{					...,					asset->				},				videos[]{					...,					asset->				}			},		}	},	_type == 'carousel-banner-list' => {        ...,         items[]{            ...,             asset->,             mobileImage {                asset->            },            "internalType": internal->_type,            "internalSlug": internal->metadata.slug.current,        }    },	_type == 'blog-post-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         }    },	_type == 'collection-content' => {		...,	},	_type == 'wishlist' => {		...,	}, }		+ *[_type == 'global-module' && path == '*'].after[]{ 	...,	ctas[]{		...,		link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'breadcrumbs' => {		crumbs[]{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'card-list' => {		cards[]{			...,			ctas[]{				...,				link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }			}		}	},	_type == 'logo-list' => {		logos[]{			...,			_type == 'reference' => @->		}	},	_type == 'person-list' => {		people[]{			...,			_type == 'reference' => @->		}	},	_type == 'prose' => {		content[]{			...,			_type == 'image' => {				...,				asset->{					...,					metadata				}			}		},		'headings': select(			tableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{				style,				'text': pt::text(@)			}		)	},	_type == 'quote-list' => {		testimonials[]{			...,			_type == 'reference' => @->		}	},	_type == 'product-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         },		collection->{			_id,				title,			"slug": slug.current		},    },	_type == 'product' => {		...,		productDetail->{			_id,			_type,			title,			sku,			description,			images[]{				...,				asset->{					...,					metadata				}			},			price,			salePrice,			sales,			hasVariants,			options[]{				name,				values			},			variants[]{				_key,				title,				sku,				price,				compareAtPrice,				stock,				image{					...,					asset->{						...,						metadata					}				},				options[]{					name,					value				}			},			"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {				_id,				author,				rating,				comment,				response,				createdAt,				images[]{					...,					asset->				},				videos[]{					...,					asset->				}			},		}	},	_type == 'carousel-banner-list' => {        ...,         items[]{            ...,             asset->,             mobileImage {                asset->            },            "internalType": internal->_type,            "internalSlug": internal->metadata.slug.current,        }    },	_type == 'blog-post-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         }    },	_type == 'collection-content' => {		...,	},	_type == 'wishlist' => {		...,	}, }	)}
+// Query: *[_type == 'blog.post' && metadata.slug.current == $slug][0]{	...,	excerpt,	isFeatured,	lastUpdatedDate,	tags,	content[]{		...,		_type == 'image' => {			...,			asset->		},		_type == 'product-embed' => {			...,			product->{				_id,				title,				price,				salePrice,				images[]{					...,					asset->				},				metadata			}		},		_type == 'image-gallery' => {			...,			images[]{				...,				asset->			}		}	},	'contentPlainText': pt::text(content),	'readTime': length(string::split(pt::text(content), ' ')) / 200,	'headings': content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{		style,		'text': pt::text(@)	},	categories[]->{		title,		slug	},	author->{		name,		role,		shortBio,		socialLinks,		image{			...,			asset->		}	},	relatedProducts[]->{		_id,		title,		price,		compareAtPrice,		tags,		sold,		stock,		hasVariants,		options[]{			name,			values		},		variants[]{			_key,			title,			price,			compareAtPrice,			stock,			options[]{				name,				value			},			image{				...,				asset->			}		},		"slug": metadata.slug.current,		images[]{			...,			asset->		},		"reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },		categories[]->{			title,			"slug": slug.current		}	},	relatedPosts[]->{		_id,		title,		publishDate,		excerpt,		'readTime': length(string::split(pt::text(content), ' ')) / 200,		metadata{			...,			image{				...,				asset->			}		}	},	'categoryRelatedPosts': *[		_type == 'blog.post'		&& references(^.categories[0]._id)		&& _id != ^._id	][0...3]{		_id,		title,		publishDate,		excerpt,		'readTime': length(string::split(pt::text(content), ' ')) / 200,		metadata{			...,			image{				...,				asset->			}		}	},	'globalBefore': (		*[_type == 'global-module' && path == '*'].before[]{ 	...,	ctas[]{		...,		link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'breadcrumbs' => {		crumbs[]{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'card-list' => {		cards[]{			...,			ctas[]{				...,				link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }			}		}	},	_type == 'logo-list' => {		logos[]{			...,			_type == 'reference' => @->		}	},	_type == 'person-list' => {		people[]{			...,			_type == 'reference' => @->		}	},	_type == 'prose' => {		content[]{			...,			_type == 'image' => {				...,				asset->{					...,					metadata				}			}		},		'headings': select(			tableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{				style,				'text': pt::text(@)			}		)	},	_type == 'quote-list' => {		testimonials[]{			...,			_type == 'reference' => @->		}	},	_type == 'product-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         },		collection->{			_id,				title,			"slug": slug.current		},    },	_type == 'product' => {		...,		productDetail->{			_id,			_type,			title,			sku,			description,			images[]{				...,				asset->{					...,					metadata				}			},			price,			salePrice,			sales,			hasVariants,			options[]{				name,				values			},			variants[]{				_key,				title,				sku,				price,				compareAtPrice,				stock,				image{					...,					asset->{						...,						metadata					}				},				options[]{					name,					value				}			},			"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {				_id,				author,				rating,				comment,				response,				createdAt,				images[]{					...,					asset->				},				videos[]{					...,					asset->				}			},		}	},	_type == 'carousel-banner-list' => {        ...,         items[]{            ...,             asset->,             mobileImage {                asset->            },            "internalType": internal->_type,            "internalSlug": internal->metadata.slug.current,        }    },	_type == 'blog-post-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         }    },	_type == 'collection-content' => {		...,	},	_type == 'wishlist' => {		...,	}, }		+ *[_type == 'global-module' && path == $blogDir].before[]{ 	...,	ctas[]{		...,		link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'breadcrumbs' => {		crumbs[]{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'card-list' => {		cards[]{			...,			ctas[]{				...,				link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }			}		}	},	_type == 'logo-list' => {		logos[]{			...,			_type == 'reference' => @->		}	},	_type == 'person-list' => {		people[]{			...,			_type == 'reference' => @->		}	},	_type == 'prose' => {		content[]{			...,			_type == 'image' => {				...,				asset->{					...,					metadata				}			}		},		'headings': select(			tableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{				style,				'text': pt::text(@)			}		)	},	_type == 'quote-list' => {		testimonials[]{			...,			_type == 'reference' => @->		}	},	_type == 'product-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         },		collection->{			_id,				title,			"slug": slug.current		},    },	_type == 'product' => {		...,		productDetail->{			_id,			_type,			title,			sku,			description,			images[]{				...,				asset->{					...,					metadata				}			},			price,			salePrice,			sales,			hasVariants,			options[]{				name,				values			},			variants[]{				_key,				title,				sku,				price,				compareAtPrice,				stock,				image{					...,					asset->{						...,						metadata					}				},				options[]{					name,					value				}			},			"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {				_id,				author,				rating,				comment,				response,				createdAt,				images[]{					...,					asset->				},				videos[]{					...,					asset->				}			},		}	},	_type == 'carousel-banner-list' => {        ...,         items[]{            ...,             asset->,             mobileImage {                asset->            },            "internalType": internal->_type,            "internalSlug": internal->metadata.slug.current,        }    },	_type == 'blog-post-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         }    },	_type == 'collection-content' => {		...,	},	_type == 'wishlist' => {		...,	}, }	),	'customModules': coalesce(modules, [])[]{ 	...,	ctas[]{		...,		link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'breadcrumbs' => {		crumbs[]{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'card-list' => {		cards[]{			...,			ctas[]{				...,				link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }			}		}	},	_type == 'logo-list' => {		logos[]{			...,			_type == 'reference' => @->		}	},	_type == 'person-list' => {		people[]{			...,			_type == 'reference' => @->		}	},	_type == 'prose' => {		content[]{			...,			_type == 'image' => {				...,				asset->{					...,					metadata				}			}		},		'headings': select(			tableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{				style,				'text': pt::text(@)			}		)	},	_type == 'quote-list' => {		testimonials[]{			...,			_type == 'reference' => @->		}	},	_type == 'product-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         },		collection->{			_id,				title,			"slug": slug.current		},    },	_type == 'product' => {		...,		productDetail->{			_id,			_type,			title,			sku,			description,			images[]{				...,				asset->{					...,					metadata				}			},			price,			salePrice,			sales,			hasVariants,			options[]{				name,				values			},			variants[]{				_key,				title,				sku,				price,				compareAtPrice,				stock,				image{					...,					asset->{						...,						metadata					}				},				options[]{					name,					value				}			},			"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {				_id,				author,				rating,				comment,				response,				createdAt,				images[]{					...,					asset->				},				videos[]{					...,					asset->				}			},		}	},	_type == 'carousel-banner-list' => {        ...,         items[]{            ...,             asset->,             mobileImage {                asset->            },            "internalType": internal->_type,            "internalSlug": internal->metadata.slug.current,        }    },	_type == 'blog-post-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         }    },	_type == 'collection-content' => {		...,	},	_type == 'wishlist' => {		...,	}, },	'globalAfter': (		*[_type == 'global-module' && path == $blogDir].after[]{ 	...,	ctas[]{		...,		link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'breadcrumbs' => {		crumbs[]{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'card-list' => {		cards[]{			...,			ctas[]{				...,				link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }			}		}	},	_type == 'logo-list' => {		logos[]{			...,			_type == 'reference' => @->		}	},	_type == 'person-list' => {		people[]{			...,			_type == 'reference' => @->		}	},	_type == 'prose' => {		content[]{			...,			_type == 'image' => {				...,				asset->{					...,					metadata				}			}		},		'headings': select(			tableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{				style,				'text': pt::text(@)			}		)	},	_type == 'quote-list' => {		testimonials[]{			...,			_type == 'reference' => @->		}	},	_type == 'product-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         },		collection->{			_id,				title,			"slug": slug.current		},    },	_type == 'product' => {		...,		productDetail->{			_id,			_type,			title,			sku,			description,			images[]{				...,				asset->{					...,					metadata				}			},			price,			salePrice,			sales,			hasVariants,			options[]{				name,				values			},			variants[]{				_key,				title,				sku,				price,				compareAtPrice,				stock,				image{					...,					asset->{						...,						metadata					}				},				options[]{					name,					value				}			},			"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {				_id,				author,				rating,				comment,				response,				createdAt,				images[]{					...,					asset->				},				videos[]{					...,					asset->				}			},		}	},	_type == 'carousel-banner-list' => {        ...,         items[]{            ...,             asset->,             mobileImage {                asset->            },            "internalType": internal->_type,            "internalSlug": internal->metadata.slug.current,        }    },	_type == 'blog-post-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         }    },	_type == 'collection-content' => {		...,	},	_type == 'wishlist' => {		...,	}, }		+ *[_type == 'global-module' && path == '*'].after[]{ 	...,	ctas[]{		...,		link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'breadcrumbs' => {		crumbs[]{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }	},	_type == 'card-list' => {		cards[]{			...,			ctas[]{				...,				link{ 	...,	type == 'internal' => {		internal->{			_type,			title,			'slug': select(				_type == 'collection' => '/collections/' + metadata.slug.current,				_type == 'product' => '/products/' + metadata.slug.current,				_type == 'blog.post' => '/blog/' + metadata.slug.current,				metadata.slug.current == 'index' => '/',				'/' + metadata.slug.current			)		}	} }			}		}	},	_type == 'logo-list' => {		logos[]{			...,			_type == 'reference' => @->		}	},	_type == 'person-list' => {		people[]{			...,			_type == 'reference' => @->		}	},	_type == 'prose' => {		content[]{			...,			_type == 'image' => {				...,				asset->{					...,					metadata				}			}		},		'headings': select(			tableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{				style,				'text': pt::text(@)			}		)	},	_type == 'quote-list' => {		testimonials[]{			...,			_type == 'reference' => @->		}	},	_type == 'product-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         },		collection->{			_id,				title,			"slug": slug.current		},    },	_type == 'product' => {		...,		productDetail->{			_id,			_type,			title,			sku,			description,			images[]{				...,				asset->{					...,					metadata				}			},			price,			salePrice,			sales,			hasVariants,			options[]{				name,				values			},			variants[]{				_key,				title,				sku,				price,				compareAtPrice,				stock,				image{					...,					asset->{						...,						metadata					}				},				options[]{					name,					value				}			},			"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {				_id,				author,				rating,				comment,				response,				createdAt,				images[]{					...,					asset->				},				videos[]{					...,					asset->				}			},		}	},	_type == 'carousel-banner-list' => {        ...,         items[]{            ...,             asset->,             mobileImage {                asset->            },            "internalType": internal->_type,            "internalSlug": internal->metadata.slug.current,        }    },	_type == 'blog-post-list' => {        ...,         image {            ...,             asset->,			"internalType": internal->_type,            "internalSlug": internal->metadata.slug.current         }    },	_type == 'collection-content' => {		...,	},	_type == 'wishlist' => {		...,	}, }	)}
 export type BLOG_POST_QUERY_RESULT = {
 	_id: string
 	_type: 'blog.post'
@@ -3079,6 +3331,7 @@ export type BLOG_POST_QUERY_RESULT = {
 	_updatedAt: string
 	_rev: string
 	title?: string
+	excerpt: string | null
 	content: Array<
 		| {
 				_key: string
@@ -3122,6 +3375,30 @@ export type BLOG_POST_QUERY_RESULT = {
 		  }
 		| {
 				_key: string
+				_type: 'callout-box'
+				type?: 'danger' | 'info' | 'quote' | 'tip' | 'warning'
+				title?: string
+				content?: Array<{
+					children?: Array<{
+						marks?: Array<string>
+						text?: string
+						_type: 'span'
+						_key: string
+					}>
+					style?: 'normal'
+					listItem?: 'bullet'
+					markDefs?: Array<{
+						href?: string
+						_type: 'link'
+						_key: string
+					}>
+					level?: number
+					_type: 'block'
+					_key: string
+				}>
+		  }
+		| {
+				_key: string
 				_type: 'code'
 				language?: string
 				filename?: string
@@ -3130,11 +3407,100 @@ export type BLOG_POST_QUERY_RESULT = {
 		  }
 		| {
 				_key: string
+				_type: 'comparison-table'
+				title?: string
+				caption?: string
+				headers?: Array<string>
+				highlightedColumnIndex?: number
+				rows?: Array<{
+					cells?: Array<string>
+					_type: 'tableRow'
+					_key: string
+				}>
+		  }
+		| {
+				_key: string
+				_type: 'cta-banner'
+				badge?: string
+				title?: string
+				description?: string
+				buttonText?: string
+				buttonLink?: Link
+				style?: 'accent' | 'dark' | 'light'
+		  }
+		| {
+				_key: string
 				_type: 'custom-html'
 				attributes?: ModuleAttributes
 				className?: string
 				html?: Code
 				css?: Code
+		  }
+		| {
+				_key: string
+				_type: 'faq-accordion'
+				title?: string
+				items?: Array<{
+					question?: string
+					answer?: Array<{
+						children?: Array<{
+							marks?: Array<string>
+							text?: string
+							_type: 'span'
+							_key: string
+						}>
+						style?:
+							'blockquote' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'normal'
+						listItem?: 'bullet' | 'number'
+						markDefs?: Array<{
+							href?: string
+							_type: 'link'
+							_key: string
+						}>
+						level?: number
+						_type: 'block'
+						_key: string
+					}>
+					_type: 'faqItem'
+					_key: string
+				}>
+		  }
+		| {
+				_key: string
+				_type: 'image-gallery'
+				title?: string
+				layout?: 'grid-2' | 'grid-3' | 'slider'
+				images: Array<{
+					asset: {
+						_id: string
+						_type: 'sanity.imageAsset'
+						_createdAt: string
+						_updatedAt: string
+						_rev: string
+						originalFilename?: string
+						label?: string
+						title?: string
+						description?: string
+						altText?: string
+						sha1hash?: string
+						extension?: string
+						mimeType?: string
+						size?: number
+						assetId?: string
+						uploadId?: string
+						path?: string
+						url?: string
+						metadata?: SanityImageMetadata
+						source?: SanityAssetSourceData
+					} | null
+					media?: unknown
+					hotspot?: SanityImageHotspot
+					crop?: SanityImageCrop
+					alt?: string
+					caption?: string
+					_type: 'image'
+					_key: string
+				}> | null
 		  }
 		| {
 				asset: {
@@ -3184,14 +3550,124 @@ export type BLOG_POST_QUERY_RESULT = {
 				_type: 'image'
 				_key: string
 		  }
+		| {
+				_key: string
+				_type: 'product-embed'
+				product: {
+					_id: string
+					title: string | null
+					price: number | null
+					salePrice: null
+					images: Array<
+						| {
+								asset: {
+									_id: string
+									_type: 'sanity.imageAsset'
+									_createdAt: string
+									_updatedAt: string
+									_rev: string
+									originalFilename?: string
+									label?: string
+									title?: string
+									description?: string
+									altText?: string
+									sha1hash?: string
+									extension?: string
+									mimeType?: string
+									size?: number
+									assetId?: string
+									uploadId?: string
+									path?: string
+									url?: string
+									metadata?: SanityImageMetadata
+									source?: SanityAssetSourceData
+								} | null
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+								_key: string
+						  }
+						| {
+								asset: {
+									_id: string
+									_type: 'sanity.fileAsset'
+									_createdAt: string
+									_updatedAt: string
+									_rev: string
+									originalFilename?: string
+									label?: string
+									title?: string
+									description?: string
+									altText?: string
+									sha1hash?: string
+									extension?: string
+									mimeType?: string
+									size?: number
+									assetId?: string
+									uploadId?: string
+									path?: string
+									url?: string
+									source?: SanityAssetSourceData
+								} | null
+								media?: unknown
+								alt?: string
+								_type: 'video'
+								_key: string
+						  }
+						| {
+								url?: string
+								alt?: string
+								_type: 'videoUrl'
+								_key: string
+								asset: null
+						  }
+					> | null
+					metadata: Metadata | null
+				} | null
+				layout?: 'banner' | 'card' | 'minimal'
+				customBadge?: string
+				customReviewSnippet?: string
+		  }
+		| {
+				_key: string
+				_type: 'video-embed'
+				url?: string
+				title?: string
+				customThumbnail?: {
+					asset?: SanityImageAssetReference
+					media?: unknown
+					hotspot?: SanityImageHotspot
+					crop?: SanityImageCrop
+					_type: 'image'
+				}
+				caption?: string
+				aspectRatio?: '1:1' | '16:9' | '4:3' | '9:16'
+		  }
 	> | null
+	isFeatured: boolean | null
 	publishDate?: string
+	lastUpdatedDate: string | null
 	categories: Array<{
 		title: string | null
 		slug: Slug | null
 	}> | null
+	tags: Array<string> | null
 	author: {
 		name: string | null
+		role: string | null
+		shortBio: string | null
+		socialLinks: Array<{
+			platform?:
+				| 'facebook'
+				| 'instagram'
+				| 'linkedin'
+				| 'twitter'
+				| 'website'
+				| 'youtube'
+			url?: string
+			_key: string
+		}> | null
 		image: {
 			asset: {
 				_id: string
@@ -3221,7 +3697,177 @@ export type BLOG_POST_QUERY_RESULT = {
 			_type: 'image'
 		} | null
 	} | null
+	tableOfContents?: 'default' | 'hidden' | 'left' | 'right' | 'sticky-bar'
+	sidebarLayout?: 'default' | 'left' | 'none' | 'right'
 	metadata?: Metadata
+	relatedProducts: Array<{
+		_id: string
+		title: string | null
+		price: number | null
+		compareAtPrice: number | null
+		tags: Array<string> | null
+		sold: number | null
+		stock: number | null
+		hasVariants: boolean | null
+		options: Array<{
+			name: string | null
+			values: Array<string> | null
+		}> | null
+		variants: Array<{
+			_key: string
+			title: string | null
+			price: number | null
+			compareAtPrice: number | null
+			stock: number | null
+			options: Array<{
+				name: string | null
+				value: string | null
+			}> | null
+			image: {
+				asset: {
+					_id: string
+					_type: 'sanity.imageAsset'
+					_createdAt: string
+					_updatedAt: string
+					_rev: string
+					originalFilename?: string
+					label?: string
+					title?: string
+					description?: string
+					altText?: string
+					sha1hash?: string
+					extension?: string
+					mimeType?: string
+					size?: number
+					assetId?: string
+					uploadId?: string
+					path?: string
+					url?: string
+					metadata?: SanityImageMetadata
+					source?: SanityAssetSourceData
+				} | null
+				media?: unknown
+				hotspot?: SanityImageHotspot
+				crop?: SanityImageCrop
+				_type: 'image'
+			} | null
+		}> | null
+		slug: string | null
+		images: Array<
+			| {
+					asset: {
+						_id: string
+						_type: 'sanity.imageAsset'
+						_createdAt: string
+						_updatedAt: string
+						_rev: string
+						originalFilename?: string
+						label?: string
+						title?: string
+						description?: string
+						altText?: string
+						sha1hash?: string
+						extension?: string
+						mimeType?: string
+						size?: number
+						assetId?: string
+						uploadId?: string
+						path?: string
+						url?: string
+						metadata?: SanityImageMetadata
+						source?: SanityAssetSourceData
+					} | null
+					media?: unknown
+					hotspot?: SanityImageHotspot
+					crop?: SanityImageCrop
+					_type: 'image'
+					_key: string
+			  }
+			| {
+					asset: {
+						_id: string
+						_type: 'sanity.fileAsset'
+						_createdAt: string
+						_updatedAt: string
+						_rev: string
+						originalFilename?: string
+						label?: string
+						title?: string
+						description?: string
+						altText?: string
+						sha1hash?: string
+						extension?: string
+						mimeType?: string
+						size?: number
+						assetId?: string
+						uploadId?: string
+						path?: string
+						url?: string
+						source?: SanityAssetSourceData
+					} | null
+					media?: unknown
+					alt?: string
+					_type: 'video'
+					_key: string
+			  }
+			| {
+					url?: string
+					alt?: string
+					_type: 'videoUrl'
+					_key: string
+					asset: null
+			  }
+		> | null
+		reviews: Array<{
+			rating: number | null
+		}>
+		categories: Array<{
+			title: string | null
+			slug: string | null
+		}> | null
+	}> | null
+	relatedPosts: Array<{
+		_id: string
+		title: string | null
+		publishDate: string | null
+		excerpt: string | null
+		readTime: number
+		metadata: {
+			_type: 'metadata'
+			title?: string
+			description?: string
+			slug?: Slug
+			image: {
+				asset: {
+					_id: string
+					_type: 'sanity.imageAsset'
+					_createdAt: string
+					_updatedAt: string
+					_rev: string
+					originalFilename?: string
+					label?: string
+					title?: string
+					description?: string
+					altText?: string
+					sha1hash?: string
+					extension?: string
+					mimeType?: string
+					size?: number
+					assetId?: string
+					uploadId?: string
+					path?: string
+					url?: string
+					metadata?: SanityImageMetadata
+					source?: SanityAssetSourceData
+				} | null
+				media?: unknown
+				hotspot?: SanityImageHotspot
+				crop?: SanityImageCrop
+				_type: 'image'
+			} | null
+			noIndex?: boolean
+		} | null
+	}> | null
 	contentPlainText: string
 	readTime: number
 	headings: Array<{
@@ -3229,6 +3875,48 @@ export type BLOG_POST_QUERY_RESULT = {
 			'blockquote' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'normal' | null
 		text: string
 	}> | null
+	categoryRelatedPosts: Array<{
+		_id: string
+		title: string | null
+		publishDate: string | null
+		excerpt: string | null
+		readTime: number
+		metadata: {
+			_type: 'metadata'
+			title?: string
+			description?: string
+			slug?: Slug
+			image: {
+				asset: {
+					_id: string
+					_type: 'sanity.imageAsset'
+					_createdAt: string
+					_updatedAt: string
+					_rev: string
+					originalFilename?: string
+					label?: string
+					title?: string
+					description?: string
+					altText?: string
+					sha1hash?: string
+					extension?: string
+					mimeType?: string
+					size?: number
+					assetId?: string
+					uploadId?: string
+					path?: string
+					url?: string
+					metadata?: SanityImageMetadata
+					source?: SanityAssetSourceData
+				} | null
+				media?: unknown
+				hotspot?: SanityImageHotspot
+				crop?: SanityImageCrop
+				_type: 'image'
+			} | null
+			noIndex?: boolean
+		} | null
+	}>
 	globalBefore: Array<
 		| {
 				_key: string
@@ -4054,6 +4742,7 @@ export type BLOG_POST_QUERY_RESULT = {
 							_updatedAt: string
 							_rev: string
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -4061,9 +4750,22 @@ export type BLOG_POST_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 					  }
 					| {
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -4071,6 +4773,18 @@ export type BLOG_POST_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 							_type: 'person'
 							_key: string
 					  }
@@ -4165,6 +4879,27 @@ export type BLOG_POST_QUERY_RESULT = {
 				attributes?: ModuleAttributes
 				content: Array<
 					| {
+							_key: string
+							_type: 'affiliateLink'
+							layout?: 'button' | 'horizontal' | 'vertical'
+							alignment?: 'center' | 'left' | 'right'
+							buttonColor?: 'blue' | 'default' | 'green' | 'orange' | 'red'
+							badge?: string
+							image?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							title?: string
+							rating?: number
+							price?: string
+							shortInfo?: string
+							url?: string
+							buttonText?: string
+					  }
+					| {
 							children?: Array<{
 								marks?: Array<string>
 								text?: string
@@ -4192,6 +4927,30 @@ export type BLOG_POST_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'callout-box'
+							type?: 'danger' | 'info' | 'quote' | 'tip' | 'warning'
+							title?: string
+							content?: Array<{
+								children?: Array<{
+									marks?: Array<string>
+									text?: string
+									_type: 'span'
+									_key: string
+								}>
+								style?: 'normal'
+								listItem?: 'bullet'
+								markDefs?: Array<{
+									href?: string
+									_type: 'link'
+									_key: string
+								}>
+								level?: number
+								_type: 'block'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
 							_type: 'code'
 							language?: string
 							filename?: string
@@ -4200,11 +4959,86 @@ export type BLOG_POST_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'comparison-table'
+							title?: string
+							caption?: string
+							headers?: Array<string>
+							highlightedColumnIndex?: number
+							rows?: Array<{
+								cells?: Array<string>
+								_type: 'tableRow'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'cta-banner'
+							badge?: string
+							title?: string
+							description?: string
+							buttonText?: string
+							buttonLink?: Link
+							style?: 'accent' | 'dark' | 'light'
+					  }
+					| {
+							_key: string
 							_type: 'custom-html'
 							attributes?: ModuleAttributes
 							className?: string
 							html?: Code
 							css?: Code
+					  }
+					| {
+							_key: string
+							_type: 'faq-accordion'
+							title?: string
+							items?: Array<{
+								question?: string
+								answer?: Array<{
+									children?: Array<{
+										marks?: Array<string>
+										text?: string
+										_type: 'span'
+										_key: string
+									}>
+									style?:
+										| 'blockquote'
+										| 'h1'
+										| 'h2'
+										| 'h3'
+										| 'h4'
+										| 'h5'
+										| 'h6'
+										| 'normal'
+									listItem?: 'bullet' | 'number'
+									markDefs?: Array<{
+										href?: string
+										_type: 'link'
+										_key: string
+									}>
+									level?: number
+									_type: 'block'
+									_key: string
+								}>
+								_type: 'faqItem'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'image-gallery'
+							title?: string
+							layout?: 'grid-2' | 'grid-3' | 'slider'
+							images?: Array<{
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								alt?: string
+								caption?: string
+								_type: 'image'
+								_key: string
+							}>
 					  }
 					| {
 							asset: {
@@ -4253,6 +5087,29 @@ export type BLOG_POST_QUERY_RESULT = {
 							}>
 							_type: 'image'
 							_key: string
+					  }
+					| {
+							_key: string
+							_type: 'product-embed'
+							product?: ProductReference
+							layout?: 'banner' | 'card' | 'minimal'
+							customBadge?: string
+							customReviewSnippet?: string
+					  }
+					| {
+							_key: string
+							_type: 'video-embed'
+							url?: string
+							title?: string
+							customThumbnail?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							caption?: string
+							aspectRatio?: '1:1' | '16:9' | '4:3' | '9:16'
 					  }
 				> | null
 				tableOfContents?: 'left' | 'right'
@@ -5364,6 +6221,7 @@ export type BLOG_POST_QUERY_RESULT = {
 							_updatedAt: string
 							_rev: string
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -5371,9 +6229,22 @@ export type BLOG_POST_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 					  }
 					| {
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -5381,6 +6252,18 @@ export type BLOG_POST_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 							_type: 'person'
 							_key: string
 					  }
@@ -5475,6 +6358,27 @@ export type BLOG_POST_QUERY_RESULT = {
 				attributes?: ModuleAttributes
 				content: Array<
 					| {
+							_key: string
+							_type: 'affiliateLink'
+							layout?: 'button' | 'horizontal' | 'vertical'
+							alignment?: 'center' | 'left' | 'right'
+							buttonColor?: 'blue' | 'default' | 'green' | 'orange' | 'red'
+							badge?: string
+							image?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							title?: string
+							rating?: number
+							price?: string
+							shortInfo?: string
+							url?: string
+							buttonText?: string
+					  }
+					| {
 							children?: Array<{
 								marks?: Array<string>
 								text?: string
@@ -5502,6 +6406,30 @@ export type BLOG_POST_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'callout-box'
+							type?: 'danger' | 'info' | 'quote' | 'tip' | 'warning'
+							title?: string
+							content?: Array<{
+								children?: Array<{
+									marks?: Array<string>
+									text?: string
+									_type: 'span'
+									_key: string
+								}>
+								style?: 'normal'
+								listItem?: 'bullet'
+								markDefs?: Array<{
+									href?: string
+									_type: 'link'
+									_key: string
+								}>
+								level?: number
+								_type: 'block'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
 							_type: 'code'
 							language?: string
 							filename?: string
@@ -5510,11 +6438,86 @@ export type BLOG_POST_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'comparison-table'
+							title?: string
+							caption?: string
+							headers?: Array<string>
+							highlightedColumnIndex?: number
+							rows?: Array<{
+								cells?: Array<string>
+								_type: 'tableRow'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'cta-banner'
+							badge?: string
+							title?: string
+							description?: string
+							buttonText?: string
+							buttonLink?: Link
+							style?: 'accent' | 'dark' | 'light'
+					  }
+					| {
+							_key: string
 							_type: 'custom-html'
 							attributes?: ModuleAttributes
 							className?: string
 							html?: Code
 							css?: Code
+					  }
+					| {
+							_key: string
+							_type: 'faq-accordion'
+							title?: string
+							items?: Array<{
+								question?: string
+								answer?: Array<{
+									children?: Array<{
+										marks?: Array<string>
+										text?: string
+										_type: 'span'
+										_key: string
+									}>
+									style?:
+										| 'blockquote'
+										| 'h1'
+										| 'h2'
+										| 'h3'
+										| 'h4'
+										| 'h5'
+										| 'h6'
+										| 'normal'
+									listItem?: 'bullet' | 'number'
+									markDefs?: Array<{
+										href?: string
+										_type: 'link'
+										_key: string
+									}>
+									level?: number
+									_type: 'block'
+									_key: string
+								}>
+								_type: 'faqItem'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'image-gallery'
+							title?: string
+							layout?: 'grid-2' | 'grid-3' | 'slider'
+							images?: Array<{
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								alt?: string
+								caption?: string
+								_type: 'image'
+								_key: string
+							}>
 					  }
 					| {
 							asset: {
@@ -5563,6 +6566,29 @@ export type BLOG_POST_QUERY_RESULT = {
 							}>
 							_type: 'image'
 							_key: string
+					  }
+					| {
+							_key: string
+							_type: 'product-embed'
+							product?: ProductReference
+							layout?: 'banner' | 'card' | 'minimal'
+							customBadge?: string
+							customReviewSnippet?: string
+					  }
+					| {
+							_key: string
+							_type: 'video-embed'
+							url?: string
+							title?: string
+							customThumbnail?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							caption?: string
+							aspectRatio?: '1:1' | '16:9' | '4:3' | '9:16'
 					  }
 				> | null
 				tableOfContents?: 'left' | 'right'
@@ -5852,23 +6878,48 @@ export type BLOG_POST_QUERY_RESULT = {
 
 // Source: src/app/(frontend)/blog/rss.xml/route.ts
 // Variable: BLOG_RSS_QUERY
-// Query: {	'blog': *[_type == 'page' && metadata.slug.current == $blogDir][0]{		metadata	},	'posts': *[_type == 'blog.post' && metadata.noIndex != true]|order(publishDate desc){		title,		content,		publishDate,		categories[]->{ title },		author->{ name },		metadata	}}
+// Query: {	'blog': *[_type == 'blog-settings'][0]{		'metadata': {			'title': title,			'description': subtitle		}	},	'posts': *[_type == 'blog.post' && metadata.noIndex != true]|order(publishDate desc){		title,		excerpt,		content,		publishDate,		categories[]->{ title },		author->{ name },		metadata	}}
 export type BLOG_RSS_QUERY_RESULT = {
 	blog: {
-		metadata: Metadata | null
+		metadata: {
+			title: string | null
+			description: string | null
+		}
 	} | null
 	posts: Array<{
 		title: string | null
+		excerpt: string | null
 		content: Array<
 			| ({
 					_key: string
 			  } & AffiliateLink)
 			| ({
 					_key: string
+			  } & CalloutBox)
+			| ({
+					_key: string
 			  } & Code)
 			| ({
 					_key: string
+			  } & ComparisonTable)
+			| ({
+					_key: string
+			  } & CtaBanner)
+			| ({
+					_key: string
 			  } & CustomHtml)
+			| ({
+					_key: string
+			  } & FaqAccordion)
+			| ({
+					_key: string
+			  } & ImageGallery)
+			| ({
+					_key: string
+			  } & ProductEmbed)
+			| ({
+					_key: string
+			  } & VideoEmbed)
 			| {
 					children?: Array<{
 						marks?: Array<string>
@@ -7077,6 +8128,7 @@ export type COLLECTION_QUERY_RESULT = {
 							_updatedAt: string
 							_rev: string
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -7084,9 +8136,22 @@ export type COLLECTION_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 					  }
 					| {
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -7094,6 +8159,18 @@ export type COLLECTION_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 							_type: 'person'
 							_key: string
 					  }
@@ -7188,6 +8265,27 @@ export type COLLECTION_QUERY_RESULT = {
 				attributes?: ModuleAttributes
 				content: Array<
 					| {
+							_key: string
+							_type: 'affiliateLink'
+							layout?: 'button' | 'horizontal' | 'vertical'
+							alignment?: 'center' | 'left' | 'right'
+							buttonColor?: 'blue' | 'default' | 'green' | 'orange' | 'red'
+							badge?: string
+							image?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							title?: string
+							rating?: number
+							price?: string
+							shortInfo?: string
+							url?: string
+							buttonText?: string
+					  }
+					| {
 							children?: Array<{
 								marks?: Array<string>
 								text?: string
@@ -7215,6 +8313,30 @@ export type COLLECTION_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'callout-box'
+							type?: 'danger' | 'info' | 'quote' | 'tip' | 'warning'
+							title?: string
+							content?: Array<{
+								children?: Array<{
+									marks?: Array<string>
+									text?: string
+									_type: 'span'
+									_key: string
+								}>
+								style?: 'normal'
+								listItem?: 'bullet'
+								markDefs?: Array<{
+									href?: string
+									_type: 'link'
+									_key: string
+								}>
+								level?: number
+								_type: 'block'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
 							_type: 'code'
 							language?: string
 							filename?: string
@@ -7223,11 +8345,86 @@ export type COLLECTION_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'comparison-table'
+							title?: string
+							caption?: string
+							headers?: Array<string>
+							highlightedColumnIndex?: number
+							rows?: Array<{
+								cells?: Array<string>
+								_type: 'tableRow'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'cta-banner'
+							badge?: string
+							title?: string
+							description?: string
+							buttonText?: string
+							buttonLink?: Link
+							style?: 'accent' | 'dark' | 'light'
+					  }
+					| {
+							_key: string
 							_type: 'custom-html'
 							attributes?: ModuleAttributes
 							className?: string
 							html?: Code
 							css?: Code
+					  }
+					| {
+							_key: string
+							_type: 'faq-accordion'
+							title?: string
+							items?: Array<{
+								question?: string
+								answer?: Array<{
+									children?: Array<{
+										marks?: Array<string>
+										text?: string
+										_type: 'span'
+										_key: string
+									}>
+									style?:
+										| 'blockquote'
+										| 'h1'
+										| 'h2'
+										| 'h3'
+										| 'h4'
+										| 'h5'
+										| 'h6'
+										| 'normal'
+									listItem?: 'bullet' | 'number'
+									markDefs?: Array<{
+										href?: string
+										_type: 'link'
+										_key: string
+									}>
+									level?: number
+									_type: 'block'
+									_key: string
+								}>
+								_type: 'faqItem'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'image-gallery'
+							title?: string
+							layout?: 'grid-2' | 'grid-3' | 'slider'
+							images?: Array<{
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								alt?: string
+								caption?: string
+								_type: 'image'
+								_key: string
+							}>
 					  }
 					| {
 							asset: {
@@ -7276,6 +8473,29 @@ export type COLLECTION_QUERY_RESULT = {
 							}>
 							_type: 'image'
 							_key: string
+					  }
+					| {
+							_key: string
+							_type: 'product-embed'
+							product?: ProductReference
+							layout?: 'banner' | 'card' | 'minimal'
+							customBadge?: string
+							customReviewSnippet?: string
+					  }
+					| {
+							_key: string
+							_type: 'video-embed'
+							url?: string
+							title?: string
+							customThumbnail?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							caption?: string
+							aspectRatio?: '1:1' | '16:9' | '4:3' | '9:16'
 					  }
 				> | null
 				tableOfContents?: 'left' | 'right'
@@ -8475,6 +9695,7 @@ export type COLLECTION_QUERY_RESULT = {
 									_updatedAt: string
 									_rev: string
 									name?: string
+									role?: string
 									image?: {
 										asset?: SanityImageAssetReference
 										media?: unknown
@@ -8482,9 +9703,22 @@ export type COLLECTION_QUERY_RESULT = {
 										crop?: SanityImageCrop
 										_type: 'image'
 									}
+									shortBio?: string
+									socialLinks?: Array<{
+										platform?:
+											| 'facebook'
+											| 'instagram'
+											| 'linkedin'
+											| 'twitter'
+											| 'website'
+											| 'youtube'
+										url?: string
+										_key: string
+									}>
 							  }
 							| {
 									name?: string
+									role?: string
 									image?: {
 										asset?: SanityImageAssetReference
 										media?: unknown
@@ -8492,6 +9726,18 @@ export type COLLECTION_QUERY_RESULT = {
 										crop?: SanityImageCrop
 										_type: 'image'
 									}
+									shortBio?: string
+									socialLinks?: Array<{
+										platform?:
+											| 'facebook'
+											| 'instagram'
+											| 'linkedin'
+											| 'twitter'
+											| 'website'
+											| 'youtube'
+										url?: string
+										_key: string
+									}>
 									_type: 'person'
 									_key: string
 							  }
@@ -8593,6 +9839,27 @@ export type COLLECTION_QUERY_RESULT = {
 						attributes?: ModuleAttributes
 						content: Array<
 							| {
+									_key: string
+									_type: 'affiliateLink'
+									layout?: 'button' | 'horizontal' | 'vertical'
+									alignment?: 'center' | 'left' | 'right'
+									buttonColor?: 'blue' | 'default' | 'green' | 'orange' | 'red'
+									badge?: string
+									image?: {
+										asset?: SanityImageAssetReference
+										media?: unknown
+										hotspot?: SanityImageHotspot
+										crop?: SanityImageCrop
+										_type: 'image'
+									}
+									title?: string
+									rating?: number
+									price?: string
+									shortInfo?: string
+									url?: string
+									buttonText?: string
+							  }
+							| {
 									children?: Array<{
 										marks?: Array<string>
 										text?: string
@@ -8620,6 +9887,30 @@ export type COLLECTION_QUERY_RESULT = {
 							  }
 							| {
 									_key: string
+									_type: 'callout-box'
+									type?: 'danger' | 'info' | 'quote' | 'tip' | 'warning'
+									title?: string
+									content?: Array<{
+										children?: Array<{
+											marks?: Array<string>
+											text?: string
+											_type: 'span'
+											_key: string
+										}>
+										style?: 'normal'
+										listItem?: 'bullet'
+										markDefs?: Array<{
+											href?: string
+											_type: 'link'
+											_key: string
+										}>
+										level?: number
+										_type: 'block'
+										_key: string
+									}>
+							  }
+							| {
+									_key: string
 									_type: 'code'
 									language?: string
 									filename?: string
@@ -8628,11 +9919,86 @@ export type COLLECTION_QUERY_RESULT = {
 							  }
 							| {
 									_key: string
+									_type: 'comparison-table'
+									title?: string
+									caption?: string
+									headers?: Array<string>
+									highlightedColumnIndex?: number
+									rows?: Array<{
+										cells?: Array<string>
+										_type: 'tableRow'
+										_key: string
+									}>
+							  }
+							| {
+									_key: string
+									_type: 'cta-banner'
+									badge?: string
+									title?: string
+									description?: string
+									buttonText?: string
+									buttonLink?: Link
+									style?: 'accent' | 'dark' | 'light'
+							  }
+							| {
+									_key: string
 									_type: 'custom-html'
 									attributes?: ModuleAttributes
 									className?: string
 									html?: Code
 									css?: Code
+							  }
+							| {
+									_key: string
+									_type: 'faq-accordion'
+									title?: string
+									items?: Array<{
+										question?: string
+										answer?: Array<{
+											children?: Array<{
+												marks?: Array<string>
+												text?: string
+												_type: 'span'
+												_key: string
+											}>
+											style?:
+												| 'blockquote'
+												| 'h1'
+												| 'h2'
+												| 'h3'
+												| 'h4'
+												| 'h5'
+												| 'h6'
+												| 'normal'
+											listItem?: 'bullet' | 'number'
+											markDefs?: Array<{
+												href?: string
+												_type: 'link'
+												_key: string
+											}>
+											level?: number
+											_type: 'block'
+											_key: string
+										}>
+										_type: 'faqItem'
+										_key: string
+									}>
+							  }
+							| {
+									_key: string
+									_type: 'image-gallery'
+									title?: string
+									layout?: 'grid-2' | 'grid-3' | 'slider'
+									images?: Array<{
+										asset?: SanityImageAssetReference
+										media?: unknown
+										hotspot?: SanityImageHotspot
+										crop?: SanityImageCrop
+										alt?: string
+										caption?: string
+										_type: 'image'
+										_key: string
+									}>
 							  }
 							| {
 									asset: {
@@ -8681,6 +10047,29 @@ export type COLLECTION_QUERY_RESULT = {
 									}>
 									_type: 'image'
 									_key: string
+							  }
+							| {
+									_key: string
+									_type: 'product-embed'
+									product?: ProductReference
+									layout?: 'banner' | 'card' | 'minimal'
+									customBadge?: string
+									customReviewSnippet?: string
+							  }
+							| {
+									_key: string
+									_type: 'video-embed'
+									url?: string
+									title?: string
+									customThumbnail?: {
+										asset?: SanityImageAssetReference
+										media?: unknown
+										hotspot?: SanityImageHotspot
+										crop?: SanityImageCrop
+										_type: 'image'
+									}
+									caption?: string
+									aspectRatio?: '1:1' | '16:9' | '4:3' | '9:16'
 							  }
 						> | null
 						tableOfContents?: 'left' | 'right'
@@ -9831,6 +11220,7 @@ export type COLLECTION_QUERY_RESULT = {
 							_updatedAt: string
 							_rev: string
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -9838,9 +11228,22 @@ export type COLLECTION_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 					  }
 					| {
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -9848,6 +11251,18 @@ export type COLLECTION_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 							_type: 'person'
 							_key: string
 					  }
@@ -9942,6 +11357,27 @@ export type COLLECTION_QUERY_RESULT = {
 				attributes?: ModuleAttributes
 				content: Array<
 					| {
+							_key: string
+							_type: 'affiliateLink'
+							layout?: 'button' | 'horizontal' | 'vertical'
+							alignment?: 'center' | 'left' | 'right'
+							buttonColor?: 'blue' | 'default' | 'green' | 'orange' | 'red'
+							badge?: string
+							image?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							title?: string
+							rating?: number
+							price?: string
+							shortInfo?: string
+							url?: string
+							buttonText?: string
+					  }
+					| {
 							children?: Array<{
 								marks?: Array<string>
 								text?: string
@@ -9969,6 +11405,30 @@ export type COLLECTION_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'callout-box'
+							type?: 'danger' | 'info' | 'quote' | 'tip' | 'warning'
+							title?: string
+							content?: Array<{
+								children?: Array<{
+									marks?: Array<string>
+									text?: string
+									_type: 'span'
+									_key: string
+								}>
+								style?: 'normal'
+								listItem?: 'bullet'
+								markDefs?: Array<{
+									href?: string
+									_type: 'link'
+									_key: string
+								}>
+								level?: number
+								_type: 'block'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
 							_type: 'code'
 							language?: string
 							filename?: string
@@ -9977,11 +11437,86 @@ export type COLLECTION_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'comparison-table'
+							title?: string
+							caption?: string
+							headers?: Array<string>
+							highlightedColumnIndex?: number
+							rows?: Array<{
+								cells?: Array<string>
+								_type: 'tableRow'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'cta-banner'
+							badge?: string
+							title?: string
+							description?: string
+							buttonText?: string
+							buttonLink?: Link
+							style?: 'accent' | 'dark' | 'light'
+					  }
+					| {
+							_key: string
 							_type: 'custom-html'
 							attributes?: ModuleAttributes
 							className?: string
 							html?: Code
 							css?: Code
+					  }
+					| {
+							_key: string
+							_type: 'faq-accordion'
+							title?: string
+							items?: Array<{
+								question?: string
+								answer?: Array<{
+									children?: Array<{
+										marks?: Array<string>
+										text?: string
+										_type: 'span'
+										_key: string
+									}>
+									style?:
+										| 'blockquote'
+										| 'h1'
+										| 'h2'
+										| 'h3'
+										| 'h4'
+										| 'h5'
+										| 'h6'
+										| 'normal'
+									listItem?: 'bullet' | 'number'
+									markDefs?: Array<{
+										href?: string
+										_type: 'link'
+										_key: string
+									}>
+									level?: number
+									_type: 'block'
+									_key: string
+								}>
+								_type: 'faqItem'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'image-gallery'
+							title?: string
+							layout?: 'grid-2' | 'grid-3' | 'slider'
+							images?: Array<{
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								alt?: string
+								caption?: string
+								_type: 'image'
+								_key: string
+							}>
 					  }
 					| {
 							asset: {
@@ -10030,6 +11565,29 @@ export type COLLECTION_QUERY_RESULT = {
 							}>
 							_type: 'image'
 							_key: string
+					  }
+					| {
+							_key: string
+							_type: 'product-embed'
+							product?: ProductReference
+							layout?: 'banner' | 'card' | 'minimal'
+							customBadge?: string
+							customReviewSnippet?: string
+					  }
+					| {
+							_key: string
+							_type: 'video-embed'
+							url?: string
+							title?: string
+							customThumbnail?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							caption?: string
+							aspectRatio?: '1:1' | '16:9' | '4:3' | '9:16'
 					  }
 				> | null
 				tableOfContents?: 'left' | 'right'
@@ -11146,6 +12704,7 @@ export type NOT_FOUND_QUERY_RESULT = {
 							_updatedAt: string
 							_rev: string
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -11153,9 +12712,22 @@ export type NOT_FOUND_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 					  }
 					| {
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -11163,6 +12735,18 @@ export type NOT_FOUND_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 							_type: 'person'
 							_key: string
 					  }
@@ -11257,6 +12841,27 @@ export type NOT_FOUND_QUERY_RESULT = {
 				attributes?: ModuleAttributes
 				content: Array<
 					| {
+							_key: string
+							_type: 'affiliateLink'
+							layout?: 'button' | 'horizontal' | 'vertical'
+							alignment?: 'center' | 'left' | 'right'
+							buttonColor?: 'blue' | 'default' | 'green' | 'orange' | 'red'
+							badge?: string
+							image?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							title?: string
+							rating?: number
+							price?: string
+							shortInfo?: string
+							url?: string
+							buttonText?: string
+					  }
+					| {
 							children?: Array<{
 								marks?: Array<string>
 								text?: string
@@ -11284,6 +12889,30 @@ export type NOT_FOUND_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'callout-box'
+							type?: 'danger' | 'info' | 'quote' | 'tip' | 'warning'
+							title?: string
+							content?: Array<{
+								children?: Array<{
+									marks?: Array<string>
+									text?: string
+									_type: 'span'
+									_key: string
+								}>
+								style?: 'normal'
+								listItem?: 'bullet'
+								markDefs?: Array<{
+									href?: string
+									_type: 'link'
+									_key: string
+								}>
+								level?: number
+								_type: 'block'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
 							_type: 'code'
 							language?: string
 							filename?: string
@@ -11292,11 +12921,86 @@ export type NOT_FOUND_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'comparison-table'
+							title?: string
+							caption?: string
+							headers?: Array<string>
+							highlightedColumnIndex?: number
+							rows?: Array<{
+								cells?: Array<string>
+								_type: 'tableRow'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'cta-banner'
+							badge?: string
+							title?: string
+							description?: string
+							buttonText?: string
+							buttonLink?: Link
+							style?: 'accent' | 'dark' | 'light'
+					  }
+					| {
+							_key: string
 							_type: 'custom-html'
 							attributes?: ModuleAttributes
 							className?: string
 							html?: Code
 							css?: Code
+					  }
+					| {
+							_key: string
+							_type: 'faq-accordion'
+							title?: string
+							items?: Array<{
+								question?: string
+								answer?: Array<{
+									children?: Array<{
+										marks?: Array<string>
+										text?: string
+										_type: 'span'
+										_key: string
+									}>
+									style?:
+										| 'blockquote'
+										| 'h1'
+										| 'h2'
+										| 'h3'
+										| 'h4'
+										| 'h5'
+										| 'h6'
+										| 'normal'
+									listItem?: 'bullet' | 'number'
+									markDefs?: Array<{
+										href?: string
+										_type: 'link'
+										_key: string
+									}>
+									level?: number
+									_type: 'block'
+									_key: string
+								}>
+								_type: 'faqItem'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'image-gallery'
+							title?: string
+							layout?: 'grid-2' | 'grid-3' | 'slider'
+							images?: Array<{
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								alt?: string
+								caption?: string
+								_type: 'image'
+								_key: string
+							}>
 					  }
 					| {
 							asset: {
@@ -11345,6 +13049,29 @@ export type NOT_FOUND_QUERY_RESULT = {
 							}>
 							_type: 'image'
 							_key: string
+					  }
+					| {
+							_key: string
+							_type: 'product-embed'
+							product?: ProductReference
+							layout?: 'banner' | 'card' | 'minimal'
+							customBadge?: string
+							customReviewSnippet?: string
+					  }
+					| {
+							_key: string
+							_type: 'video-embed'
+							url?: string
+							title?: string
+							customThumbnail?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							caption?: string
+							aspectRatio?: '1:1' | '16:9' | '4:3' | '9:16'
 					  }
 				> | null
 				tableOfContents?: 'left' | 'right'
@@ -12813,6 +14540,7 @@ export type PRODUCT_QUERY_RESULT = {
 							_updatedAt: string
 							_rev: string
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -12820,9 +14548,22 @@ export type PRODUCT_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 					  }
 					| {
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -12830,6 +14571,18 @@ export type PRODUCT_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 							_type: 'person'
 							_key: string
 					  }
@@ -12924,6 +14677,27 @@ export type PRODUCT_QUERY_RESULT = {
 				attributes?: ModuleAttributes
 				content: Array<
 					| {
+							_key: string
+							_type: 'affiliateLink'
+							layout?: 'button' | 'horizontal' | 'vertical'
+							alignment?: 'center' | 'left' | 'right'
+							buttonColor?: 'blue' | 'default' | 'green' | 'orange' | 'red'
+							badge?: string
+							image?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							title?: string
+							rating?: number
+							price?: string
+							shortInfo?: string
+							url?: string
+							buttonText?: string
+					  }
+					| {
 							children?: Array<{
 								marks?: Array<string>
 								text?: string
@@ -12951,6 +14725,30 @@ export type PRODUCT_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'callout-box'
+							type?: 'danger' | 'info' | 'quote' | 'tip' | 'warning'
+							title?: string
+							content?: Array<{
+								children?: Array<{
+									marks?: Array<string>
+									text?: string
+									_type: 'span'
+									_key: string
+								}>
+								style?: 'normal'
+								listItem?: 'bullet'
+								markDefs?: Array<{
+									href?: string
+									_type: 'link'
+									_key: string
+								}>
+								level?: number
+								_type: 'block'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
 							_type: 'code'
 							language?: string
 							filename?: string
@@ -12959,11 +14757,86 @@ export type PRODUCT_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'comparison-table'
+							title?: string
+							caption?: string
+							headers?: Array<string>
+							highlightedColumnIndex?: number
+							rows?: Array<{
+								cells?: Array<string>
+								_type: 'tableRow'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'cta-banner'
+							badge?: string
+							title?: string
+							description?: string
+							buttonText?: string
+							buttonLink?: Link
+							style?: 'accent' | 'dark' | 'light'
+					  }
+					| {
+							_key: string
 							_type: 'custom-html'
 							attributes?: ModuleAttributes
 							className?: string
 							html?: Code
 							css?: Code
+					  }
+					| {
+							_key: string
+							_type: 'faq-accordion'
+							title?: string
+							items?: Array<{
+								question?: string
+								answer?: Array<{
+									children?: Array<{
+										marks?: Array<string>
+										text?: string
+										_type: 'span'
+										_key: string
+									}>
+									style?:
+										| 'blockquote'
+										| 'h1'
+										| 'h2'
+										| 'h3'
+										| 'h4'
+										| 'h5'
+										| 'h6'
+										| 'normal'
+									listItem?: 'bullet' | 'number'
+									markDefs?: Array<{
+										href?: string
+										_type: 'link'
+										_key: string
+									}>
+									level?: number
+									_type: 'block'
+									_key: string
+								}>
+								_type: 'faqItem'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'image-gallery'
+							title?: string
+							layout?: 'grid-2' | 'grid-3' | 'slider'
+							images?: Array<{
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								alt?: string
+								caption?: string
+								_type: 'image'
+								_key: string
+							}>
 					  }
 					| {
 							asset: {
@@ -13012,6 +14885,29 @@ export type PRODUCT_QUERY_RESULT = {
 							}>
 							_type: 'image'
 							_key: string
+					  }
+					| {
+							_key: string
+							_type: 'product-embed'
+							product?: ProductReference
+							layout?: 'banner' | 'card' | 'minimal'
+							customBadge?: string
+							customReviewSnippet?: string
+					  }
+					| {
+							_key: string
+							_type: 'video-embed'
+							url?: string
+							title?: string
+							customThumbnail?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							caption?: string
+							aspectRatio?: '1:1' | '16:9' | '4:3' | '9:16'
 					  }
 				> | null
 				tableOfContents?: 'left' | 'right'
@@ -14037,6 +15933,27 @@ export type PRODUCT_QUERY_RESULT = {
 						attributes?: ModuleAttributes
 						content: Array<
 							| {
+									_key: string
+									_type: 'affiliateLink'
+									layout?: 'button' | 'horizontal' | 'vertical'
+									alignment?: 'center' | 'left' | 'right'
+									buttonColor?: 'blue' | 'default' | 'green' | 'orange' | 'red'
+									badge?: string
+									image?: {
+										asset?: SanityImageAssetReference
+										media?: unknown
+										hotspot?: SanityImageHotspot
+										crop?: SanityImageCrop
+										_type: 'image'
+									}
+									title?: string
+									rating?: number
+									price?: string
+									shortInfo?: string
+									url?: string
+									buttonText?: string
+							  }
+							| {
 									children?: Array<{
 										marks?: Array<string>
 										text?: string
@@ -14064,6 +15981,30 @@ export type PRODUCT_QUERY_RESULT = {
 							  }
 							| {
 									_key: string
+									_type: 'callout-box'
+									type?: 'danger' | 'info' | 'quote' | 'tip' | 'warning'
+									title?: string
+									content?: Array<{
+										children?: Array<{
+											marks?: Array<string>
+											text?: string
+											_type: 'span'
+											_key: string
+										}>
+										style?: 'normal'
+										listItem?: 'bullet'
+										markDefs?: Array<{
+											href?: string
+											_type: 'link'
+											_key: string
+										}>
+										level?: number
+										_type: 'block'
+										_key: string
+									}>
+							  }
+							| {
+									_key: string
 									_type: 'code'
 									language?: string
 									filename?: string
@@ -14072,11 +16013,86 @@ export type PRODUCT_QUERY_RESULT = {
 							  }
 							| {
 									_key: string
+									_type: 'comparison-table'
+									title?: string
+									caption?: string
+									headers?: Array<string>
+									highlightedColumnIndex?: number
+									rows?: Array<{
+										cells?: Array<string>
+										_type: 'tableRow'
+										_key: string
+									}>
+							  }
+							| {
+									_key: string
+									_type: 'cta-banner'
+									badge?: string
+									title?: string
+									description?: string
+									buttonText?: string
+									buttonLink?: Link
+									style?: 'accent' | 'dark' | 'light'
+							  }
+							| {
+									_key: string
 									_type: 'custom-html'
 									attributes?: ModuleAttributes
 									className?: string
 									html?: Code
 									css?: Code
+							  }
+							| {
+									_key: string
+									_type: 'faq-accordion'
+									title?: string
+									items?: Array<{
+										question?: string
+										answer?: Array<{
+											children?: Array<{
+												marks?: Array<string>
+												text?: string
+												_type: 'span'
+												_key: string
+											}>
+											style?:
+												| 'blockquote'
+												| 'h1'
+												| 'h2'
+												| 'h3'
+												| 'h4'
+												| 'h5'
+												| 'h6'
+												| 'normal'
+											listItem?: 'bullet' | 'number'
+											markDefs?: Array<{
+												href?: string
+												_type: 'link'
+												_key: string
+											}>
+											level?: number
+											_type: 'block'
+											_key: string
+										}>
+										_type: 'faqItem'
+										_key: string
+									}>
+							  }
+							| {
+									_key: string
+									_type: 'image-gallery'
+									title?: string
+									layout?: 'grid-2' | 'grid-3' | 'slider'
+									images?: Array<{
+										asset?: SanityImageAssetReference
+										media?: unknown
+										hotspot?: SanityImageHotspot
+										crop?: SanityImageCrop
+										alt?: string
+										caption?: string
+										_type: 'image'
+										_key: string
+									}>
 							  }
 							| {
 									asset: {
@@ -14125,6 +16141,29 @@ export type PRODUCT_QUERY_RESULT = {
 									}>
 									_type: 'image'
 									_key: string
+							  }
+							| {
+									_key: string
+									_type: 'product-embed'
+									product?: ProductReference
+									layout?: 'banner' | 'card' | 'minimal'
+									customBadge?: string
+									customReviewSnippet?: string
+							  }
+							| {
+									_key: string
+									_type: 'video-embed'
+									url?: string
+									title?: string
+									customThumbnail?: {
+										asset?: SanityImageAssetReference
+										media?: unknown
+										hotspot?: SanityImageHotspot
+										crop?: SanityImageCrop
+										_type: 'image'
+									}
+									caption?: string
+									aspectRatio?: '1:1' | '16:9' | '4:3' | '9:16'
 							  }
 						> | null
 						tableOfContents?: 'left' | 'right'
@@ -15212,6 +17251,7 @@ export type PRODUCT_QUERY_RESULT = {
 							_updatedAt: string
 							_rev: string
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -15219,9 +17259,22 @@ export type PRODUCT_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 					  }
 					| {
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -15229,6 +17282,18 @@ export type PRODUCT_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 							_type: 'person'
 							_key: string
 					  }
@@ -15323,6 +17388,27 @@ export type PRODUCT_QUERY_RESULT = {
 				attributes?: ModuleAttributes
 				content: Array<
 					| {
+							_key: string
+							_type: 'affiliateLink'
+							layout?: 'button' | 'horizontal' | 'vertical'
+							alignment?: 'center' | 'left' | 'right'
+							buttonColor?: 'blue' | 'default' | 'green' | 'orange' | 'red'
+							badge?: string
+							image?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							title?: string
+							rating?: number
+							price?: string
+							shortInfo?: string
+							url?: string
+							buttonText?: string
+					  }
+					| {
 							children?: Array<{
 								marks?: Array<string>
 								text?: string
@@ -15350,6 +17436,30 @@ export type PRODUCT_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'callout-box'
+							type?: 'danger' | 'info' | 'quote' | 'tip' | 'warning'
+							title?: string
+							content?: Array<{
+								children?: Array<{
+									marks?: Array<string>
+									text?: string
+									_type: 'span'
+									_key: string
+								}>
+								style?: 'normal'
+								listItem?: 'bullet'
+								markDefs?: Array<{
+									href?: string
+									_type: 'link'
+									_key: string
+								}>
+								level?: number
+								_type: 'block'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
 							_type: 'code'
 							language?: string
 							filename?: string
@@ -15358,11 +17468,86 @@ export type PRODUCT_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'comparison-table'
+							title?: string
+							caption?: string
+							headers?: Array<string>
+							highlightedColumnIndex?: number
+							rows?: Array<{
+								cells?: Array<string>
+								_type: 'tableRow'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'cta-banner'
+							badge?: string
+							title?: string
+							description?: string
+							buttonText?: string
+							buttonLink?: Link
+							style?: 'accent' | 'dark' | 'light'
+					  }
+					| {
+							_key: string
 							_type: 'custom-html'
 							attributes?: ModuleAttributes
 							className?: string
 							html?: Code
 							css?: Code
+					  }
+					| {
+							_key: string
+							_type: 'faq-accordion'
+							title?: string
+							items?: Array<{
+								question?: string
+								answer?: Array<{
+									children?: Array<{
+										marks?: Array<string>
+										text?: string
+										_type: 'span'
+										_key: string
+									}>
+									style?:
+										| 'blockquote'
+										| 'h1'
+										| 'h2'
+										| 'h3'
+										| 'h4'
+										| 'h5'
+										| 'h6'
+										| 'normal'
+									listItem?: 'bullet' | 'number'
+									markDefs?: Array<{
+										href?: string
+										_type: 'link'
+										_key: string
+									}>
+									level?: number
+									_type: 'block'
+									_key: string
+								}>
+								_type: 'faqItem'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'image-gallery'
+							title?: string
+							layout?: 'grid-2' | 'grid-3' | 'slider'
+							images?: Array<{
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								alt?: string
+								caption?: string
+								_type: 'image'
+								_key: string
+							}>
 					  }
 					| {
 							asset: {
@@ -15411,6 +17596,29 @@ export type PRODUCT_QUERY_RESULT = {
 							}>
 							_type: 'image'
 							_key: string
+					  }
+					| {
+							_key: string
+							_type: 'product-embed'
+							product?: ProductReference
+							layout?: 'banner' | 'card' | 'minimal'
+							customBadge?: string
+							customReviewSnippet?: string
+					  }
+					| {
+							_key: string
+							_type: 'video-embed'
+							url?: string
+							title?: string
+							customThumbnail?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							caption?: string
+							aspectRatio?: '1:1' | '16:9' | '4:3' | '9:16'
 					  }
 				> | null
 				tableOfContents?: 'left' | 'right'
@@ -21461,6 +23669,7 @@ export type PAGE_QUERY_RESULT = {
 							_updatedAt: string
 							_rev: string
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -21468,9 +23677,22 @@ export type PAGE_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 					  }
 					| {
 							name?: string
+							role?: string
 							image?: {
 								asset?: SanityImageAssetReference
 								media?: unknown
@@ -21478,6 +23700,18 @@ export type PAGE_QUERY_RESULT = {
 								crop?: SanityImageCrop
 								_type: 'image'
 							}
+							shortBio?: string
+							socialLinks?: Array<{
+								platform?:
+									| 'facebook'
+									| 'instagram'
+									| 'linkedin'
+									| 'twitter'
+									| 'website'
+									| 'youtube'
+								url?: string
+								_key: string
+							}>
 							_type: 'person'
 							_key: string
 					  }
@@ -21572,6 +23806,27 @@ export type PAGE_QUERY_RESULT = {
 				attributes?: ModuleAttributes
 				content: Array<
 					| {
+							_key: string
+							_type: 'affiliateLink'
+							layout?: 'button' | 'horizontal' | 'vertical'
+							alignment?: 'center' | 'left' | 'right'
+							buttonColor?: 'blue' | 'default' | 'green' | 'orange' | 'red'
+							badge?: string
+							image?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							title?: string
+							rating?: number
+							price?: string
+							shortInfo?: string
+							url?: string
+							buttonText?: string
+					  }
+					| {
 							children?: Array<{
 								marks?: Array<string>
 								text?: string
@@ -21599,6 +23854,30 @@ export type PAGE_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'callout-box'
+							type?: 'danger' | 'info' | 'quote' | 'tip' | 'warning'
+							title?: string
+							content?: Array<{
+								children?: Array<{
+									marks?: Array<string>
+									text?: string
+									_type: 'span'
+									_key: string
+								}>
+								style?: 'normal'
+								listItem?: 'bullet'
+								markDefs?: Array<{
+									href?: string
+									_type: 'link'
+									_key: string
+								}>
+								level?: number
+								_type: 'block'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
 							_type: 'code'
 							language?: string
 							filename?: string
@@ -21607,11 +23886,86 @@ export type PAGE_QUERY_RESULT = {
 					  }
 					| {
 							_key: string
+							_type: 'comparison-table'
+							title?: string
+							caption?: string
+							headers?: Array<string>
+							highlightedColumnIndex?: number
+							rows?: Array<{
+								cells?: Array<string>
+								_type: 'tableRow'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'cta-banner'
+							badge?: string
+							title?: string
+							description?: string
+							buttonText?: string
+							buttonLink?: Link
+							style?: 'accent' | 'dark' | 'light'
+					  }
+					| {
+							_key: string
 							_type: 'custom-html'
 							attributes?: ModuleAttributes
 							className?: string
 							html?: Code
 							css?: Code
+					  }
+					| {
+							_key: string
+							_type: 'faq-accordion'
+							title?: string
+							items?: Array<{
+								question?: string
+								answer?: Array<{
+									children?: Array<{
+										marks?: Array<string>
+										text?: string
+										_type: 'span'
+										_key: string
+									}>
+									style?:
+										| 'blockquote'
+										| 'h1'
+										| 'h2'
+										| 'h3'
+										| 'h4'
+										| 'h5'
+										| 'h6'
+										| 'normal'
+									listItem?: 'bullet' | 'number'
+									markDefs?: Array<{
+										href?: string
+										_type: 'link'
+										_key: string
+									}>
+									level?: number
+									_type: 'block'
+									_key: string
+								}>
+								_type: 'faqItem'
+								_key: string
+							}>
+					  }
+					| {
+							_key: string
+							_type: 'image-gallery'
+							title?: string
+							layout?: 'grid-2' | 'grid-3' | 'slider'
+							images?: Array<{
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								alt?: string
+								caption?: string
+								_type: 'image'
+								_key: string
+							}>
 					  }
 					| {
 							asset: {
@@ -21660,6 +24014,29 @@ export type PAGE_QUERY_RESULT = {
 							}>
 							_type: 'image'
 							_key: string
+					  }
+					| {
+							_key: string
+							_type: 'product-embed'
+							product?: ProductReference
+							layout?: 'banner' | 'card' | 'minimal'
+							customBadge?: string
+							customReviewSnippet?: string
+					  }
+					| {
+							_key: string
+							_type: 'video-embed'
+							url?: string
+							title?: string
+							customThumbnail?: {
+								asset?: SanityImageAssetReference
+								media?: unknown
+								hotspot?: SanityImageHotspot
+								crop?: SanityImageCrop
+								_type: 'image'
+							}
+							caption?: string
+							aspectRatio?: '1:1' | '16:9' | '4:3' | '9:16'
 					  }
 				> | null
 				tableOfContents?: 'left' | 'right'
@@ -22032,9 +24409,358 @@ export type POPUP_SETTINGS_QUERY_RESULT = {
 	successDescription: string | null
 } | null
 
+// Source: src/sanity/lib/queries.ts
+// Variable: BLOG_SETTINGS_QUERY
+// Query: *[_type == 'blog-settings'][0]{	...,	heroBanner {		...,		asset->	},	defaultAuthor->{		name,		role,		shortBio,		image {			...,			asset->		}	}}
+export type BLOG_SETTINGS_QUERY_RESULT = {
+	_id: string
+	_type: 'blog-settings'
+	_createdAt: string
+	_updatedAt: string
+	_rev: string
+	title?: string
+	subtitle?: string
+	heroBanner: {
+		asset: {
+			_id: string
+			_type: 'sanity.imageAsset'
+			_createdAt: string
+			_updatedAt: string
+			_rev: string
+			originalFilename?: string
+			label?: string
+			title?: string
+			description?: string
+			altText?: string
+			sha1hash?: string
+			extension?: string
+			mimeType?: string
+			size?: number
+			assetId?: string
+			uploadId?: string
+			path?: string
+			url?: string
+			metadata?: SanityImageMetadata
+			source?: SanityAssetSourceData
+		} | null
+		media?: unknown
+		hotspot?: SanityImageHotspot
+		crop?: SanityImageCrop
+		_type: 'image'
+	} | null
+	badgeText?: string
+	postsPerPage?: number
+	defaultLayout?: 'grid' | 'list' | 'magazine'
+	enableSearch?: boolean
+	cardStyle?: 'boxed' | 'minimalist'
+	cardImageAspectRatio?: '1:1' | '16:9' | '3:2' | '4:3'
+	cardShowCategory?: boolean
+	cardShowExcerpt?: boolean
+	cardShowAuthor?: boolean
+	cardShowDate?: boolean
+	cardShowReadTime?: boolean
+	defaultAuthor: {
+		name: string | null
+		role: string | null
+		shortBio: string | null
+		image: {
+			asset: {
+				_id: string
+				_type: 'sanity.imageAsset'
+				_createdAt: string
+				_updatedAt: string
+				_rev: string
+				originalFilename?: string
+				label?: string
+				title?: string
+				description?: string
+				altText?: string
+				sha1hash?: string
+				extension?: string
+				mimeType?: string
+				size?: number
+				assetId?: string
+				uploadId?: string
+				path?: string
+				url?: string
+				metadata?: SanityImageMetadata
+				source?: SanityAssetSourceData
+			} | null
+			media?: unknown
+			hotspot?: SanityImageHotspot
+			crop?: SanityImageCrop
+			_type: 'image'
+		} | null
+	} | null
+	defaultTocPosition?: 'hidden' | 'left' | 'right' | 'sticky-bar'
+	postSidebarLayout?: 'left' | 'none' | 'right'
+	readingSpeedWpm?: number
+	enableSocialShare?: boolean
+	enableAuthorBio?: boolean
+	enableNewsletter?: boolean
+	newsletterTitle?: string
+	newsletterSubtitle?: string
+	relatedPostsTitle?: string
+	relatedProductsTitle?: string
+} | null
+
+// Source: src/sanity/lib/queries.ts
+// Variable: BLOG_CATEGORY_QUERY
+// Query: *[_type == 'blog.category' && slug.current == $slug][0]{	...,	image {		...,		asset->	},	metadata {		...,		image {			...,			asset->		}	},	'posts': *[_type == 'blog.post' && references(^._id) && metadata.noIndex != true] | order(publishDate desc) {		...,		categories[]->{			title,			slug		},		author->{			name,			role,			image {				...,				asset->			}		},		metadata {			...,			image {				...,				asset->			}		},		'slug': $blogDir + metadata.slug.current,		'readTime': length(string::split(pt::text(content), ' ')) / 200,	}}
+export type BLOG_CATEGORY_QUERY_RESULT = {
+	_id: string
+	_type: 'blog.category'
+	_createdAt: string
+	_updatedAt: string
+	_rev: string
+	title?: string
+	slug?: Slug
+	description?: string
+	image: {
+		asset: {
+			_id: string
+			_type: 'sanity.imageAsset'
+			_createdAt: string
+			_updatedAt: string
+			_rev: string
+			originalFilename?: string
+			label?: string
+			title?: string
+			description?: string
+			altText?: string
+			sha1hash?: string
+			extension?: string
+			mimeType?: string
+			size?: number
+			assetId?: string
+			uploadId?: string
+			path?: string
+			url?: string
+			metadata?: SanityImageMetadata
+			source?: SanityAssetSourceData
+		} | null
+		media?: unknown
+		hotspot?: SanityImageHotspot
+		crop?: SanityImageCrop
+		_type: 'image'
+	} | null
+	postsList?: string
+	metadata: {
+		_type: 'metadata'
+		title?: string
+		description?: string
+		slug?: Slug
+		image: {
+			asset: {
+				_id: string
+				_type: 'sanity.imageAsset'
+				_createdAt: string
+				_updatedAt: string
+				_rev: string
+				originalFilename?: string
+				label?: string
+				title?: string
+				description?: string
+				altText?: string
+				sha1hash?: string
+				extension?: string
+				mimeType?: string
+				size?: number
+				assetId?: string
+				uploadId?: string
+				path?: string
+				url?: string
+				metadata?: SanityImageMetadata
+				source?: SanityAssetSourceData
+			} | null
+			media?: unknown
+			hotspot?: SanityImageHotspot
+			crop?: SanityImageCrop
+			_type: 'image'
+		} | null
+		noIndex?: boolean
+	} | null
+	posts: Array<{
+		_id: string
+		_type: 'blog.post'
+		_createdAt: string
+		_updatedAt: string
+		_rev: string
+		title?: string
+		excerpt?: string
+		content?: Array<
+			| ({
+					_key: string
+			  } & AffiliateLink)
+			| ({
+					_key: string
+			  } & CalloutBox)
+			| ({
+					_key: string
+			  } & Code)
+			| ({
+					_key: string
+			  } & ComparisonTable)
+			| ({
+					_key: string
+			  } & CtaBanner)
+			| ({
+					_key: string
+			  } & CustomHtml)
+			| ({
+					_key: string
+			  } & FaqAccordion)
+			| ({
+					_key: string
+			  } & ImageGallery)
+			| ({
+					_key: string
+			  } & ProductEmbed)
+			| ({
+					_key: string
+			  } & VideoEmbed)
+			| {
+					children?: Array<{
+						marks?: Array<string>
+						text?: string
+						_type: 'span'
+						_key: string
+					}>
+					style?:
+						'blockquote' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'normal'
+					listItem?: 'bullet' | 'number'
+					markDefs?: Array<{
+						href?: string
+						_type: 'link'
+						_key: string
+					}>
+					level?: number
+					_type: 'block'
+					_key: string
+			  }
+			| {
+					asset?: SanityImageAssetReference
+					media?: unknown
+					hotspot?: SanityImageHotspot
+					crop?: SanityImageCrop
+					alt?: string
+					figcaption?: Array<{
+						children?: Array<{
+							marks?: Array<string>
+							text?: string
+							_type: 'span'
+							_key: string
+						}>
+						style?: 'normal'
+						listItem?: 'bullet' | 'number'
+						markDefs?: Array<{
+							href?: string
+							_type: 'link'
+							_key: string
+						}>
+						level?: number
+						_type: 'block'
+						_key: string
+					}>
+					_type: 'image'
+					_key: string
+			  }
+		>
+		isFeatured?: boolean
+		publishDate?: string
+		lastUpdatedDate?: string
+		categories: Array<{
+			title: string | null
+			slug: Slug | null
+		}> | null
+		tags?: Array<string>
+		author: {
+			name: string | null
+			role: string | null
+			image: {
+				asset: {
+					_id: string
+					_type: 'sanity.imageAsset'
+					_createdAt: string
+					_updatedAt: string
+					_rev: string
+					originalFilename?: string
+					label?: string
+					title?: string
+					description?: string
+					altText?: string
+					sha1hash?: string
+					extension?: string
+					mimeType?: string
+					size?: number
+					assetId?: string
+					uploadId?: string
+					path?: string
+					url?: string
+					metadata?: SanityImageMetadata
+					source?: SanityAssetSourceData
+				} | null
+				media?: unknown
+				hotspot?: SanityImageHotspot
+				crop?: SanityImageCrop
+				_type: 'image'
+			} | null
+		} | null
+		tableOfContents?: 'default' | 'hidden' | 'left' | 'right' | 'sticky-bar'
+		sidebarLayout?: 'default' | 'left' | 'none' | 'right'
+		metadata: {
+			_type: 'metadata'
+			title?: string
+			description?: string
+			slug?: Slug
+			image: {
+				asset: {
+					_id: string
+					_type: 'sanity.imageAsset'
+					_createdAt: string
+					_updatedAt: string
+					_rev: string
+					originalFilename?: string
+					label?: string
+					title?: string
+					description?: string
+					altText?: string
+					sha1hash?: string
+					extension?: string
+					mimeType?: string
+					size?: number
+					assetId?: string
+					uploadId?: string
+					path?: string
+					url?: string
+					metadata?: SanityImageMetadata
+					source?: SanityAssetSourceData
+				} | null
+				media?: unknown
+				hotspot?: SanityImageHotspot
+				crop?: SanityImageCrop
+				_type: 'image'
+			} | null
+			noIndex?: boolean
+		} | null
+		relatedProducts?: Array<
+			{
+				_key: string
+			} & ProductReference
+		>
+		relatedPosts?: Array<
+			{
+				_key: string
+			} & BlogPostReference
+		>
+		slug: unknown
+		readTime: number
+	}>
+} | null
+
 // Source: src/ui/modules/blog/blog-index/index.tsx
 // Variable: BLOG_INDEX_QUERY
-// Query: *[_type == 'blog.post']|order(publishDate desc){		...,		categories[]->,		author->{			name,			image{				...,				asset->			}		},		metadata{			...,			image{				...,				asset->			}		},		'slug': $blogDir + metadata.slug.current,	}
+// Query: *[_type == 'blog.post' && metadata.noIndex != true]|order(publishDate desc){		...,		excerpt,		isFeatured,		lastUpdatedDate,		tags,		'readTime': length(string::split(pt::text(content), ' ')) / 200,		categories[]->{			_id,			title,			slug		},		author->{			name,			role,			image{				...,				asset->			}		},		metadata{			...,			image{				...,				asset->			}		},		'slug': $blogDir + metadata.slug.current,	}
 export type BLOG_INDEX_QUERY_RESULT = Array<{
 	_id: string
 	_type: 'blog.post'
@@ -22042,16 +24768,38 @@ export type BLOG_INDEX_QUERY_RESULT = Array<{
 	_updatedAt: string
 	_rev: string
 	title?: string
+	excerpt: string | null
 	content?: Array<
 		| ({
 				_key: string
 		  } & AffiliateLink)
 		| ({
 				_key: string
+		  } & CalloutBox)
+		| ({
+				_key: string
 		  } & Code)
 		| ({
 				_key: string
+		  } & ComparisonTable)
+		| ({
+				_key: string
+		  } & CtaBanner)
+		| ({
+				_key: string
 		  } & CustomHtml)
+		| ({
+				_key: string
+		  } & FaqAccordion)
+		| ({
+				_key: string
+		  } & ImageGallery)
+		| ({
+				_key: string
+		  } & ProductEmbed)
+		| ({
+				_key: string
+		  } & VideoEmbed)
 		| {
 				children?: Array<{
 					marks?: Array<string>
@@ -22099,19 +24847,18 @@ export type BLOG_INDEX_QUERY_RESULT = Array<{
 				_key: string
 		  }
 	>
+	isFeatured: boolean | null
 	publishDate?: string
+	lastUpdatedDate: string | null
 	categories: Array<{
 		_id: string
-		_type: 'blog.category'
-		_createdAt: string
-		_updatedAt: string
-		_rev: string
-		title?: string
-		slug?: Slug
-		postsList?: string
+		title: string | null
+		slug: Slug | null
 	}> | null
+	tags: Array<string> | null
 	author: {
 		name: string | null
+		role: string | null
 		image: {
 			asset: {
 				_id: string
@@ -22141,6 +24888,8 @@ export type BLOG_INDEX_QUERY_RESULT = Array<{
 			_type: 'image'
 		} | null
 	} | null
+	tableOfContents?: 'default' | 'hidden' | 'left' | 'right' | 'sticky-bar'
+	sidebarLayout?: 'default' | 'left' | 'none' | 'right'
 	metadata: {
 		_type: 'metadata'
 		title?: string
@@ -22176,6 +24925,17 @@ export type BLOG_INDEX_QUERY_RESULT = Array<{
 		} | null
 		noIndex?: boolean
 	} | null
+	relatedProducts?: Array<
+		{
+			_key: string
+		} & ProductReference
+	>
+	relatedPosts?: Array<
+		{
+			_key: string
+		} & BlogPostReference
+	>
+	readTime: number
 	slug: unknown
 }>
 
@@ -22189,16 +24949,38 @@ export type BLOG_POST_LIST_QUERY_RESULT = Array<{
 	_updatedAt: string
 	_rev: string
 	title?: string
+	excerpt?: string
 	content?: Array<
 		| ({
 				_key: string
 		  } & AffiliateLink)
 		| ({
 				_key: string
+		  } & CalloutBox)
+		| ({
+				_key: string
 		  } & Code)
 		| ({
 				_key: string
+		  } & ComparisonTable)
+		| ({
+				_key: string
+		  } & CtaBanner)
+		| ({
+				_key: string
 		  } & CustomHtml)
+		| ({
+				_key: string
+		  } & FaqAccordion)
+		| ({
+				_key: string
+		  } & ImageGallery)
+		| ({
+				_key: string
+		  } & ProductEmbed)
+		| ({
+				_key: string
+		  } & VideoEmbed)
 		| {
 				children?: Array<{
 					marks?: Array<string>
@@ -22246,11 +25028,14 @@ export type BLOG_POST_LIST_QUERY_RESULT = Array<{
 				_key: string
 		  }
 	>
+	isFeatured?: boolean
 	publishDate?: string
+	lastUpdatedDate?: string
 	categories: Array<{
 		title: string | null
 		slug: Slug | null
 	}> | null
+	tags?: Array<string>
 	author: {
 		name: string | null
 		image: {
@@ -22282,6 +25067,8 @@ export type BLOG_POST_LIST_QUERY_RESULT = Array<{
 			_type: 'image'
 		} | null
 	} | null
+	tableOfContents?: 'default' | 'hidden' | 'left' | 'right' | 'sticky-bar'
+	sidebarLayout?: 'default' | 'left' | 'none' | 'right'
 	metadata: {
 		_type: 'metadata'
 		title?: string
@@ -22317,22 +25104,31 @@ export type BLOG_POST_LIST_QUERY_RESULT = Array<{
 		} | null
 		noIndex?: boolean
 	} | null
+	relatedProducts?: Array<
+		{
+			_key: string
+		} & ProductReference
+	>
+	relatedPosts?: Array<
+		{
+			_key: string
+		} & BlogPostReference
+	>
 	slug: unknown
 }>
 
 // Source: src/ui/modules/blog/filter-list.tsx
-// Variable: CATEGORIES_QUERY
-// Query: *[		_type == 'blog.category'		&& count(*[_type == 'blog.post' && references(^._id)]) > 0	]|order(title)
-export type CATEGORIES_QUERY_RESULT = Array<{
-	_id: string
-	_type: 'blog.category'
-	_createdAt: string
-	_updatedAt: string
-	_rev: string
-	title?: string
-	slug?: Slug
-	postsList?: string
-}>
+// Variable: CATEGORIES_SUMMARY_QUERY
+// Query: {	'totalPosts': count(*[_type == 'blog.post' && metadata.noIndex != true]),	'categories': *[		_type == 'blog.category'		&& count(*[_type == 'blog.post' && references(^._id) && metadata.noIndex != true]) > 0	]|order(title){		_id,		title,		slug,		'postCount': count(*[_type == 'blog.post' && references(^._id) && metadata.noIndex != true])	}}
+export type CATEGORIES_SUMMARY_QUERY_RESULT = {
+	totalPosts: number
+	categories: Array<{
+		_id: string
+		title: string | null
+		slug: Slug | null
+		postCount: number
+	}>
+}
 
 // Source: src/ui/modules/product/product-list.tsx
 // Variable: PRODUCTS_BY_COLLECTION_QUERY
@@ -22475,6 +25271,53 @@ export type PRODUCTS_BY_COLLECTION_QUERY_RESULT = {
 // Variable: SEARCH_QUERY
 // Query: *[    _type in $scope    && defined(metadata.slug.current)    && metadata.noIndex != true    && !(metadata.slug.current in ['404'])    && [        modules[].intro[].children[].text,        modules[].content[].children[].text,        content[].children[].text,        title,        metadata.title,        metadata.description    ] match $queryMatch]{    _id,    _type,    title,    price,    "compareAtPrice": compareAtPrice,    images,    "reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },    metadata{        ...,        image{            ...,            asset->        }    },    'slug': select(        _type == 'product' => '/products/' + metadata.slug.current,         _type == 'blog.post' => $blogDir + metadata.slug.current,        metadata.slug.current == 'index' => '/',        '/' + metadata.slug.current    )}
 export type SEARCH_QUERY_RESULT = Array<
+	| {
+			_id: string
+			_type: 'blog.category'
+			title: string | null
+			price: null
+			compareAtPrice: null
+			images: null
+			reviews: Array<{
+				rating: number | null
+			}>
+			metadata: {
+				_type: 'metadata'
+				title?: string
+				description?: string
+				slug?: Slug
+				image: {
+					asset: {
+						_id: string
+						_type: 'sanity.imageAsset'
+						_createdAt: string
+						_updatedAt: string
+						_rev: string
+						originalFilename?: string
+						label?: string
+						title?: string
+						description?: string
+						altText?: string
+						sha1hash?: string
+						extension?: string
+						mimeType?: string
+						size?: number
+						assetId?: string
+						uploadId?: string
+						path?: string
+						url?: string
+						metadata?: SanityImageMetadata
+						source?: SanityAssetSourceData
+					} | null
+					media?: unknown
+					hotspot?: SanityImageHotspot
+					crop?: SanityImageCrop
+					_type: 'image'
+				} | null
+				noIndex?: boolean
+			} | null
+			slug: string | '/' | null
+	  }
 	| {
 			_id: string
 			_type: 'blog.post'
@@ -22692,8 +25535,8 @@ declare module '@sanity/client' {
 		"*[_type == $type && metadata.slug.current == $slug][0]{\n\t'title': coalesce(metadata.title, title),\n}": OG_QUERY_RESULT
 		'\n  *[_type == "product" && (_id == $id || slug.current == $slug || metadata.slug.current == $slug)][0] {\n    _id,\n    title,\n    "slug": coalesce(slug.current, metadata.slug.current, ""),\n    price,\n    compareAtPrice,\n    stock,\n    hasVariants,\n    images[]{\n      ...,\n      asset->{\n        ...,\n        metadata\n      }\n    },\n    options[]{\n      name,\n      values\n    },\n    variants[]{\n      _key,\n      title,\n      sku,\n      price,\n      compareAtPrice,\n      stock,\n      image{\n        ...,\n        asset->{\n          ...,\n          metadata\n        }\n      },\n      options[]{\n        name,\n        value\n      }\n    }\n  }\n': PRODUCT_VARIANTS_QUERY_RESULT
 		'\n  *[_type == "product" && _id in $ids] {\n    _id,\n    title,\n    price,\n    compareAtPrice,\n    tags,\n    sold,\n    stock,\n    hasVariants,\n    options[]{\n      name,\n      values\n    },\n    variants[]{\n      _key,\n      title,\n      price,\n      compareAtPrice,\n      stock,\n      options[]{\n        name,\n        value\n      },\n      image{\n        ...,\n        asset->\n      }\n    },\n    "slug": metadata.slug.current,\n    images[]{\n      ...,\n      asset->\n    },\n    "reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },\n    categories[]->{\n      title,\n      "slug": slug.current\n    }\n  }\n': WISHLIST_PRODUCTS_QUERY_RESULT
-		"*[_type == 'blog.post' && metadata.slug.current == $slug][0]{\n\t...,\n\tcontent[]{\n\t\t...,\n\t\t_type == 'image' => {\n\t\t\t...,\n\t\t\tasset->\n\t\t}\n\t},\n\t'contentPlainText': pt::text(content),\n\t'readTime': length(string::split(pt::text(content), ' ')) / 200,\n\t'headings': content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\tstyle,\n\t\t'text': pt::text(@)\n\t},\n\tcategories[]->{\n\t\ttitle,\n\t\tslug\n\t},\n\tauthor->{\n\t\tname,\n\t\timage{\n\t\t\t...,\n\t\t\tasset->\n\t\t}\n\t},\n\t'globalBefore': (\n\t\t*[_type == 'global-module' && path == '*'].before[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t\t+ *[_type == 'global-module' && path == $blogDir].before[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t),\n\t'customModules': coalesce(modules, [])[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n },\n\t'globalAfter': (\n\t\t*[_type == 'global-module' && path == $blogDir].after[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t\t+ *[_type == 'global-module' && path == '*'].after[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t)\n}": BLOG_POST_QUERY_RESULT
-		"{\n\t'blog': *[_type == 'page' && metadata.slug.current == $blogDir][0]{\n\t\tmetadata\n\t},\n\t'posts': *[_type == 'blog.post' && metadata.noIndex != true]|order(publishDate desc){\n\t\ttitle,\n\t\tcontent,\n\t\tpublishDate,\n\t\tcategories[]->{ title },\n\t\tauthor->{ name },\n\t\tmetadata\n\t}\n}": BLOG_RSS_QUERY_RESULT
+		"*[_type == 'blog.post' && metadata.slug.current == $slug][0]{\n\t...,\n\texcerpt,\n\tisFeatured,\n\tlastUpdatedDate,\n\ttags,\n\tcontent[]{\n\t\t...,\n\t\t_type == 'image' => {\n\t\t\t...,\n\t\t\tasset->\n\t\t},\n\t\t_type == 'product-embed' => {\n\t\t\t...,\n\t\t\tproduct->{\n\t\t\t\t_id,\n\t\t\t\ttitle,\n\t\t\t\tprice,\n\t\t\t\tsalePrice,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tmetadata\n\t\t\t}\n\t\t},\n\t\t_type == 'image-gallery' => {\n\t\t\t...,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t}\n\t},\n\t'contentPlainText': pt::text(content),\n\t'readTime': length(string::split(pt::text(content), ' ')) / 200,\n\t'headings': content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\tstyle,\n\t\t'text': pt::text(@)\n\t},\n\tcategories[]->{\n\t\ttitle,\n\t\tslug\n\t},\n\tauthor->{\n\t\tname,\n\t\trole,\n\t\tshortBio,\n\t\tsocialLinks,\n\t\timage{\n\t\t\t...,\n\t\t\tasset->\n\t\t}\n\t},\n\trelatedProducts[]->{\n\t\t_id,\n\t\ttitle,\n\t\tprice,\n\t\tcompareAtPrice,\n\t\ttags,\n\t\tsold,\n\t\tstock,\n\t\thasVariants,\n\t\toptions[]{\n\t\t\tname,\n\t\t\tvalues\n\t\t},\n\t\tvariants[]{\n\t\t\t_key,\n\t\t\ttitle,\n\t\t\tprice,\n\t\t\tcompareAtPrice,\n\t\t\tstock,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalue\n\t\t\t},\n\t\t\timage{\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t},\n\t\t\"slug\": metadata.slug.current,\n\t\timages[]{\n\t\t\t...,\n\t\t\tasset->\n\t\t},\n\t\t\"reviews\": *[_type == \"review\" && references(^._id) && isApproved == true]{ rating },\n\t\tcategories[]->{\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t}\n\t},\n\trelatedPosts[]->{\n\t\t_id,\n\t\ttitle,\n\t\tpublishDate,\n\t\texcerpt,\n\t\t'readTime': length(string::split(pt::text(content), ' ')) / 200,\n\t\tmetadata{\n\t\t\t...,\n\t\t\timage{\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t}\n\t},\n\t'categoryRelatedPosts': *[\n\t\t_type == 'blog.post'\n\t\t&& references(^.categories[0]._id)\n\t\t&& _id != ^._id\n\t][0...3]{\n\t\t_id,\n\t\ttitle,\n\t\tpublishDate,\n\t\texcerpt,\n\t\t'readTime': length(string::split(pt::text(content), ' ')) / 200,\n\t\tmetadata{\n\t\t\t...,\n\t\t\timage{\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t}\n\t},\n\t'globalBefore': (\n\t\t*[_type == 'global-module' && path == '*'].before[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t\t+ *[_type == 'global-module' && path == $blogDir].before[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t),\n\t'customModules': coalesce(modules, [])[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n },\n\t'globalAfter': (\n\t\t*[_type == 'global-module' && path == $blogDir].after[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t\t+ *[_type == 'global-module' && path == '*'].after[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t)\n}": BLOG_POST_QUERY_RESULT
+		"{\n\t'blog': *[_type == 'blog-settings'][0]{\n\t\t'metadata': {\n\t\t\t'title': title,\n\t\t\t'description': subtitle\n\t\t}\n\t},\n\t'posts': *[_type == 'blog.post' && metadata.noIndex != true]|order(publishDate desc){\n\t\ttitle,\n\t\texcerpt,\n\t\tcontent,\n\t\tpublishDate,\n\t\tcategories[]->{ title },\n\t\tauthor->{ name },\n\t\tmetadata\n\t}\n}": BLOG_RSS_QUERY_RESULT
 		'\n*[_type == "product"] | order(_createdAt desc) {\n\t_id,\n\ttitle,\n\tprice,\n\tcompareAtPrice,\n\ttags,\n\tsold,\n\tstock,\n\thasVariants,\n\toptions[]{\n\t\tname,\n\t\tvalues\n\t},\n\tvariants[]{\n\t\t_key,\n\t\tsku,\n\t\ttitle,\n\t\tprice,\n\t\tcompareAtPrice,\n\t\tstock,\n\t\toptions[]{\n\t\t\tname,\n\t\t\tvalue\n\t\t},\n\t\timage{\n\t\t\t...,\n\t\t\tasset->\n\t\t}\n\t},\n\t"slug": metadata.slug.current,\n\timages[]{\n\t\t...,\n\t\tasset->\n\t},\n\t"reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },\n\tcategories[]->{\n\t\ttitle,\n\t\t"slug": slug.current\n\t}\n}\n': ALL_PRODUCTS_QUERY_RESULT
 		"\n*[_type == 'collection' && metadata.slug.current == $slug][0]{\n\t_id,\n\t_type,\n\ttitle,\n\t\"slug\": metadata.slug.current,\n\tdescription,\n\timage {\n\t\t...,\n\t\tasset->\n\t},\n\n\tproducts[@-> != null]->{\n\t\t_id,\n\t\ttitle,\n\t\tprice,\n\t\tcompareAtPrice,\n\t\ttags,\n\t\tsold,\n\t\tstock,\n\t\thasVariants,\n\t\toptions[]{\n\t\t\tname,\n\t\t\tvalues\n\t\t},\n\t\tvariants[]{\n\t\t\t_key,\n\t\t\tsku,\n\t\t\ttitle,\n\t\t\tprice,\n\t\t\tcompareAtPrice,\n\t\t\tstock,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalue\n\t\t\t},\n\t\t\timage{\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t},\n\t\t\"slug\": metadata.slug.current,\n\t\timages[]{\n\t\t\t...,\n\t\t\tasset->\n\t\t},\n\t\t\"reviews\": *[_type == \"review\" && references(^._id) && isApproved == true]{ rating },\n\t\tcategories[]->{\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t}\n\t},\n\n\t'globalBefore': (\n\t\t*[_type == 'global-module' && path == '*'].before[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t\t+ *[_type == 'global-module' && path == $collectionDir].before[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t),\n\t'customModules': coalesce(modules, [])[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n },\n\t'globalAfter': (\n\t\t*[_type == 'global-module' && path == $collectionDir].after[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t\t+ *[_type == 'global-module' && path == '*'].after[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t),\n\n\tmetadata\n}\n": COLLECTION_QUERY_RESULT
 		"\n\t*[_type == 'page' && metadata.slug.current == '404'][0]{\n\t\t...,\n\t\tmodules[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t}\n": NOT_FOUND_QUERY_RESULT
@@ -22707,9 +25550,11 @@ declare module '@sanity/client' {
 		"*[_type == 'footer-settings'][0]{\n\t...,\n\tbackgroundImage{\n\t\t...,\n\t\tasset->\n\t},\n\tfooterMenu->{ \n\titems[]{\n\t\t\n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n,\n\t\tdefined(link) => { link{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n } },\n\t\tdefined(links[]) => { links[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n } },\n\t\t_type == 'megamenu' => {\n\t\t\tbadge,\n\t\t\tdefined(link) => { link{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n } },\n\t\t\titems[]{\n\t\t\t\t...,\n\t\t\t\t_type == 'link.list' => {\n\t\t\t\t\tdefined(link) => { link{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n } },\n\t\t\t\t\tlinks[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t\t}\n\t\t\t},\n\t\t\tbanner {\n\t\t\t\t...,\n\t\t\t\timage {\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tlink { \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t}\n },\n\tsocial->{ \n\titems[]{\n\t\t\n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n,\n\t\tdefined(link) => { link{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n } },\n\t\tdefined(links[]) => { links[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n } },\n\t\t_type == 'megamenu' => {\n\t\t\tbadge,\n\t\t\tdefined(link) => { link{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n } },\n\t\t\titems[]{\n\t\t\t\t...,\n\t\t\t\t_type == 'link.list' => {\n\t\t\t\t\tdefined(link) => { link{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n } },\n\t\t\t\t\tlinks[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t\t}\n\t\t\t},\n\t\t\tbanner {\n\t\t\t\t...,\n\t\t\t\timage {\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tlink { \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t}\n },\n\ttrustBadges[]{\n\t\t...,\n\t\timage{\n\t\t\t...,\n\t\t\tasset->\n\t\t}\n\t}\n}": FOOTER_SETTINGS_QUERY_RESULT
 		"\n\t*[_type == 'page' && metadata.slug.current == $slug][0]{\n\t\t...,\n\t\t'modules': (\n\t\t\t// global moddules (before)\n\t\t\t*[_type == 'global-module' && path == '*'].before[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t\t\t// path modules (before)\n\t\t\t+ *[_type == 'global-module' && path != '*' && \n\tstring::startsWith($slug, path)\n\t&& select(\n\t\tdefined(excludePaths) => count(excludePaths[string::startsWith($slug, @)]) == 0,\n\t\ttrue\n\t)\n].before[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t\t\t// page modules\n\t\t\t+ modules[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t\t\t// path modules (after)\n\t\t\t+ *[_type == 'global-module' && path != '*' && \n\tstring::startsWith($slug, path)\n\t&& select(\n\t\tdefined(excludePaths) => count(excludePaths[string::startsWith($slug, @)]) == 0,\n\t\ttrue\n\t)\n].after[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t\t\t// global moddules (after)\n\t\t\t+ *[_type == 'global-module' && path == '*'].after[]{ \n\t...,\n\tctas[]{\n\t\t...,\n\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'breadcrumbs' => {\n\t\tcrumbs[]{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t},\n\t_type == 'card-list' => {\n\t\tcards[]{\n\t\t\t...,\n\t\t\tctas[]{\n\t\t\t\t...,\n\t\t\t\tlink{ \n\t...,\n\ttype == 'internal' => {\n\t\tinternal->{\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\t'slug': select(\n\t\t\t\t_type == 'collection' => '/collections/' + metadata.slug.current,\n\t\t\t\t_type == 'product' => '/products/' + metadata.slug.current,\n\t\t\t\t_type == 'blog.post' => '/blog/' + metadata.slug.current,\n\t\t\t\tmetadata.slug.current == 'index' => '/',\n\t\t\t\t'/' + metadata.slug.current\n\t\t\t)\n\t\t}\n\t}\n }\n\t\t\t}\n\t\t}\n\t},\n\t_type == 'logo-list' => {\n\t\tlogos[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'person-list' => {\n\t\tpeople[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'prose' => {\n\t\tcontent[]{\n\t\t\t...,\n\t\t\t_type == 'image' => {\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t'headings': select(\n\t\t\ttableOfContents in ['left', 'right'] => content[style in ['h2', 'h3', 'h4', 'h5', 'h6']]{\n\t\t\t\tstyle,\n\t\t\t\t'text': pt::text(@)\n\t\t\t}\n\t\t)\n\t},\n\t_type == 'quote-list' => {\n\t\ttestimonials[]{\n\t\t\t...,\n\t\t\t_type == 'reference' => @->\n\t\t}\n\t},\n\t_type == 'product-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        },\n\t\tcollection->{\n\t\t\t_id,\t\n\t\t\ttitle,\n\t\t\t\"slug\": slug.current\n\t\t},\n    },\n\t_type == 'product' => {\n\t\t...,\n\t\tproductDetail->{\n\t\t\t_id,\n\t\t\t_type,\n\t\t\ttitle,\n\t\t\tsku,\n\t\t\tdescription,\n\t\t\timages[]{\n\t\t\t\t...,\n\t\t\t\tasset->{\n\t\t\t\t\t...,\n\t\t\t\t\tmetadata\n\t\t\t\t}\n\t\t\t},\n\t\t\tprice,\n\t\t\tsalePrice,\n\t\t\tsales,\n\t\t\thasVariants,\n\t\t\toptions[]{\n\t\t\t\tname,\n\t\t\t\tvalues\n\t\t\t},\n\t\t\tvariants[]{\n\t\t\t\t_key,\n\t\t\t\ttitle,\n\t\t\t\tsku,\n\t\t\t\tprice,\n\t\t\t\tcompareAtPrice,\n\t\t\t\tstock,\n\t\t\t\timage{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->{\n\t\t\t\t\t\t...,\n\t\t\t\t\t\tmetadata\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\toptions[]{\n\t\t\t\t\tname,\n\t\t\t\t\tvalue\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"approvedReviews\": *[_type == \"review\" && references(^._id) && isApproved == true] | order(createdAt desc) {\n\t\t\t\t_id,\n\t\t\t\tauthor,\n\t\t\t\trating,\n\t\t\t\tcomment,\n\t\t\t\tresponse,\n\t\t\t\tcreatedAt,\n\t\t\t\timages[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t},\n\t\t\t\tvideos[]{\n\t\t\t\t\t...,\n\t\t\t\t\tasset->\n\t\t\t\t}\n\t\t\t},\n\t\t}\n\t},\n\t_type == 'carousel-banner-list' => {\n        ..., \n        items[]{\n            ..., \n            asset->, \n            mobileImage {\n                asset->\n            },\n            \"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current,\n        }\n    },\n\t_type == 'blog-post-list' => {\n        ..., \n        image {\n            ..., \n            asset->,\n\t\t\t\"internalType\": internal->_type,\n            \"internalSlug\": internal->metadata.slug.current \n        }\n    },\n\t_type == 'collection-content' => {\n\t\t...,\n\t},\n\t_type == 'wishlist' => {\n\t\t...,\n\t},\n }\n\t\t)\n\t}\n": PAGE_QUERY_RESULT
 		"coalesce(*[_type == 'popup-settings'][0], *[_type == 'site'][0].popup){\n\tisActive,\n\ttype,\n\ttargetPages,\n\ttriggerType,\n\tdelaySeconds,\n\tscrollPercentage,\n\tfrequencyDays,\n\tbannerImage {\n\t\t...,\n\t\tasset->\n\t},\n\tmobileBannerImage {\n\t\t...,\n\t\tasset->\n\t},\n\tbannerBadge,\n\tbannerTitle,\n\tbannerDescription,\n\tcouponCode,\n\tbannerCtaText,\n\tbannerCtaUrl,\n\ttransparentBackground,\n\tformBadge,\n\tformTitle,\n\tformDescription,\n\tformFields,\n\tformSubmitLabel,\n\trewardCouponCode,\n\tsuccessTitle,\n\tsuccessDescription\n}": POPUP_SETTINGS_QUERY_RESULT
-		"\n\t*[_type == 'blog.post']|order(publishDate desc){\n\t\t...,\n\t\tcategories[]->,\n\t\tauthor->{\n\t\t\tname,\n\t\t\timage{\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t},\n\t\tmetadata{\n\t\t\t...,\n\t\t\timage{\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t},\n\t\t'slug': $blogDir + metadata.slug.current,\n\t}\n": BLOG_INDEX_QUERY_RESULT
+		"*[_type == 'blog-settings'][0]{\n\t...,\n\theroBanner {\n\t\t...,\n\t\tasset->\n\t},\n\tdefaultAuthor->{\n\t\tname,\n\t\trole,\n\t\tshortBio,\n\t\timage {\n\t\t\t...,\n\t\t\tasset->\n\t\t}\n\t}\n}": BLOG_SETTINGS_QUERY_RESULT
+		"*[_type == 'blog.category' && slug.current == $slug][0]{\n\t...,\n\timage {\n\t\t...,\n\t\tasset->\n\t},\n\tmetadata {\n\t\t...,\n\t\timage {\n\t\t\t...,\n\t\t\tasset->\n\t\t}\n\t},\n\t'posts': *[_type == 'blog.post' && references(^._id) && metadata.noIndex != true] | order(publishDate desc) {\n\t\t...,\n\t\tcategories[]->{\n\t\t\ttitle,\n\t\t\tslug\n\t\t},\n\t\tauthor->{\n\t\t\tname,\n\t\t\trole,\n\t\t\timage {\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t},\n\t\tmetadata {\n\t\t\t...,\n\t\t\timage {\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t},\n\t\t'slug': $blogDir + metadata.slug.current,\n\t\t'readTime': length(string::split(pt::text(content), ' ')) / 200,\n\t}\n}": BLOG_CATEGORY_QUERY_RESULT
+		"\n\t*[_type == 'blog.post' && metadata.noIndex != true]|order(publishDate desc){\n\t\t...,\n\t\texcerpt,\n\t\tisFeatured,\n\t\tlastUpdatedDate,\n\t\ttags,\n\t\t'readTime': length(string::split(pt::text(content), ' ')) / 200,\n\t\tcategories[]->{\n\t\t\t_id,\n\t\t\ttitle,\n\t\t\tslug\n\t\t},\n\t\tauthor->{\n\t\t\tname,\n\t\t\trole,\n\t\t\timage{\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t},\n\t\tmetadata{\n\t\t\t...,\n\t\t\timage{\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t},\n\t\t'slug': $blogDir + metadata.slug.current,\n\t}\n": BLOG_INDEX_QUERY_RESULT
 		'\n\t*[\n\t\t_type == "blog.post"\n\t\t&& ($categoryRef == null || references($categoryRef))\n\t]\n\t| order(publishDate desc)[0...$limit] {\n\t\t...,\n\t\tcategories[]->{\n\t\t\ttitle,\n\t\t\tslug\n\t\t},\n\t\tauthor->{\n\t\t\tname,\n\t\t\timage{\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t},\n\t\tmetadata{\n\t\t\t...,\n\t\t\timage{\n\t\t\t\t...,\n\t\t\t\tasset->\n\t\t\t}\n\t\t},\n\t\t"slug": $blogDir + metadata.slug.current\n\t}\n': BLOG_POST_LIST_QUERY_RESULT
-		"\n\t*[\n\t\t_type == 'blog.category'\n\t\t&& count(*[_type == 'blog.post' && references(^._id)]) > 0\n\t]|order(title)\n": CATEGORIES_QUERY_RESULT
+		"{\n\t'totalPosts': count(*[_type == 'blog.post' && metadata.noIndex != true]),\n\t'categories': *[\n\t\t_type == 'blog.category'\n\t\t&& count(*[_type == 'blog.post' && references(^._id) && metadata.noIndex != true]) > 0\n\t]|order(title){\n\t\t_id,\n\t\ttitle,\n\t\tslug,\n\t\t'postCount': count(*[_type == 'blog.post' && references(^._id) && metadata.noIndex != true])\n\t}\n}": CATEGORIES_SUMMARY_QUERY_RESULT
 		'\n{\n  "collectionData": *[_type == "collection" && _id == $collectionId][0]{ \n    _id, \n    title,\n    "slug": metadata.slug.current\n  },\n\n  "products": select(\n    defined($collectionId) => *[_type == "collection" && _id == $collectionId][0].products[@-> != null][0...$limit]->{\n      _id,\n      title,\n      price,\n      tags,\n      sold,\n      stock,\n      hasVariants,\n      options[]{\n        name,\n        values\n      },\n      variants[]{\n        _key,\n        title,\n        price,\n        compareAtPrice,\n        stock,\n        options[]{\n          name,\n          value\n        },\n        image{\n          ...,\n          asset->\n        }\n      },\n      "slug": metadata.slug.current,\n      images[]{\n        ...,\n        asset->\n      },\n\t  "reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },\n      "compareAtPrice": compareAtPrice,\n\t  categories[]->{\n        title,\n        "slug": slug.current\n      }\n    },\n\n    *[_type == "product"] | order(_createdAt desc)[0...$limit] {\n      _id,\n      title,\n      price,\n      tags,\n      sold,\n      stock,\n      hasVariants,\n      options[]{\n        name,\n        values\n      },\n      variants[]{\n        _key,\n        title,\n        price,\n        compareAtPrice,\n        stock,\n        options[]{\n          name,\n          value\n        },\n        image{\n          ...,\n          asset->\n        }\n      },\n      "slug": metadata.slug.current,\n      images[]{\n        ...,\n        asset->\n      },\n\t  "reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },\n      "compareAtPrice": compareAtPrice,\n\t  categories[]->{\n        title,\n        "slug": slug.current\n      }\n    }\n  )\n}\n': PRODUCTS_BY_COLLECTION_QUERY_RESULT
 		"*[\n    _type in $scope\n    && defined(metadata.slug.current)\n    && metadata.noIndex != true\n    && !(metadata.slug.current in ['404'])\n    && [\n        modules[].intro[].children[].text,\n        modules[].content[].children[].text,\n        content[].children[].text,\n        title,\n        metadata.title,\n        metadata.description\n    ] match $queryMatch\n]{\n    _id,\n    _type,\n    title,\n    price,\n    \"compareAtPrice\": compareAtPrice,\n    images,\n    \"reviews\": *[_type == \"review\" && references(^._id) && isApproved == true]{ rating },\n    metadata{\n        ...,\n        image{\n            ...,\n            asset->\n        }\n    },\n    'slug': select(\n        _type == 'product' => '/products/' + metadata.slug.current, \n        _type == 'blog.post' => $blogDir + metadata.slug.current,\n        metadata.slug.current == 'index' => '/',\n        '/' + metadata.slug.current\n    )\n}": SEARCH_QUERY_RESULT
 	}

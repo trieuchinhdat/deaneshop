@@ -1,0 +1,274 @@
+import { defineField, defineType } from 'sanity'
+import { EditIcon, DashboardIcon } from '@sanity/icons'
+
+export default defineType({
+	name: 'blog-settings',
+	title: 'Blog & Editorial Settings',
+	type: 'document',
+	icon: EditIcon,
+	groups: [
+		{ name: 'general', title: '1. General & Hero', default: true },
+		{ name: 'listing', title: '2. Listing & Layout' },
+		{ name: 'card', title: '3. Blog Card Display', icon: DashboardIcon },
+		{ name: 'postDefaults', title: '4. Post Defaults' },
+		{ name: 'widgets', title: '5. Conversion & Widgets' },
+	],
+	fields: [
+		// ================= GROUP 1: GENERAL & HERO =================
+		defineField({
+			name: 'title',
+			title: 'Blog Main Title',
+			description: 'The primary headline displayed on the blog index and SEO titles.',
+			type: 'string',
+			initialValue: 'Editorial & Journal',
+			group: 'general',
+		}),
+		defineField({
+			name: 'subtitle',
+			title: 'Blog Subtitle / Tagline',
+			description: 'A brief description introducing your blog, articles, and insights.',
+			type: 'text',
+			rows: 2,
+			initialValue: 'Insights, stories, and curated guides from our team of specialists.',
+			group: 'general',
+		}),
+		defineField({
+			name: 'heroBanner',
+			title: 'Blog Hero Banner Image (Optional)',
+			description:
+				'Header background banner for the blog hub. Recommended size: 1920 × 600 px (Desktop wide, 16:5 ratio, max 350 KB, WebP/JPG).',
+			type: 'image',
+			options: { hotspot: true, metadata: ['lqip'] },
+			group: 'general',
+		}),
+		defineField({
+			name: 'badgeText',
+			title: 'Hero Badge Text',
+			description: 'Small pill badge displayed above the title (e.g., "The Journal").',
+			type: 'string',
+			initialValue: 'The Journal',
+			group: 'general',
+		}),
+
+		// ================= GROUP 2: LISTING & LAYOUT =================
+		defineField({
+			name: 'postsPerPage',
+			title: 'Posts Per Page',
+			description: 'Number of articles to display per page on the blog listing.',
+			type: 'number',
+			initialValue: 9,
+			validation: (Rule) => Rule.min(3).max(30),
+			group: 'listing',
+		}),
+		defineField({
+			name: 'defaultLayout',
+			title: 'Default Listing Layout',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Magazine Grid (Featured Hero + 3-Col Grid)', value: 'magazine' },
+					{ title: 'Standard Grid (Equal Cards)', value: 'grid' },
+					{ title: 'Editorial List', value: 'list' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'magazine',
+			group: 'listing',
+		}),
+		defineField({
+			name: 'enableSearch',
+			title: 'Enable Article Search Bar',
+			description: 'Show an instant keyword search input on the blog index.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'listing',
+		}),
+
+		// ================= GROUP 3: BLOG CARD DISPLAY SETTINGS =================
+		defineField({
+			name: 'cardStyle',
+			title: 'Card Container Style',
+			description:
+				'Choose between a boxed card (with border & inner padding) or a minimalist frameless card (no padding, image and text flush).',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Boxed (Card with border, background & padding)', value: 'boxed' },
+					{ title: 'Minimalist / No-Padding (Frameless, clean flush image & text)', value: 'minimalist' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'boxed',
+			group: 'card',
+		}),
+		defineField({
+			name: 'cardImageAspectRatio',
+			title: 'Card Image Aspect Ratio',
+			description: 'Proportion of the thumbnail image in blog preview cards.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: '16:9 (Standard Widescreen)', value: '16:9' },
+					{ title: '3:2 (Editorial Classic)', value: '3:2' },
+					{ title: '4:3 (Balanced Rectangle)', value: '4:3' },
+					{ title: '1:1 (Square)', value: '1:1' },
+				],
+				layout: 'radio',
+			},
+			initialValue: '16:9',
+			group: 'card',
+		}),
+		defineField({
+			name: 'cardShowCategory',
+			title: 'Show Category Badge',
+			description: 'Display category pill badge over the thumbnail image.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'card',
+		}),
+		defineField({
+			name: 'cardShowExcerpt',
+			title: 'Show Article Excerpt / Summary',
+			description: 'Display 2 lines of article preview text below the title.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'card',
+		}),
+		defineField({
+			name: 'cardShowAuthor',
+			title: 'Show Author Profile',
+			description: 'Display author avatar and name in the card footer.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'card',
+		}),
+		defineField({
+			name: 'cardShowDate',
+			title: 'Show Publication Date',
+			description: 'Display publish date in the card footer / meta.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'card',
+		}),
+		defineField({
+			name: 'cardShowReadTime',
+			title: 'Show Reading Time',
+			description: 'Display estimated reading time (e.g. 4 min read).',
+			type: 'boolean',
+			initialValue: true,
+			group: 'card',
+		}),
+
+		// ================= GROUP 4: POST DEFAULTS =================
+		defineField({
+			name: 'defaultAuthor',
+			title: 'Default Author',
+			description: 'Fallback author when an article does not explicitly select one.',
+			type: 'reference',
+			to: [{ type: 'person' }],
+			group: 'postDefaults',
+		}),
+		defineField({
+			name: 'defaultTocPosition',
+			title: 'Default Table of Contents (TOC) Position',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Sticky Header Bar (Auto Highlight)', value: 'sticky-bar' },
+					{ title: 'Sidebar Left', value: 'left' },
+					{ title: 'Sidebar Right', value: 'right' },
+					{ title: 'Hidden / Disabled', value: 'hidden' },
+				],
+			},
+			initialValue: 'sticky-bar',
+			group: 'postDefaults',
+		}),
+		defineField({
+			name: 'postSidebarLayout',
+			title: 'Desktop Article Sidebar Layout',
+			description:
+				'Display Related Articles and Table of Contents in a sticky sidebar on Desktop.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'None / Bottom (Single Centered Column, Related Articles at Bottom)', value: 'none' },
+					{ title: 'Right Sidebar (2 Columns: Main Content + Sticky Right Sidebar)', value: 'right' },
+					{ title: 'Left Sidebar (2 Columns: Sticky Left Sidebar + Main Content)', value: 'left' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'none',
+			group: 'postDefaults',
+		}),
+		defineField({
+			name: 'readingSpeedWpm',
+			title: 'Reading Speed (Words Per Minute)',
+			description: 'Used to calculate estimated reading time (default: 200 WPM).',
+			type: 'number',
+			initialValue: 200,
+			group: 'postDefaults',
+		}),
+
+		// ================= GROUP 5: CONVERSION & WIDGETS =================
+		defineField({
+			name: 'enableSocialShare',
+			title: 'Enable Global Social Sharing Bar',
+			description: 'Displays X/Twitter, LinkedIn, Facebook, WhatsApp, Pinterest, and Copy Link buttons.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'widgets',
+		}),
+		defineField({
+			name: 'enableAuthorBio',
+			title: 'Enable Author Bio Box (E-E-A-T)',
+			description: 'Displays author avatar, job title, biography, and social links at article footer.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'widgets',
+		}),
+		defineField({
+			name: 'enableNewsletter',
+			title: 'Enable Newsletter Subscription Box',
+			description: 'Displays an email capture box on the blog index and article footer.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'widgets',
+		}),
+		defineField({
+			name: 'newsletterTitle',
+			title: 'Newsletter Box Title',
+			type: 'string',
+			initialValue: 'Subscribe to Our Journal',
+			hidden: ({ parent }) => !parent?.enableNewsletter,
+			group: 'widgets',
+		}),
+		defineField({
+			name: 'newsletterSubtitle',
+			title: 'Newsletter Box Subtitle',
+			type: 'string',
+			initialValue: 'Get curated articles, exclusive offers, and expert insights delivered straight to your inbox.',
+			hidden: ({ parent }) => !parent?.enableNewsletter,
+			group: 'widgets',
+		}),
+		defineField({
+			name: 'relatedPostsTitle',
+			title: 'Related Articles Section Title',
+			type: 'string',
+			initialValue: 'Related Articles',
+			group: 'widgets',
+		}),
+		defineField({
+			name: 'relatedProductsTitle',
+			title: 'Featured Products Section Title',
+			type: 'string',
+			initialValue: 'Featured in This Article',
+			group: 'widgets',
+		}),
+	],
+	preview: {
+		prepare: () => ({
+			title: 'Blog & Editorial Settings',
+			subtitle: 'Global Layout, Card Settings, SEO, TOC & Widgets',
+		}),
+	},
+})

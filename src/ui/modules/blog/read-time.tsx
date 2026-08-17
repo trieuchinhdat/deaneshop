@@ -1,10 +1,8 @@
-import { count } from '@/lib/utils'
-
-export default function ({
-	value,
+export default function ReadTime({
+	value = 3,
 	...props
-}: { value: number } & React.ComponentProps<'span'>) {
-	const minutes = Math.ceil(value)
+}: { value?: number } & React.ComponentProps<'span'>) {
+	const minutes = Math.max(1, Math.ceil(value))
 
-	return <span {...props}>Read time: {count(minutes, 'minute')}</span>
+	return <span {...props}>{minutes} min read</span>
 }

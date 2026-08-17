@@ -2,6 +2,7 @@ import type { SchemaPluginOptions } from 'sanity'
 // documents
 import blogCategory from './documents/blog.category'
 import blogPost from './documents/blog.post'
+import blogSettings from './documents/blog-settings'
 import collection from './documents/collection'
 import globalModule from './documents/global-module'
 import logo from './documents/logo'
@@ -61,11 +62,19 @@ import metadata from './objects/metadata'
 import moduleAttributes from './objects/module-attributes'
 import productOption from './objects/product.option'
 import productVariant from './objects/product.variant'
+import calloutBox from './objects/callout-box'
+import productEmbed from './objects/product-embed'
+import comparisonTable from './objects/comparison-table'
+import videoEmbed from './objects/video-embed'
+import faqAccordion from './objects/faq-accordion'
+import imageGallery from './objects/image-gallery'
+import ctaBanner from './objects/cta-banner'
 
 export const schema: SchemaPluginOptions = {
 	types: [
 		// documents
 		site,
+		blogSettings,
 		themeSettings,
 		widgetSettings,
 		systemSettings,
@@ -105,6 +114,13 @@ export const schema: SchemaPluginOptions = {
 		affiliateLink,
 		productOption,
 		productVariant,
+		calloutBox,
+		productEmbed,
+		comparisonTable,
+		videoEmbed,
+		faqAccordion,
+		imageGallery,
+		ctaBanner,
 
 		// modules
 		accordionList,
@@ -138,6 +154,7 @@ export const schema: SchemaPluginOptions = {
 
 const singletonTypes = [
 	'site',
+	'blog-settings',
 	'theme-settings',
 	'widget-settings',
 	'system-settings',

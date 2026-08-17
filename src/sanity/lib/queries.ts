@@ -582,4 +582,74 @@ export async function getPopupSettings() {
 	})
 }
 
+export const BLOG_SETTINGS_QUERY = groq`*[_type == 'blog-settings'][0]{
+	...,
+	heroBanner {
+		...,
+		asset->
+	},
+	defaultAuthor->{
+		name,
+		role,
+		shortBio,
+		image {
+			...,
+			asset->
+		}
+	}
+}`
+
+export async function getBlogSettings() {
+	return await sanityFetchLive<any>({
+		query: BLOG_SETTINGS_QUERY,
+	})
+}
+
+export const BLOG_CATEGORY_QUERY = groq`*[_type == 'blog.category' && slug.current == $slug][0]{
+	...,
+	image {
+		...,
+		asset->
+	},
+	metadata {
+		...,
+		image {
+			...,
+			asset->
+		}
+	},
+	'posts': *[_type == 'blog.post' && references(^._id) && metadata.noIndex != true] | order(publishDate desc) {
+		...,
+		categories[]->{
+			title,
+			slug
+		},
+		author->{
+			name,
+			role,
+			image {
+				...,
+				asset->
+			}
+		},
+		metadata {
+			...,
+			image {
+				...,
+				asset->
+			}
+		},
+		'slug': $blogDir + metadata.slug.current,
+		'readTime': length(string::split(pt::text(content), ' ')) / 200,
+	}
+}`
+
+export async function getBlogCategory(slug: string, blogDir: string = '/blog/') {
+	return await sanityFetchLive<any>({
+		query: BLOG_CATEGORY_QUERY,
+		params: { slug, blogDir },
+	})
+}
+
+
 

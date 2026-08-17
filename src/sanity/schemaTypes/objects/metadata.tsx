@@ -33,7 +33,9 @@ export default defineType({
 		}),
 		defineField({
 			name: 'image',
-			description: 'Used for social sharing previews',
+			title: 'Social Share / Open Graph Image',
+			description:
+				'Used for social media cards (Facebook, LinkedIn, X, Zalo) and Google Discover previews. Recommended size: 1200 × 630 px (1.91:1 ratio, max 300 KB, JPG/WebP).',
 			type: 'image',
 			options: {
 				hotspot: true,

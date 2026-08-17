@@ -7,8 +7,16 @@ import { moduleAttributes } from '..'
 import AnchoredHeading from './anchored-heading'
 import Code from './code'
 import Image from './image'
+import CalloutBox from '@/ui/modules/blog/blocks/callout-box'
+import ProductEmbed from '@/ui/modules/blog/blocks/product-embed'
+import ComparisonTable from '@/ui/modules/blog/blocks/comparison-table'
+import VideoEmbed from '@/ui/modules/blog/blocks/video-embed'
+import FAQAccordion from '@/ui/modules/blog/blocks/faq-accordion'
+import ImageGallery from '@/ui/modules/blog/blocks/image-gallery'
+import CTABanner from '@/ui/modules/blog/blocks/cta-banner'
+import AffiliateLink from '@/ui/modules/affiliate-link'
 
-export default function ({
+export default function ProseModule({
 	content,
 	tableOfContents,
 	headings,
@@ -34,8 +42,8 @@ export default function ({
 					open
 				/>
 			)}
-			<div className="rounded-xl bg-white p-2 lg:p-4">
-				<article className="prose mx-auto w-full max-w-3xl">
+			<div className="rounded-xl bg-white p-4 lg:p-8 dark:bg-zinc-900">
+				<article className="prose prose-zinc dark:prose-invert mx-auto w-full max-w-3xl">
 					<PortableText
 						value={content ?? []}
 						components={{
@@ -51,6 +59,14 @@ export default function ({
 								image: Image,
 								code: Code,
 								'custom-html': ({ value }) => <CustomHTML {...value} />,
+								affiliateLink: ({ value }: any) => <AffiliateLink {...value} />,
+								'callout-box': ({ value }) => <CalloutBox {...value} />,
+								'product-embed': ({ value }) => <ProductEmbed {...value} />,
+								'comparison-table': ({ value }) => <ComparisonTable {...value} />,
+								'video-embed': ({ value }) => <VideoEmbed {...value} />,
+								'faq-accordion': ({ value }) => <FAQAccordion {...value} />,
+								'image-gallery': ({ value }) => <ImageGallery {...value} />,
+								'cta-banner': ({ value }) => <CTABanner {...value} />,
 							},
 						}}
 					/>

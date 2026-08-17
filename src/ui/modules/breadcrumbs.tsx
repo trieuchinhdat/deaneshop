@@ -14,7 +14,7 @@ export default function BreadcrumbsComponent({
 		const generatedCrumbs: any[] = [
 			{
 				_key: 'home',
-				label: 'Trang chủ',
+				label: 'Home',
 				type: 'external',
 				external: '/',
 			},
@@ -31,14 +31,14 @@ export default function BreadcrumbsComponent({
 							: primaryCategory.slug?.current
 					generatedCrumbs.push({
 						_key: 'category',
-						label: primaryCategory.title || 'Danh mục',
+						label: primaryCategory.title || 'Category',
 						type: 'external',
 						external: `/collections/${catSlug}`,
 					})
 				} else {
 					generatedCrumbs.push({
 						_key: 'products',
-						label: 'Sản phẩm',
+						label: 'Products',
 						type: 'external',
 						external: '/collections/all',
 					})
@@ -46,7 +46,7 @@ export default function BreadcrumbsComponent({
 			} else if (type === 'collection') {
 				generatedCrumbs.push({
 					_key: 'collections',
-					label: 'Danh mục',
+					label: 'Collections',
 					type: 'external',
 					external: '/collections/all',
 				})
@@ -54,7 +54,7 @@ export default function BreadcrumbsComponent({
 				const primaryCategory = currentPage.categories?.[0]
 				generatedCrumbs.push({
 					_key: 'blog',
-					label: 'Bài viết',
+					label: 'Blog',
 					type: 'external',
 					external: '/blog',
 				})
@@ -65,7 +65,7 @@ export default function BreadcrumbsComponent({
 							: primaryCategory.slug?.current
 					generatedCrumbs.push({
 						_key: 'blog-category',
-						label: primaryCategory.title || 'Chuyên mục',
+						label: primaryCategory.title || 'Category',
 						type: 'external',
 						external: `/blog/category/${catSlug}`,
 					})

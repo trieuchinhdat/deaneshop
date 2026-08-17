@@ -5,7 +5,7 @@ import { ROUTES } from '@/lib/env'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import { sanityFetchLive } from '@/sanity/lib/live'
-import { MODULES_QUERY, getProductSettings } from '@/sanity/lib/queries'
+import { MODULES_QUERY, getProductSettings, getBlogSettings } from '@/sanity/lib/queries'
 import type { BLOG_POST_QUERY_RESULT } from '@/sanity/types'
 import ModulesResolver from '@/ui/modules'
 
@@ -15,40 +15,72 @@ type Props = {
 
 export default async function BlogPage({ params }: Props) {
 	const { slug } = await params
-	const [post, productSettings] = await Promise.all([
+	const [post, productSettings, blogSettings] = await Promise.all([
 		getPost(slug),
 		getProductSettings(),
+		getBlogSettings(),
 	])
 	if (!post) notFound()
 
-	return <ModulesResolver post={post} productSettings={productSettings} />
+	return (
+		<ModulesResolver
+			post={post}
+			productSettings={productSettings}
+			blogSettings={blogSettings}
+		/>
+	)
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const { slug } = await params
 	const post = await getPost(slug)
-	const { title, description, image, noIndex } = post?.metadata ?? {}
+	if (!post) return {}
+
+	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://example.com'
+	const canonicalUrl = `${baseUrl}/${ROUTES.blog}/${slug}`
+	const title = post.metadata?.title || post.title || 'Blog Post'
+	const description = post.metadata?.description || (post as any).excerpt || ''
+	const noIndex = post.metadata?.noIndex ?? false
+	const ogImage = post.metadata?.image
+		? urlFor(post.metadata.image).width(1200).height(630).url()
+		: `${baseUrl}/api/og?slug=${ROUTES.blog}/${slug}`
 
 	return {
 		title,
-		description: description,
-		openGraph: {
-			title: title,
-			description: description,
-			url: `${process.env.NEXT_PUBLIC_BASE_URL}/${ROUTES.blog}/${slug}`,
-			images: [
-				image
-					? urlFor(image).width(1200).url()
-					: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?slug=${ROUTES.blog}/${slug}`,
-			],
-		},
-		robots: {
-			index: noIndex ? false : undefined,
-		},
+		description,
 		alternates: {
+			canonical: canonicalUrl,
 			types: {
 				'application/rss+xml': `/${ROUTES.blog}/rss.xml`,
 			},
+		},
+		openGraph: {
+			type: 'article',
+			title,
+			description,
+			url: canonicalUrl,
+			publishedTime: post.publishDate || (post as any)._createdAt,
+			modifiedTime: (post as any).lastUpdatedDate || (post as any)._updatedAt,
+			authors: post.author?.name ? [post.author.name] : undefined,
+			tags: (post as any).tags || post.categories?.map((c: any) => c.title),
+			images: [
+				{
+					url: ogImage,
+					width: 1200,
+					height: 630,
+					alt: title,
+				},
+			],
+		},
+		twitter: {
+			card: 'summary_large_image',
+			title,
+			description,
+			images: [ogImage],
+		},
+		robots: {
+			index: !noIndex,
+			follow: !noIndex,
 		},
 	}
 }
@@ -104,11 +136,36 @@ async function getPost(slug: string) {
 
 const BLOG_POST_QUERY = groq`*[_type == 'blog.post' && metadata.slug.current == $slug][0]{
 	...,
+	excerpt,
+	isFeatured,
+	lastUpdatedDate,
+	tags,
 	content[]{
 		...,
 		_type == 'image' => {
 			...,
 			asset->
+		},
+		_type == 'product-embed' => {
+			...,
+			product->{
+				_id,
+				title,
+				price,
+				salePrice,
+				images[]{
+					...,
+					asset->
+				},
+				metadata
+			}
+		},
+		_type == 'image-gallery' => {
+			...,
+			images[]{
+				...,
+				asset->
+			}
 		}
 	},
 	'contentPlainText': pt::text(content),
@@ -123,9 +180,83 @@ const BLOG_POST_QUERY = groq`*[_type == 'blog.post' && metadata.slug.current == 
 	},
 	author->{
 		name,
+		role,
+		shortBio,
+		socialLinks,
 		image{
 			...,
 			asset->
+		}
+	},
+	relatedProducts[]->{
+		_id,
+		title,
+		price,
+		compareAtPrice,
+		tags,
+		sold,
+		stock,
+		hasVariants,
+		options[]{
+			name,
+			values
+		},
+		variants[]{
+			_key,
+			title,
+			price,
+			compareAtPrice,
+			stock,
+			options[]{
+				name,
+				value
+			},
+			image{
+				...,
+				asset->
+			}
+		},
+		"slug": metadata.slug.current,
+		images[]{
+			...,
+			asset->
+		},
+		"reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },
+		categories[]->{
+			title,
+			"slug": slug.current
+		}
+	},
+	relatedPosts[]->{
+		_id,
+		title,
+		publishDate,
+		excerpt,
+		'readTime': length(string::split(pt::text(content), ' ')) / 200,
+		metadata{
+			...,
+			image{
+				...,
+				asset->
+			}
+		}
+	},
+	'categoryRelatedPosts': *[
+		_type == 'blog.post'
+		&& references(^.categories[0]._id)
+		&& _id != ^._id
+	][0...3]{
+		_id,
+		title,
+		publishDate,
+		excerpt,
+		'readTime': length(string::split(pt::text(content), ' ')) / 200,
+		metadata{
+			...,
+			image{
+				...,
+				asset->
+			}
 		}
 	},
 	'globalBefore': (

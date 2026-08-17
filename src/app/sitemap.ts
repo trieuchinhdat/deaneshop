@@ -6,9 +6,13 @@ import { sanityFetchLive } from '@/sanity/lib/live'
 export const dynamic = 'force-dynamic'
 
 export default async function (): Promise<MetadataRoute.Sitemap> {
+	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://example.com'
+
 	const data = await sanityFetchLive<{
 		pages: MetadataRoute.Sitemap
+		categories: MetadataRoute.Sitemap
 		posts: MetadataRoute.Sitemap
+		product: MetadataRoute.Sitemap
 	}>({
 		query: groq`{
 			'pages': *[
@@ -23,9 +27,18 @@ export default async function (): Promise<MetadataRoute.Sitemap> {
 				),
 				'lastModified': _updatedAt,
 				'priority': select(
-					metadata.slug.current == 'index' => 1,
-					0.5
+					metadata.slug.current == 'index' => 1.0,
+					0.8
 				)
+			},
+			'categories': *[
+				_type == 'blog.category'
+				&& defined(slug.current)
+				&& metadata.noIndex != true
+			]{
+				'url': $baseUrl + '/' + $blogDir + '/category/' + slug.current,
+				'lastModified': _updatedAt,
+				'priority': 0.6
 			},
 			'posts': *[
 				_type == 'blog.post'
@@ -33,8 +46,8 @@ export default async function (): Promise<MetadataRoute.Sitemap> {
 				&& metadata.noIndex != true
 			]|order(publishDate desc){
 				'url': $baseUrl + '/' + $blogDir + '/' + metadata.slug.current,
-				'lastModified': _updatedAt,
-				'priority': 0.4
+				'lastModified': coalesce(lastUpdatedDate, _updatedAt),
+				'priority': 0.7
 			},
 			'product': *[
 				_type == 'product'
@@ -43,12 +56,11 @@ export default async function (): Promise<MetadataRoute.Sitemap> {
 			]|order(publishDate desc){
 				'url': $baseUrl + '/' + $productDir + '/' + metadata.slug.current,
 				'lastModified': _updatedAt,
-				'priority': 0.4
+				'priority': 0.8
 			}
-
 		}`,
 		params: {
-			baseUrl: process.env.NEXT_PUBLIC_BASE_URL,
+			baseUrl,
 			blogDir: ROUTES.blog,
 			productDir: ROUTES.products,
 		},

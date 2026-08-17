@@ -62,19 +62,21 @@ export default function ({
 	product,
 	collection,
 	productSettings,
+	blogSettings,
 }: {
 	page?: PAGE_QUERY_RESULT
 	post?: BLOG_POST_QUERY_RESULT
 	product?: PRODUCT_QUERY_RESULT
 	collection?: any
 	productSettings?: PRODUCT_SETTINGS_QUERY_RESULT
+	blogSettings?: any
 }) {
 	const modules = [page, post, product, collection].flatMap((item) => item?.modules ?? [])
 
 	const moduleSpecificProps = (module: ModuleProps) => {
 		switch (module._type) {
 			case 'blog-post-content':
-				return { post }
+				return { post, productSettings, blogSettings }
 			case 'product-content':
 				return { product, productSettings }
 			case 'collection-content':

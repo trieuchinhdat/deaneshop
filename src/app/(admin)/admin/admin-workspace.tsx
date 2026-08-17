@@ -1089,7 +1089,17 @@ export default function AdminWorkspace({
 													{/* Nguồn */}
 													<td className="py-3.5 px-4">
 														<span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
-															{cust.source === 'popup' ? '🎁 Popup Voucher' : cust.source === 'checkout' ? '🛍️ Đặt đơn' : cust.source || 'Trực tiếp'}
+															{cust.source === 'newsletter' ? (
+																'📰 Newsletter'
+															) : cust.source === 'popup' ? (
+																'🎁 Popup'
+															) : cust.source === 'order' || cust.source === 'checkout' ? (
+																'🛍️ Đơn hàng'
+															) : cust.source === 'register' || cust.source === 'google' ? (
+																'👤 Đăng ký'
+															) : (
+																cust.source || 'Trực tiếp'
+															)}
 														</span>
 														{cust.couponReceived && (
 															<span className="block text-[10px] text-amber-700 font-mono font-bold mt-0.5">

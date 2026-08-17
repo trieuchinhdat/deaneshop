@@ -37,7 +37,7 @@ export default function NewsletterForm({
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					email,
-					source: 'Footer Newsletter Form',
+					source: 'newsletter',
 				}),
 			})
 

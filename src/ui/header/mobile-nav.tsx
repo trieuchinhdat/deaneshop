@@ -206,37 +206,50 @@ export default function MobileNav({
 								)}
 
 								{panel.items && panel.items.length > 0 ? (
-									panel.items.map((item: any, idx: number) => {
-										const label = getItemLabel(item)
-										const isExpandable = hasChildren(item)
-
-										if (isExpandable) {
-											return (
-												<button
-													key={item._key || idx}
-													type="button"
-													onClick={() => pushChildPanel(item)}
-													className="flex items-center justify-between w-full py-3 px-3.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors text-left group cursor-pointer min-h-[46px]"
-												>
-													<span className="text-base font-semibold">{label}</span>
-													<VscChevronRight className="text-lg opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-gray-500" />
-												</button>
+									panel.items
+										.filter((item: any) => {
+											if (!item) return false
+											const label = getItemLabel(item)
+											const expandable = hasChildren(item)
+											const linkData = item._type === 'link' ? item : item.link
+											return Boolean(
+												label?.trim?.() ||
+													expandable ||
+													linkData?.external ||
+													linkData?.internal?.slug
 											)
-										}
+										})
+										.map((item: any, idx: number) => {
+											const label = getItemLabel(item)
+											const isExpandable = hasChildren(item)
 
-										// Direct link item
-										const linkData = item._type === 'link' ? item : item.link
-										return (
-											<SanityLink
-												key={item._key || idx}
-												link={linkData}
-												className="flex items-center justify-between py-3 px-3.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors text-base min-h-[46px]"
-												onClick={onClose}
-											>
-												<span>{label}</span>
-											</SanityLink>
-										)
-									})
+											if (isExpandable) {
+												return (
+													<button
+														key={item._key || idx}
+														type="button"
+														onClick={() => pushChildPanel(item)}
+														className="flex items-center justify-between w-full py-3 px-3.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors text-left group cursor-pointer min-h-[46px]"
+													>
+														<span className="text-base font-semibold">{label}</span>
+														<VscChevronRight className="text-lg opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-gray-500" />
+													</button>
+												)
+											}
+
+											// Direct link item
+											const linkData = item._type === 'link' ? item : item.link
+											return (
+												<SanityLink
+													key={item._key || idx}
+													link={linkData}
+													className="flex items-center justify-between py-3 px-3.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors text-base min-h-[46px]"
+													onClick={onClose}
+												>
+													<span>{label}</span>
+												</SanityLink>
+											)
+										})
 								) : (
 									<div className="py-12 text-center text-sm text-gray-500 flex flex-col items-center gap-3">
 										<p>Chưa có mục menu nào được cấu hình</p>

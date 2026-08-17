@@ -80,7 +80,7 @@ export default function HeaderClient({
 	const showCategoryMenu = headerSettings?.showCategoryMenu ?? true
 	const categoryButtonLabel = headerSettings?.categoryButtonLabel || 'Danh mục sản phẩm'
 	const categoryButtonIcon = headerSettings?.categoryButtonIcon || 'grid'
-	const categoryButtonStyle = headerSettings?.categoryButtonStyle || 'soft'
+	const categoryButtonStyle = headerSettings?.categoryButtonStyle || 'action-secondary'
 	const showDesktopRow2Navigation = headerSettings?.showDesktopRow2Navigation ?? true
 	const categoryMenuItems = headerSettings?.categoryMenu?.items
 

@@ -53,7 +53,7 @@ export async function PATCH(request: NextRequest) {
 				address: cleanAddress,
 				avatar: session.avatar,
 				authProvider: session.authProvider || 'google',
-				source: 'google',
+				source: 'register',
 				cskhStatus: 'customer',
 				orderCount: 0,
 				totalSpent: 0,

@@ -70,7 +70,7 @@ export default function PopupForm({ settings, onClose }: PopupFormProps) {
 					phone: phone.trim() || undefined,
 					couponGiven: rewardCouponCode || undefined,
 					pageUrl: typeof window !== 'undefined' ? window.location.href : undefined,
-					source: 'Popup Marketing Form',
+					source: 'popup',
 				}),
 			})
 

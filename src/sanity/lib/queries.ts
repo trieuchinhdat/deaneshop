@@ -416,6 +416,10 @@ export async function getSite() {
 
 export const FOOTER_SETTINGS_QUERY = groq`*[_type == 'footer-settings'][0]{
 	...,
+	backgroundImage{
+		...,
+		asset->
+	},
 	footerMenu->{ ${NAVIGATION_QUERY} },
 	social->{ ${NAVIGATION_QUERY} },
 	trustBadges[]{

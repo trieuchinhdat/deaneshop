@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
 					avatar: avatarUrl,
 					googleId,
 					authProvider: 'google',
-					source: 'google',
+					source: 'register',
 					cskhStatus: 'lead',
 					orderCount: 0,
 					totalSpent: 0,

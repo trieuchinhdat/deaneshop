@@ -3,20 +3,20 @@ import { VscInspect } from 'react-icons/vsc'
 
 export default defineType({
 	name: 'cta',
-	title: 'Call-to-action',
+	title: 'Call to Action (CTA)',
 	icon: VscInspect,
 	type: 'object',
 	fields: [
 		defineField({
 			name: 'actionType',
-			title: '⚡ Action Type (Hành động khi click)',
-			description: 'Chọn hành động kích hoạt khi khách hàng bấm vào nút',
+			title: 'Action Type',
+			description: 'Action triggered when the user clicks this button',
 			type: 'string',
 			options: {
 				list: [
-					{ title: '🔗 Chuyển trang (Open URL Link)', value: 'link' },
-					{ title: '🛍️ Mở giỏ hàng trượt (Open Mini-Cart Drawer)', value: 'cart-drawer' },
-					{ title: '🔍 Mở ô tìm kiếm nhanh (Open Quick Search Modal)', value: 'search-modal' },
+					{ title: 'Open URL Link', value: 'link' },
+					{ title: 'Open Mini-Cart Drawer', value: 'cart-drawer' },
+					{ title: 'Open Quick Search Modal', value: 'search-modal' },
 				],
 			},
 			initialValue: 'link',
@@ -24,17 +24,17 @@ export default defineType({
 		defineField({
 			name: 'iconType',
 			title: 'Icon Type',
-			description: 'Chọn icon hiển thị cho nút',
+			description: 'Select an icon to display alongside the button label',
 			type: 'string',
 			options: {
 				list: [
-					{ title: 'Tự động theo tên (Auto)', value: 'auto' },
-					{ title: '🛍️ Giỏ hàng (Cart)', value: 'cart' },
-					{ title: '🔍 Tìm kiếm (Search)', value: 'search' },
-					{ title: '👤 Tài khoản (User)', value: 'user' },
-					{ title: '❤️ Yêu thích (Wishlist)', value: 'wishlist' },
-					{ title: '📞 Điện thoại (Phone)', value: 'phone' },
-					{ title: '❌ Không hiển thị icon (Chỉ chữ)', value: 'none' },
+					{ title: 'Auto (Detect from label/action)', value: 'auto' },
+					{ title: 'Shopping Cart (Cart)', value: 'cart' },
+					{ title: 'Search', value: 'search' },
+					{ title: 'User Account', value: 'user' },
+					{ title: 'Wishlist', value: 'wishlist' },
+					{ title: 'Phone Support', value: 'phone' },
+					{ title: 'None (Text Only)', value: 'none' },
 				],
 			},
 			initialValue: 'auto',
@@ -46,15 +46,44 @@ export default defineType({
 		}),
 		defineField({
 			name: 'style',
+			title: 'Button Style',
+			description: 'Visual appearance variant for the button',
 			type: 'string',
 			options: {
 				list: [
-					'action',
-					{ title: 'Action (outline)', value: 'action-outline' },
-					'ghost',
-					'link',
+					{ title: 'Primary (Brand Solid)', value: 'action' },
+					{ title: 'High-Conversion CTA (Accent / Buy Now)', value: 'action-cta' },
+					{ title: 'Secondary Soft (Tonal / Muted Background)', value: 'action-secondary' },
+					{ title: 'Outline (Bordered Brand)', value: 'action-outline' },
+					{ title: 'Glassmorphic (Frosted Glass Overlay)', value: 'action-glass' },
+					{ title: 'Ghost (Subtle / Transparent)', value: 'ghost' },
+					{ title: 'Text Link (Inline with Underline)', value: 'link' },
 				],
 			},
+			initialValue: 'action',
+		}),
+		defineField({
+			name: 'size',
+			title: 'Button Size',
+			description: 'Size scaling for touch targets and typography',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Small (36px / Compact / Cards)', value: 'btn-sm' },
+					{ title: 'Medium (44px / Standard / Default)', value: 'btn-md' },
+					{ title: 'Large (52px / Hero & Featured Banners)', value: 'btn-lg' },
+				],
+			},
+			initialValue: 'btn-md',
+			hidden: ({ parent }) => parent?.style === 'link',
+		}),
+		defineField({
+			name: 'fullWidth',
+			title: 'Full Width (100% Width)',
+			description: 'Expand button to fill entire container width (useful for mobile & drawer checkout)',
+			type: 'boolean',
+			initialValue: false,
+			hidden: ({ parent }) => parent?.style === 'link',
 		}),
 	],
 	preview: {
@@ -62,14 +91,15 @@ export default defineType({
 			link: 'link',
 			actionType: 'actionType',
 			iconType: 'iconType',
+			style: 'style',
 			pageTitle: 'link.internal.title',
 			pageSlug: 'link.internal.metadata.slug.current',
 		},
-		prepare: ({ link, actionType, iconType, pageTitle, pageSlug }) => {
+		prepare: ({ link, actionType, iconType, style, pageTitle, pageSlug }) => {
 			const actionLabels: Record<string, string> = {
-				'cart-drawer': '🛍️ Action: Mini-Cart Drawer',
-				'search-modal': '🔍 Action: Quick Search Modal',
-				link: '🔗 Action: Page Link',
+				'cart-drawer': 'Mini-Cart Drawer',
+				'search-modal': 'Search Modal',
+				link: 'Link',
 			}
 
 			const slug =
@@ -81,13 +111,22 @@ export default defineType({
 						? link.external
 						: null
 
-			const actionSubtitle = actionLabels[actionType || 'link'] || ''
-			const subtitle = slug ? `${actionSubtitle} (${slug})` : actionSubtitle
+			const actionSubtitle = actionLabels[actionType || 'link'] || 'Action'
+			const styleInfo = style ? ` • Style: ${style}` : ''
+			const subtitle = slug ? `${actionSubtitle} (${slug})${styleInfo}` : `${actionSubtitle}${styleInfo}`
 
 			return {
-				title: link?.label || pageTitle || (actionType === 'cart-drawer' ? 'Giỏ hàng' : actionType === 'search-modal' ? 'Tìm kiếm' : 'Nút CTA'),
+				title:
+					link?.label ||
+					pageTitle ||
+					(actionType === 'cart-drawer'
+						? 'Cart Drawer'
+						: actionType === 'search-modal'
+							? 'Search'
+							: 'CTA Button'),
 				subtitle: subtitle,
 			}
 		},
 	},
 })
+

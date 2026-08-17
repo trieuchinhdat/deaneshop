@@ -1,5 +1,6 @@
 import { PortableText } from 'next-sanity'
 import { getFooterSettings, getSite } from '@/sanity/lib/queries'
+import { urlFor } from '@/sanity/lib/image'
 import Logo from '@/ui/logo'
 import SocialNavigation from '@/ui/social-navigation'
 import Navigation from './navigation'
@@ -28,18 +29,39 @@ export default async function Footer() {
 	const isDarkTheme = footerSettings?.footerThemeStyle === 'dark'
 	const isLightTheme = footerSettings?.footerThemeStyle === 'light'
 
-	const footerStyle = isCustomColor
+	const footerStyle: React.CSSProperties = isCustomColor
 		? {
 				backgroundColor: footerSettings?.footerBackground || undefined,
 				color: footerSettings?.footerText || undefined,
 			}
-		: undefined
+		: {}
 
 	const themeClass = isDarkTheme
 		? 'bg-slate-950 text-slate-100 border-slate-800'
 		: isLightTheme
 			? 'bg-slate-50 text-slate-900 border-slate-200'
 			: 'bg-surface/50 text-foreground border-border/40'
+
+	// Background Image & Pattern Processing
+	const hasBgImage = Boolean(footerSettings?.enableBgImage && footerSettings?.backgroundImage)
+	const bgImageUrl = hasBgImage && footerSettings?.backgroundImage
+		? urlFor(footerSettings.backgroundImage).auto('format').fit('max').url()
+		: null
+
+	const bgDisplayMode = footerSettings?.bgDisplayMode || 'cover'
+	const bgOverlayStyle = footerSettings?.bgOverlayStyle || 'dark'
+	const bgOverlayOpacity = typeof footerSettings?.bgOverlayOpacity === 'number'
+		? footerSettings.bgOverlayOpacity / 100
+		: 0.6
+	const bgBlur = footerSettings?.bgBlur || 'none'
+
+	const blurClass = bgBlur === 'sm'
+		? 'backdrop-blur-xs'
+		: bgBlur === 'md'
+			? 'backdrop-blur-sm'
+			: bgBlur === 'lg'
+				? 'backdrop-blur-md'
+				: ''
 
 	// Brand Contact Data (Inherited from Site Profile or Toggles)
 	const showBrandInfo =
@@ -51,10 +73,43 @@ export default async function Footer() {
 
 	return (
 		<footer
-			className={`footer border-t transition-colors duration-300 ${themeClass}`}
+			className={`footer relative border-t overflow-hidden transition-colors duration-300 ${themeClass}`}
 			style={footerStyle}
 		>
-			<div className="section space-y-8 py-8 md:space-y-12 md:py-12">
+			{/* Background Image / Pattern Layer */}
+			{hasBgImage && bgImageUrl && (
+				<div
+					className="absolute inset-0 pointer-events-none z-0"
+					style={{
+						backgroundImage: `url(${bgImageUrl})`,
+						backgroundPosition: 'center',
+						backgroundSize: bgDisplayMode === 'repeat' ? 'auto' : bgDisplayMode,
+						backgroundRepeat: bgDisplayMode === 'repeat' ? 'repeat' : 'no-repeat',
+					}}
+				/>
+			)}
+
+			{/* Background Overlay Tint Layer (For WCAG Legibility) */}
+			{hasBgImage && bgOverlayStyle !== 'none' && (
+				<div
+					className={`absolute inset-0 pointer-events-none z-0 ${blurClass}`}
+					style={{
+						backgroundColor:
+							bgOverlayStyle === 'dark'
+								? '#000000'
+								: bgOverlayStyle === 'light'
+									? '#ffffff'
+									: undefined,
+						backgroundImage:
+							bgOverlayStyle === 'primary_gradient'
+								? 'linear-gradient(to bottom right, var(--color-primary, #059669), #0f172a)'
+								: undefined,
+						opacity: bgOverlayOpacity,
+					}}
+				/>
+			)}
+
+			<div className="section relative z-1 space-y-8 py-8 md:space-y-12 md:py-12">
 				{/* ================= TIER 1: USP HIGHLIGHTS BAR ================= */}
 				{footerSettings?.showUspBar && (
 					<UspBar items={footerSettings?.uspItems} />

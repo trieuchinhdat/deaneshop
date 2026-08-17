@@ -60,14 +60,14 @@ export default defineType({
 			type: 'string',
 			options: {
 				list: [
-					{ title: '🎁 Popup Voucher / Newsletter', value: 'popup' },
-					{ title: '🛍️ Đặt hàng trực tiếp (Checkout)', value: 'checkout' },
-					{ title: '💬 Chatbox / Tư vấn trực tuyến', value: 'chat' },
-					{ title: '📞 Hotline / Liên hệ trực tiếp', value: 'hotline' },
+					{ title: '📰 Đăng ký nhận tin (Newsletter)', value: 'newsletter' },
+					{ title: '🎁 Popup Voucher Marketing', value: 'popup' },
+					{ title: '🛍️ Đặt hàng trực tiếp (Order)', value: 'order' },
+					{ title: '👤 Đăng ký tài khoản (Register)', value: 'register' },
 					{ title: '🌐 Khác / Nhập thủ công', value: 'other' },
 				],
 			},
-			initialValue: 'popup',
+			initialValue: 'newsletter',
 		}),
 		defineField({
 			name: 'cskhStatus',

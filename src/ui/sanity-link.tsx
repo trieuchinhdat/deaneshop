@@ -16,10 +16,14 @@ export default function ({
 	'href'
 >) {
 	const { label, type, internal, external, params } = link ?? {}
+	const content = children || label || internal?.title || external
+
+	// Do not render empty element if there is no text/content and no children
+	if (!content) return null
 
 	const linkProps: Omit<LinkProps, 'href'> | React.ComponentProps<'a'> = {
 		...props,
-		children: children || label || internal?.title || external,
+		children: content,
 	}
 
 	if (type === 'internal' && internal?.slug)

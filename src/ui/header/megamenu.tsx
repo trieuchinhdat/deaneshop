@@ -39,14 +39,24 @@ export default function MegamenuComponent({ link, items, banner }: Megamenu & { 
 											</div>
 
 											<ul className="flex flex-col gap-2 text-sm text-muted-foreground">
-												{item.links?.map((subLink, sIdx) => (
-													<li key={subLink._key || `sub-${sIdx}`}>
-														<SanityLink
-															link={subLink as unknown as SanityLinkType}
-															className="hover:text-primary transition-colors py-0.5 inline-block"
-														/>
-													</li>
-												))}
+												{item.links
+													?.filter((subLink) => {
+														if (!subLink) return false
+														const title =
+															subLink.label ||
+															(subLink.internal as unknown as Page)?.title ||
+															(subLink.internal as unknown as { slug?: string })?.slug ||
+															subLink.external
+														return Boolean(title?.trim?.() ?? title)
+													})
+													.map((subLink, sIdx) => (
+														<li key={subLink._key || `sub-${sIdx}`}>
+															<SanityLink
+																link={subLink as unknown as SanityLinkType}
+																className="hover:text-primary transition-colors py-0.5 inline-block"
+															/>
+														</li>
+													))}
 											</ul>
 										</div>
 									)

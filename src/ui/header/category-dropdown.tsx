@@ -18,7 +18,7 @@ interface CategoryDropdownProps {
 	items?: any[] | null
 	label?: string
 	icon?: string
-	buttonStyle?: 'soft' | 'solid' | 'outline'
+	buttonStyle?: string
 	className?: string
 }
 
@@ -26,7 +26,7 @@ export default function CategoryDropdown({
 	items,
 	label = 'Danh mục sản phẩm',
 	icon = 'grid',
-	buttonStyle = 'soft',
+	buttonStyle = 'action-secondary',
 	className,
 }: CategoryDropdownProps) {
 	const pathname = usePathname()
@@ -85,12 +85,31 @@ export default function CategoryDropdown({
 		return 'Danh mục'
 	}
 
-	const buttonStyleClasses =
-		buttonStyle === 'solid'
-			? 'bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-sm border border-primary/90'
-			: buttonStyle === 'outline'
-				? 'bg-background hover:bg-black/5 dark:hover:bg-white/5 text-foreground hover:text-primary font-semibold border border-stroke/30 shadow-2xs group-open/catmenu:border-primary group-open/catmenu:text-primary'
-				: 'bg-primary/10 hover:bg-primary hover:text-primary-foreground text-primary font-bold border border-primary/20 shadow-xs group-open/catmenu:bg-primary group-open/catmenu:text-primary-foreground'
+	// Smart Style Parser: Seamlessly maps both legacy names ('soft', 'solid', 'outline') and Design System tokens
+	const resolveButtonStyle = (style?: string) => {
+		switch (style) {
+			case 'solid':
+			case 'action':
+				return 'bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-sm border border-primary/90'
+			case 'cta':
+			case 'action-cta':
+				return 'bg-[var(--cta-color,#ea580c)] hover:opacity-95 text-[var(--on-cta-color,#ffffff)] font-bold shadow-sm border border-[var(--cta-color,#ea580c)]'
+			case 'outline':
+			case 'action-outline':
+				return 'bg-background hover:bg-black/5 dark:hover:bg-white/5 text-foreground hover:text-primary font-semibold border border-stroke/40 shadow-2xs group-open/catmenu:border-primary group-open/catmenu:text-primary'
+			case 'ghost':
+				return 'bg-transparent hover:bg-foreground/10 text-foreground font-semibold group-open/catmenu:bg-foreground/15'
+			case 'glass':
+			case 'action-glass':
+				return 'bg-white/20 backdrop-blur-md hover:bg-white/30 border border-white/35 text-white font-semibold group-open/catmenu:bg-white/40'
+			case 'soft':
+			case 'action-secondary':
+			default:
+				return 'bg-primary/10 hover:bg-primary hover:text-primary-foreground text-primary font-bold border border-primary/20 shadow-xs group-open/catmenu:bg-primary group-open/catmenu:text-primary-foreground'
+		}
+	}
+
+	const buttonStyleClasses = resolveButtonStyle(buttonStyle)
 
 	return (
 		<HoverDetails
@@ -101,7 +120,7 @@ export default function CategoryDropdown({
 		>
 			{/* Trigger Button */}
 			<summary
-				className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm transition-all duration-200 cursor-pointer select-none list-none ${buttonStyleClasses}`}
+				className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-[var(--radius,12px)] text-sm font-medium transition-all duration-200 cursor-pointer select-none list-none active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--ring-color,var(--primary-color))] ${buttonStyleClasses}`}
 			>
 				{renderIcon()}
 				<span className="font-semibold">{label}</span>
@@ -211,14 +230,24 @@ export default function CategoryDropdown({
 														</div>
 
 														<ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
-															{subGroup.links?.map((subLink: any, lIdx: number) => (
-																<li key={subLink._key || `link-${lIdx}`}>
-																	<SanityLink
-																		link={subLink as unknown as SanityLinkType}
-																		className="hover:text-primary hover:translate-x-0.5 transition-all py-0.5 inline-block text-xs font-medium"
-																	/>
-																</li>
-															))}
+															{subGroup.links
+																?.filter((subLink: any) => {
+																	if (!subLink) return false
+																	const title =
+																		subLink.label ||
+																		subLink.internal?.title ||
+																		subLink.internal?.slug ||
+																		subLink.external
+																	return Boolean(title?.trim?.() ?? title)
+																})
+																.map((subLink: any, lIdx: number) => (
+																	<li key={subLink._key || `link-${lIdx}`}>
+																		<SanityLink
+																			link={subLink as unknown as SanityLinkType}
+																			className="hover:text-primary hover:translate-x-0.5 transition-all py-0.5 inline-block text-xs font-medium"
+																		/>
+																	</li>
+																))}
 														</ul>
 													</div>
 												))}
@@ -231,16 +260,26 @@ export default function CategoryDropdown({
 														: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
 												}`}
 											>
-												{activeItem.links.map((linkItem: any, lIdx: number) => (
-													<SanityLink
-														key={linkItem._key || `link-${lIdx}`}
-														link={linkItem as unknown as SanityLinkType}
-														className="p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-sm font-medium text-foreground/90 hover:text-primary transition-colors flex items-center justify-between"
-													>
-														<span>{linkItem.label || linkItem.internal?.title}</span>
-														<VscChevronRight className="text-xs opacity-40" />
-													</SanityLink>
-												))}
+												{activeItem.links
+													.filter((linkItem: any) => {
+														if (!linkItem) return false
+														const title =
+															linkItem.label ||
+															linkItem.internal?.title ||
+															linkItem.internal?.slug ||
+															linkItem.external
+														return Boolean(title?.trim?.() ?? title)
+													})
+													.map((linkItem: any, lIdx: number) => (
+														<SanityLink
+															key={linkItem._key || `link-${lIdx}`}
+															link={linkItem as unknown as SanityLinkType}
+															className="p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-sm font-medium text-foreground/90 hover:text-primary transition-colors flex items-center justify-between"
+														>
+															<span>{linkItem.label || linkItem.internal?.title}</span>
+															<VscChevronRight className="text-xs opacity-40" />
+														</SanityLink>
+													))}
 											</div>
 										) : (
 											<div className="py-8 text-center text-xs text-muted-foreground">

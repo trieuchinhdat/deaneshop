@@ -49,6 +49,11 @@ export async function POST(req: Request) {
 			)
 		}
 
+		// Normalize source code (newsletter | popup)
+		const cleanSource = source === 'newsletter' || source?.toLowerCase()?.includes('newsletter')
+			? 'newsletter'
+			: 'popup'
+
 		let customerId = ''
 		if (existingCustomer?._id) {
 			customerId = existingCustomer._id
@@ -65,9 +70,9 @@ export async function POST(req: Request) {
 			const newCustomer = await writeClient.create({
 				_type: 'customer',
 				name: cleanName || undefined,
-				phone: cleanPhone || cleanEmail,
+				phone: cleanPhone || undefined,
 				email: cleanEmail || undefined,
-				source: 'popup',
+				source: cleanSource,
 				cskhStatus: 'lead',
 				couponReceived: couponGiven?.trim() || undefined,
 				orderCount: 0,
@@ -85,7 +90,7 @@ export async function POST(req: Request) {
 			phone: cleanPhone || undefined,
 			couponGiven: couponGiven?.trim() || undefined,
 			pageUrl: pageUrl || undefined,
-			source: source || 'Popup Newsletter / Voucher',
+			source: cleanSource === 'newsletter' ? 'Footer Newsletter Form' : 'Popup Marketing Form',
 			status: 'new',
 			createdAt: new Date().toISOString(),
 		})

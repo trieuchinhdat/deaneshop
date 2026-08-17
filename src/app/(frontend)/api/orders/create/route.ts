@@ -78,7 +78,7 @@ export async function POST(request: Request) {
 					phone: cleanPhone || undefined,
 					email: cleanEmail ? cleanEmail.toLowerCase() : undefined,
 					address: cleanAddress || undefined,
-					source: 'checkout',
+					source: 'order',
 					cskhStatus: 'customer',
 					orderCount: 1,
 					totalSpent: orderAmount,

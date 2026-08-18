@@ -57,6 +57,9 @@ export default function PostPreviewLarge({
 							image={post.metadata.image}
 							width={800}
 							height={500}
+							sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 800px)"
+							priority
+							loading="eager"
 							alt={post.title ?? 'Featured article'}
 						/>
 					) : (
@@ -66,7 +69,9 @@ export default function PostPreviewLarge({
 							alt={post.title ?? 'Featured article'}
 							width={800}
 							height={500}
-							unoptimized
+							sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 800px)"
+							priority
+							loading="eager"
 						/>
 					)}
 

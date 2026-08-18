@@ -94,6 +94,7 @@ export default function PostPreview({
 							image={post.metadata.image}
 							width={500}
 							height={280}
+							sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px)"
 							alt={post.title ?? 'Article thumbnail'}
 						/>
 					) : (
@@ -103,7 +104,7 @@ export default function PostPreview({
 							alt={post.title ?? 'Article thumbnail'}
 							width={500}
 							height={280}
-							unoptimized
+							sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px)"
 						/>
 					)}
 
@@ -199,6 +200,7 @@ export default function PostPreview({
 							image={post.metadata.image}
 							width={500}
 							height={280}
+							sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px)"
 							alt={post.title ?? 'Article thumbnail'}
 						/>
 					) : (
@@ -208,7 +210,7 @@ export default function PostPreview({
 							alt={post.title ?? 'Article thumbnail'}
 							width={500}
 							height={280}
-							unoptimized
+							sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px)"
 						/>
 					)}
 

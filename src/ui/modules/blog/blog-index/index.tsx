@@ -98,12 +98,15 @@ export default async function BlogIndexModule({
 
 const BLOG_INDEX_QUERY = groq`
 	*[_type == 'blog.post' && metadata.noIndex != true]|order(publishDate desc){
-		...,
+		_id,
+		_type,
+		title,
 		excerpt,
 		isFeatured,
+		publishDate,
 		lastUpdatedDate,
 		tags,
-		'readTime': length(string::split(pt::text(content), ' ')) / 200,
+		'readTime': coalesce(length(string::split(pt::text(content), ' ')) / 200, 4),
 		categories[]->{
 			_id,
 			title,

@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
 	reactCompiler: true,
 
 	images: {
+		formats: ['image/avif', 'image/webp'],
 		localPatterns: [{ pathname: '/api/og' }],
 		remotePatterns: [
 			{ protocol: 'https', hostname: 'cdn.sanity.io' },

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import dynamic from 'next/dynamic'
 import { Analytics } from '@vercel/analytics/next'
 import { getActiveFontClasses } from '@/lib/fonts'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
@@ -6,16 +7,18 @@ import { preconnect } from 'react-dom'
 import { dev } from '@/lib/env'
 import Footer from '@/ui/footer'
 import Header from '@/ui/header'
-import VisualEditing from '@/ui/modules/visual-editing'
 import '@/app.css'
 import { getFooterSettings, getPopupSettings, getSite } from '@/sanity/lib/queries'
 import { urlFor } from '@/sanity/lib/image'
-import ChatBoxWrapper from '@/ui/chatbox-wrapper'
 import OrganizationJsonLd from '@/ui/organization-json-ld'
-import PopupModal from '@/ui/popup/popup-modal'
 import ThemeProvider from '@/ui/theme-provider'
 import TrackingScripts from '@/ui/tracking-scripts'
-import ScrollToTop from '@/ui/scroll-to-top'
+
+// Lazy load non-critical floating/overlay components to maximize Core Web Vitals (LCP & TBT)
+const ChatBoxWrapper = dynamic(() => import('@/ui/chatbox-wrapper'), { ssr: false })
+const PopupModal = dynamic(() => import('@/ui/popup/popup-modal'), { ssr: false })
+const ScrollToTop = dynamic(() => import('@/ui/scroll-to-top'), { ssr: false })
+const VisualEditing = dynamic(() => import('@/ui/modules/visual-editing'), { ssr: false })
 
 export async function generateMetadata(): Promise<Metadata> {
 	const site = await getSite()
@@ -59,11 +62,8 @@ export default async function RootLayout({
 }: Readonly<{
 	children: React.ReactNode
 }>) {
-	// Preconnect to essential CDNs for fast resource loading
+	// Preconnect to essential asset CDNs
 	preconnect('https://cdn.sanity.io')
-	preconnect('https://ic0n.dev')
-	preconnect('https://fonts.googleapis.com')
-	preconnect('https://fonts.gstatic.com', { crossOrigin: 'anonymous' })
 
 	const [data, footerSettings, popupSettings] = await Promise.all([
 		getSite(),

@@ -296,7 +296,13 @@ export default async function BlogPostListModule({
 
 				{/* Presentation Layout 2: EDITORIAL LIST (Compact horizontal rows) */}
 				{layout === 'list' && (
-					<div className="divide-y divide-zinc-200/80 dark:divide-zinc-800">
+					<div
+						className={cn(
+							effectiveCardSettings.cardStyle === 'minimalist'
+								? 'space-y-6 sm:space-y-8'
+								: 'space-y-4 sm:space-y-5',
+						)}
+					>
 						{posts.map((post) => (
 							<PostPreview
 								key={post._id}
@@ -304,7 +310,6 @@ export default async function BlogPostListModule({
 								cardSettings={effectiveCardSettings}
 								layout="list"
 								as="article"
-								className="py-5 first:pt-0 last:pb-0"
 							/>
 						))}
 					</div>

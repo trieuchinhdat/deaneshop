@@ -329,6 +329,40 @@ export const MODULES_QUERY = groq`
             asset->,
 			"internalType": internal->_type,
             "internalSlug": internal->metadata.slug.current 
+        },
+        category->{
+            _id,
+            title,
+            slug
+        },
+        manualPosts[]->{
+            _id,
+            title,
+            publishDate,
+            excerpt,
+            isFeatured,
+            'readTime': length(string::split(pt::text(content), ' ')) / 200,
+            categories[]->{
+                _id,
+                title,
+                slug
+            },
+            author->{
+                name,
+                role,
+                image {
+                    ...,
+                    asset->
+                }
+            },
+            metadata {
+                ...,
+                image {
+                    ...,
+                    asset->
+                }
+            },
+            "slug": metadata.slug.current
         }
     },
 	_type == 'collection-content' => {

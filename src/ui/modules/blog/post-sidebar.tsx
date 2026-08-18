@@ -13,6 +13,7 @@ interface PostSidebarProps {
 	headings?: Array<{ style: string | null; text: string | null }> | null
 	showToc?: boolean
 	relatedPosts?: (BlogPost & { readTime?: number; excerpt?: string })[]
+	relatedTitle?: string
 	className?: string
 }
 
@@ -20,6 +21,7 @@ export default function PostSidebar({
 	headings,
 	showToc = false,
 	relatedPosts = [],
+	relatedTitle = 'Related Articles',
 	className,
 }: PostSidebarProps) {
 	const hasHeadings = showToc && headings && headings.length > 0
@@ -88,7 +90,7 @@ export default function PostSidebar({
 						<div className="flex items-center gap-2">
 							<BookOpen className="size-4 text-blue-600 dark:text-blue-400" />
 							<h4 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
-								Related Articles
+								{relatedTitle}
 							</h4>
 						</div>
 						<Link

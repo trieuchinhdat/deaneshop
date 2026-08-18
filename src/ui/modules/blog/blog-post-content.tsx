@@ -15,27 +15,26 @@ import Image from '@/ui/modules/prose/image'
 import Toc from '@/ui/table-of-contents/toc'
 import { moduleAttributes } from '..'
 import AffiliateLink from '../affiliate-link'
+import AuthorBox from './author-box'
+// Custom Blocks
+import CalloutBox from './blocks/callout-box'
+import ComparisonTable from './blocks/comparison-table'
+import CTABanner from './blocks/cta-banner'
+import FAQAccordion from './blocks/faq-accordion'
+import ImageGallery from './blocks/image-gallery'
+import ProductEmbed from './blocks/product-embed'
+import VideoEmbed from './blocks/video-embed'
 import css from './blog-post-content.module.css'
 import Byline from './byline'
 import Categories from './categories'
 import DateComponent from './date'
-import ReadTime from './read-time'
-import Schema from './schema'
-import ReadingProgress from './reading-progress'
-import SocialShare from './social-share'
-import AuthorBox from './author-box'
-import RelatedProducts from './related-products'
-import RelatedPosts from './related-posts'
 import PostSidebar from './post-sidebar'
-
-// Custom Blocks
-import CalloutBox from './blocks/callout-box'
-import ProductEmbed from './blocks/product-embed'
-import ComparisonTable from './blocks/comparison-table'
-import VideoEmbed from './blocks/video-embed'
-import FAQAccordion from './blocks/faq-accordion'
-import ImageGallery from './blocks/image-gallery'
-import CTABanner from './blocks/cta-banner'
+import ReadTime from './read-time'
+import ReadingProgress from './reading-progress'
+import RelatedPosts from './related-posts'
+import RelatedProducts from './related-products'
+import Schema from './schema'
+import SocialShare from './social-share'
 
 export default function BlogPostContentComponent({
 	post,
@@ -73,18 +72,47 @@ export default function BlogPostContentComponent({
 					? effectiveTocPosition
 					: 'none')
 
-	const hasSidebar = effectiveSidebar === 'left' || effectiveSidebar === 'right'
-
 	// 3. Resolve & Deduplicate Related Articles (filter duplicates & current post)
-	const rawRelated: any[] = (
-		post.relatedPosts && post.relatedPosts.length > 0
-			? post.relatedPosts
-			: post.categoryRelatedPosts || []
-	).filter((p: any) => p && p._id && p._id !== post._id)
+	const enableRelatedPosts = blogSettings?.enableRelatedPosts ?? true
+	const enableRelatedProducts = blogSettings?.enableRelatedProducts ?? true
+	const enableLatestPosts = blogSettings?.enableLatestPosts ?? true
+
+	const rawRelated: any[] = enableRelatedPosts
+		? (post.relatedPosts && post.relatedPosts.length > 0
+				? post.relatedPosts
+				: post.categoryRelatedPosts || []
+			).filter((p: any) => p && p._id && p._id !== post._id)
+		: []
 
 	const relatedArticles = Array.from(
 		new Map<string, any>(rawRelated.map((p: any) => [p._id, p])).values(),
 	) as (BlogPost & { readTime?: number; excerpt?: string })[]
+
+	// 4. Check if Sidebar actually has content widgets to display
+	const isConfiguredSidebar = effectiveSidebar === 'left' || effectiveSidebar === 'right'
+	const showSidebarToc =
+		(effectiveSidebar === 'left' && effectiveTocPosition === 'left') ||
+		(effectiveSidebar === 'right' && effectiveTocPosition === 'right')
+	const hasSidebarHeadings = Boolean(showSidebarToc && post.headings && post.headings.length > 0)
+	const hasSidebarRelated = Boolean(enableRelatedPosts && relatedArticles.length > 0)
+
+	// True ONLY when sidebar is configured AND contains at least one non-empty widget
+	const hasActiveSidebar = isConfiguredSidebar && (hasSidebarHeadings || hasSidebarRelated)
+
+	// 5. Resolve Latest Articles (excluding current post and posts already featured in relatedArticles)
+	const rawLatest: any[] = enableLatestPosts
+		? ((post as any).latestPosts || []).filter(
+				(p: any) =>
+					p &&
+					p._id &&
+					p._id !== post._id &&
+					!relatedArticles.some((r) => r._id === p._id),
+			)
+		: []
+
+	const latestArticles = Array.from(
+		new Map<string, any>(rawLatest.map((p: any) => [p._id, p])).values(),
+	).slice(0, 3) as (BlogPost & { readTime?: number; excerpt?: string })[]
 
 	return (
 		<>
@@ -94,7 +122,7 @@ export default function BlogPostContentComponent({
 			<article {...moduleAttributes(props)} className="section">
 				<div className="relative rounded-3xl bg-white py-6 lg:py-10 dark:bg-zinc-950">
 					{/* Header */}
-					<header className="relative pb-6 text-center lg:pb-10 border-b border-zinc-100 dark:border-zinc-900">
+					<header className="relative border-b border-zinc-100 pb-6 text-center lg:pb-10 dark:border-zinc-900">
 						<div className="relative mx-auto max-w-4xl space-y-4 px-4">
 							{/* Categories */}
 							{post.categories && post.categories.length > 0 && (
@@ -102,25 +130,25 @@ export default function BlogPostContentComponent({
 									<Categories
 										categories={post.categories as BlogCategory[]}
 										linked
-										className="inline-flex gap-2 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400"
+										className="inline-flex gap-2 text-xs font-semibold tracking-wider text-blue-600 uppercase dark:text-blue-400"
 									/>
 								</div>
 							)}
 
 							{/* Headline */}
-							<h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50 text-balance leading-tight">
+							<h1 className="text-3xl leading-tight font-extrabold tracking-tight text-balance text-zinc-950 sm:text-4xl lg:text-5xl dark:text-zinc-50">
 								{title}
 							</h1>
 
 							{/* Excerpt */}
 							{post.excerpt && (
-								<p className="mx-auto max-w-2xl text-base sm:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed">
+								<p className="mx-auto max-w-2xl text-base leading-relaxed text-zinc-600 sm:text-lg dark:text-zinc-400">
 									{post.excerpt}
 								</p>
 							)}
 
 							{/* Meta line */}
-							<div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 font-medium pt-2">
+							<div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pt-2 text-xs font-medium text-zinc-600 sm:text-sm dark:text-zinc-300">
 								<Byline author={post.author as unknown as Person} />
 								<span>•</span>
 								<DateComponent date={post.publishDate} />
@@ -143,7 +171,7 @@ export default function BlogPostContentComponent({
 					{effectiveTocPosition === 'sticky-bar' &&
 						post.headings &&
 						post.headings.length > 0 && (
-							<div className="px-4 sm:px-6 lg:px-8 pt-6">
+							<div className="px-4 pt-6 sm:px-6 lg:px-8">
 								<Toc headings={post.headings} />
 							</div>
 						)}
@@ -151,19 +179,20 @@ export default function BlogPostContentComponent({
 					{/* Article Body + Optional Desktop Sidebar Grid */}
 					<section
 						className={cn(
-							'px-4 sm:px-6 lg:px-8 pt-8',
-							hasSidebar
-								? 'lg:grid lg:grid-cols-12 lg:gap-10 xl:gap-12 items-start'
+							'px-4 pt-8 sm:px-6 lg:px-8',
+							hasActiveSidebar
+								? 'items-start lg:grid lg:grid-cols-12 lg:gap-10 xl:gap-12'
 								: 'mx-auto max-w-4xl',
 						)}
 					>
 						{/* Left Sidebar on Desktop */}
-						{hasSidebar && effectiveSidebar === 'left' && (
-							<div className="hidden lg:block lg:col-span-4 lg:order-first lg:self-start lg:sticky lg:top-[calc(var(--header-height,70px)+1.5rem)] z-20 transition-[top] duration-200">
+						{hasActiveSidebar && effectiveSidebar === 'left' && (
+							<div className="z-20 hidden transition-[top] duration-200 lg:sticky lg:top-[calc(var(--header-height,70px)+1.5rem)] lg:order-first lg:col-span-4 lg:block lg:self-start">
 								<PostSidebar
 									headings={post.headings}
 									showToc={effectiveTocPosition === 'left'}
 									relatedPosts={relatedArticles}
+									relatedTitle={blogSettings?.relatedPostsTitle}
 								/>
 							</div>
 						)}
@@ -172,10 +201,8 @@ export default function BlogPostContentComponent({
 						<div
 							className={cn(
 								css.body,
-								'prose prose-zinc dark:prose-invert w-full text-zinc-800 dark:text-zinc-200 leading-relaxed sm:text-lg min-w-0',
-								hasSidebar
-									? 'lg:col-span-8 max-w-none'
-									: 'mx-auto max-w-3xl',
+								'prose prose-zinc dark:prose-invert w-full min-w-0 leading-relaxed text-zinc-800 sm:text-lg dark:text-zinc-200',
+								hasActiveSidebar ? 'max-w-none lg:col-span-8' : 'mx-auto max-w-3xl',
 							)}
 						>
 							<PortableText
@@ -213,23 +240,24 @@ export default function BlogPostContentComponent({
 						</div>
 
 						{/* Right Sidebar on Desktop */}
-						{hasSidebar && effectiveSidebar === 'right' && (
-							<div className="hidden lg:block lg:col-span-4 lg:self-start lg:sticky lg:top-[calc(var(--header-height,70px)+1.5rem)] z-20 transition-[top] duration-200">
+						{hasActiveSidebar && effectiveSidebar === 'right' && (
+							<div className="z-20 hidden transition-[top] duration-200 lg:sticky lg:top-[calc(var(--header-height,70px)+1.5rem)] lg:col-span-4 lg:block lg:self-start">
 								<PostSidebar
 									headings={post.headings}
 									showToc={effectiveTocPosition === 'right'}
 									relatedPosts={relatedArticles}
+									relatedTitle={blogSettings?.relatedPostsTitle}
 								/>
 							</div>
 						)}
 					</section>
 
 					{/* Post Footer Elements */}
-					<footer className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 pt-10 space-y-8">
+					<footer className="mx-auto space-y-8 px-4 pt-10 sm:px-6 lg:px-8">
 						{/* Tags */}
 						{post.tags && post.tags.length > 0 && (
 							<div className="flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-6 dark:border-zinc-800">
-								<span className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+								<span className="text-xs font-bold tracking-wider text-zinc-600 uppercase dark:text-zinc-400">
 									Tags:
 								</span>
 								{post.tags.map((tag: string, idx: number) => (
@@ -259,21 +287,34 @@ export default function BlogPostContentComponent({
 						{post.author && <AuthorBox author={post.author} />}
 
 						{/* Related Products Showcase (reusing official ProductCard UI) */}
-						{post.relatedProducts && post.relatedProducts.length > 0 && (
-							<RelatedProducts
-								products={post.relatedProducts}
-								productSettings={productSettings}
-							/>
-						)}
+						{enableRelatedProducts &&
+							post.relatedProducts &&
+							post.relatedProducts.length > 0 && (
+								<RelatedProducts
+									products={post.relatedProducts}
+									title={blogSettings?.relatedProductsTitle}
+									productSettings={productSettings}
+								/>
+							)}
 
 						{/* Related Articles (Shown at bottom when no sidebar is active, or on mobile) */}
-						{relatedArticles.length > 0 && (
-							<div className={cn(hasSidebar && 'lg:hidden')}>
-								<RelatedPosts posts={relatedArticles} />
+						{enableRelatedPosts && relatedArticles.length > 0 && (
+							<div className={cn(hasActiveSidebar && 'lg:hidden')}>
+								<RelatedPosts
+									posts={relatedArticles}
+									title={blogSettings?.relatedPostsTitle}
+									icon="book"
+								/>
 							</div>
 						)}
-						{relatedArticles.length > 0 && !hasSidebar && (
-							<RelatedPosts posts={relatedArticles} />
+
+						{/* Latest Articles (Shown below related articles) */}
+						{enableLatestPosts && latestArticles.length > 0 && (
+							<RelatedPosts
+								posts={latestArticles}
+								title={blogSettings?.latestPostsTitle || 'Latest Articles'}
+								icon="sparkles"
+							/>
 						)}
 					</footer>
 				</div>

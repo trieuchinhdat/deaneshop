@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, BookOpen } from 'lucide-react'
+import { ArrowRight, BookOpen, Clock, Sparkles } from 'lucide-react'
 import { ROUTES } from '@/lib/env'
 import type { BlogPost } from '@/sanity/types'
 import Img from '@/ui/img'
@@ -9,20 +9,28 @@ import ReadTime from './read-time'
 interface RelatedPostsProps {
 	posts?: (BlogPost & { readTime?: number; excerpt?: string })[]
 	title?: string
+	icon?: 'book' | 'sparkles' | 'clock'
 }
 
 export default function RelatedPosts({
 	posts = [],
 	title = 'Related Articles',
+	icon = 'book',
 }: RelatedPostsProps) {
 	if (!posts || posts.length === 0) return null
 
 	return (
-		<section className="my-10 sm:my-12 border-t border-zinc-200 pt-8 sm:pt-10 dark:border-zinc-800">
+		<section className="my-10 border-t border-zinc-200 pt-8 sm:my-12 sm:pt-10 dark:border-zinc-800">
 			<div className="flex items-center justify-between gap-4 pb-5">
 				<div className="flex items-center gap-2">
-					<BookOpen className="size-4 sm:size-5 text-zinc-900 dark:text-zinc-100" />
-					<h3 className="text-lg sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+					{icon === 'sparkles' ? (
+						<Sparkles className="size-4 text-amber-500 sm:size-5 dark:text-amber-400" />
+					) : icon === 'clock' ? (
+						<Clock className="size-4 text-blue-500 sm:size-5 dark:text-blue-400" />
+					) : (
+						<BookOpen className="size-4 text-zinc-900 sm:size-5 dark:text-zinc-100" />
+					)}
+					<h3 className="text-lg font-bold tracking-tight text-zinc-900 sm:text-2xl dark:text-zinc-100">
 						{title}
 					</h3>
 				</div>

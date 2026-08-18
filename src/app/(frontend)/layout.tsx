@@ -15,6 +15,7 @@ import OrganizationJsonLd from '@/ui/organization-json-ld'
 import PopupModal from '@/ui/popup/popup-modal'
 import ThemeProvider from '@/ui/theme-provider'
 import TrackingScripts from '@/ui/tracking-scripts'
+import ScrollToTop from '@/ui/scroll-to-top'
 
 export async function generateMetadata(): Promise<Metadata> {
 	const site = await getSite()
@@ -148,6 +149,7 @@ export default async function RootLayout({
 				<ThemeProvider theme={theme} />
 
 				<NuqsAdapter>
+					<ScrollToTop />
 					<div className="flex min-h-screen flex-col">
 						<Header />
 						<main className="grow">{children}</main>

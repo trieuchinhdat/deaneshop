@@ -77,6 +77,10 @@ export default function ({
 		switch (module._type) {
 			case 'blog-post-content':
 				return { post, productSettings, blogSettings }
+			case 'blog-post-list':
+				return { blogSettings }
+			case 'blog-index':
+				return { blogSettings }
 			case 'product-content':
 				return { product, productSettings }
 			case 'collection-content':

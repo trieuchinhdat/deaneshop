@@ -264,6 +264,24 @@ const BLOG_POST_QUERY = groq`*[_type == 'blog.post' && metadata.slug.current == 
 			}
 		}
 	},
+	'latestPosts': *[
+		_type == 'blog.post'
+		&& _id != ^._id
+		&& metadata.noIndex != true
+	] | order(publishDate desc)[0...6]{
+		_id,
+		title,
+		publishDate,
+		excerpt,
+		'readTime': length(string::split(pt::text(content), ' ')) / 200,
+		metadata{
+			...,
+			image{
+				...,
+				asset->
+			}
+		}
+	},
 	'globalBefore': (
 		*[_type == 'global-module' && path == '*'].before[]{ ${MODULES_QUERY} }
 		+ *[_type == 'global-module' && path == $blogDir].before[]{ ${MODULES_QUERY} }

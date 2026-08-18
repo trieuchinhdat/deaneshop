@@ -151,6 +151,27 @@ const BLOG_POST_QUERY = groq`*[_type == 'blog.post' && metadata.slug.current == 
 			...,
 			asset->
 		},
+		_type == 'affiliateLink' => {
+			...,
+			affiliateRef->{
+				_id,
+				title,
+				merchant,
+				url,
+				price,
+				originalPrice,
+				couponCode,
+				rating,
+				ratingCount,
+				badge,
+				highlights,
+				description,
+				image{
+					...,
+					asset->
+				}
+			}
+		},
 		_type == 'product-embed' => {
 			...,
 			product->{

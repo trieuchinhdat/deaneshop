@@ -1,5 +1,6 @@
 import type { SchemaPluginOptions } from 'sanity'
 // documents
+import affiliateProduct from './documents/affiliate-product'
 import blogCategory from './documents/blog.category'
 import blogPost from './documents/blog.post'
 import blogSettings from './documents/blog-settings'
@@ -89,6 +90,7 @@ export const schema: SchemaPluginOptions = {
 		page,
 		globalModule,
 		blogPost,
+		affiliateProduct,
 		product,
 		review,
 		collection,

@@ -1,7 +1,7 @@
 'use client'
 
+import { ArrowRight, Check, ShoppingBag, Star } from 'lucide-react'
 import Link from 'next/link'
-import { ShoppingBag, ArrowRight, Star, Check } from 'lucide-react'
 import { useState } from 'react'
 import { cn, formatVND } from '@/lib/utils'
 import { urlFor } from '@/sanity/lib/image'
@@ -42,7 +42,8 @@ export default function ProductEmbed({
 	const productUrl = `/products/${slug}`
 	const primaryImage = product.images?.[0]
 	const price = product.salePrice ?? product.price ?? 0
-	const originalPrice = product.salePrice && product.price ? product.price : null
+	const originalPrice =
+		product.salePrice && product.price ? product.price : null
 	const discount =
 		originalPrice && originalPrice > price
 			? Math.round(((originalPrice - price) / originalPrice) * 100)
@@ -88,9 +89,9 @@ export default function ProductEmbed({
 	// 2. HORIZONTAL BANNER LAYOUT
 	if (layout === 'banner') {
 		return (
-			<div className="my-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 sm:p-6 shadow-xs transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-				<div className="flex flex-col sm:flex-row items-center gap-6">
-					<div className="relative size-32 sm:size-40 shrink-0 overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+			<div className="my-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs transition-all hover:shadow-md sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
+				<div className="flex flex-col items-center gap-6 sm:flex-row">
+					<div className="relative size-32 shrink-0 overflow-hidden rounded-xl bg-zinc-100 sm:size-40 dark:bg-zinc-800">
 						{primaryImage && (
 							<Img
 								image={primaryImage}
@@ -120,11 +121,11 @@ export default function ProductEmbed({
 							</Link>
 						</h4>
 						{customReviewSnippet && (
-							<p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
+							<p className="line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
 								{customReviewSnippet}
 							</p>
 						)}
-						<div className="flex flex-wrap items-baseline justify-center sm:justify-start gap-2 pt-1">
+						<div className="flex flex-wrap items-baseline justify-center gap-2 pt-1 sm:justify-start">
 							<span className="text-xl font-extrabold text-zinc-900 dark:text-zinc-50">
 								{formatVND(price)}
 							</span>
@@ -136,11 +137,11 @@ export default function ProductEmbed({
 						</div>
 					</div>
 
-					<div className="flex flex-col sm:flex-row gap-2 shrink-0 w-full sm:w-auto">
+					<div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto">
 						<button
 							onClick={handleAddToCart}
 							className={cn(
-								'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all shadow-xs',
+								'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-xs transition-all',
 								added
 									? 'bg-emerald-600 text-white'
 									: 'bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white',
@@ -170,7 +171,7 @@ export default function ProductEmbed({
 
 	// 3. STANDARD CARD LAYOUT (Default)
 	return (
-		<div className="my-8 mx-auto max-w-sm overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+		<div className="mx-auto my-8 max-w-sm overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
 			<div className="relative aspect-square w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
 				{primaryImage && (
 					<Img
@@ -187,22 +188,22 @@ export default function ProductEmbed({
 					</span>
 				)}
 				{customBadge && (
-					<span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-amber-500/90 backdrop-blur-xs px-2.5 py-1 text-xs font-semibold text-white shadow-xs">
+					<span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-amber-500/90 px-2.5 py-1 text-xs font-semibold text-white shadow-xs backdrop-blur-xs">
 						<Star className="size-3 fill-white text-white" />
 						{customBadge}
 					</span>
 				)}
 			</div>
 
-			<div className="p-5 space-y-3">
-				<h4 className="font-bold text-base text-zinc-900 dark:text-zinc-100 line-clamp-2">
+			<div className="space-y-3 p-5">
+				<h4 className="line-clamp-2 text-base font-bold text-zinc-900 dark:text-zinc-100">
 					<Link href={productUrl} className="hover:underline">
 						{product.title}
 					</Link>
 				</h4>
 
 				{customReviewSnippet && (
-					<p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 italic">
+					<p className="line-clamp-2 text-xs text-zinc-600 italic dark:text-zinc-400">
 						"{customReviewSnippet}"
 					</p>
 				)}
@@ -222,7 +223,7 @@ export default function ProductEmbed({
 					<button
 						onClick={handleAddToCart}
 						className={cn(
-							'flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold transition-all shadow-xs',
+							'flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold shadow-xs transition-all',
 							added
 								? 'bg-emerald-600 text-white'
 								: 'bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white',

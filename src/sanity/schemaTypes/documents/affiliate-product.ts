@@ -1,0 +1,141 @@
+import { defineField, defineType } from 'sanity'
+import { TagIcon } from '@sanity/icons'
+
+export default defineType({
+	name: 'affiliate.product',
+	title: 'Affiliate Products (Catalog)',
+	type: 'document',
+	icon: TagIcon,
+	groups: [
+		{ name: 'general', title: 'General Info', default: true },
+		{ name: 'pricing', title: 'Pricing & Deal' },
+		{ name: 'review', title: 'Rating & Features' },
+	],
+	fields: [
+		defineField({
+			name: 'title',
+			title: 'Product / Service Name',
+			description: 'e.g., "Hostinger Web Hosting", "Shopify E-commerce", "Figma Pro"',
+			type: 'string',
+			validation: (Rule) => Rule.required(),
+			group: 'general',
+		}),
+		defineField({
+			name: 'slug',
+			title: 'Identifier Slug',
+			type: 'slug',
+			options: {
+				source: 'title',
+				maxLength: 96,
+			},
+			validation: (Rule) => Rule.required(),
+			group: 'general',
+		}),
+		defineField({
+			name: 'merchant',
+			title: 'Merchant / Platform Name',
+			description: 'e.g., "Amazon", "Official Website", "App Store", "Envato"',
+			type: 'string',
+			placeholder: 'Hostinger / Amazon',
+			group: 'general',
+		}),
+		defineField({
+			name: 'url',
+			title: 'Affiliate Target URL',
+			description: 'The destination link with your partner affiliate tracking tag.',
+			type: 'url',
+			validation: (Rule) =>
+				Rule.required().uri({
+					scheme: ['http', 'https'],
+				}),
+			group: 'general',
+		}),
+		defineField({
+			name: 'image',
+			title: 'Product Image / Logo',
+			type: 'image',
+			options: {
+				hotspot: true,
+				metadata: ['lqip'],
+			},
+			group: 'general',
+		}),
+		defineField({
+			name: 'badge',
+			title: 'Promotional Badge',
+			description: 'e.g., "Editor\'s Choice", "Best Value", "Top Rated", "Special Offer"',
+			type: 'string',
+			placeholder: "Editor's Choice",
+			group: 'pricing',
+		}),
+		defineField({
+			name: 'price',
+			title: 'Sale / Discounted Price',
+			description: 'e.g., "$2.99 / mo", "$49.00", "Free Trial"',
+			type: 'string',
+			placeholder: '$2.99 / mo',
+			group: 'pricing',
+		}),
+		defineField({
+			name: 'originalPrice',
+			title: 'Original Price (Strikethrough)',
+			description: 'e.g., "$11.99 / mo", "$99.00"',
+			type: 'string',
+			placeholder: '$11.99 / mo',
+			group: 'pricing',
+		}),
+		defineField({
+			name: 'couponCode',
+			title: 'Promo / Coupon Code (Optional)',
+			description: 'Readers can copy this code with 1 click to receive a discount.',
+			type: 'string',
+			placeholder: 'DEAN75',
+			group: 'pricing',
+		}),
+		defineField({
+			name: 'rating',
+			title: 'Editorial Rating (0 - 5.0)',
+			description: 'Your rating score for this product.',
+			type: 'number',
+			initialValue: 4.9,
+			validation: (Rule) => Rule.min(0).max(5).precision(1),
+			group: 'review',
+		}),
+		defineField({
+			name: 'ratingCount',
+			title: 'User Ratings / Reviews Count (Optional)',
+			description: 'e.g., 1450',
+			type: 'number',
+			group: 'review',
+		}),
+		defineField({
+			name: 'highlights',
+			title: 'Key Feature Highlights (Bullet Points)',
+			description: 'Add 2-4 compelling pros/features (e.g., "Free Domain & SSL", "99.9% Uptime Guarantee").',
+			type: 'array',
+			of: [{ type: 'string' }],
+			group: 'review',
+		}),
+		defineField({
+			name: 'description',
+			title: 'Short Editorial Verdict',
+			description: 'Brief 1-2 sentence recommendation summary.',
+			type: 'text',
+			rows: 2,
+			group: 'review',
+		}),
+	],
+	preview: {
+		select: {
+			title: 'title',
+			merchant: 'merchant',
+			price: 'price',
+			media: 'image',
+		},
+		prepare: ({ title, merchant, price, media }) => ({
+			title: title || 'Untitled Affiliate Product',
+			subtitle: `${merchant || 'Affiliate'} • ${price || 'View Deal'}`,
+			media,
+		}),
+	},
+})

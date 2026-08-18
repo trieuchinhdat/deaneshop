@@ -12,7 +12,10 @@ export default function SearchBar() {
 				<Search className="size-4" />
 			</div>
 			<input
+				id="blog-search-input"
 				type="text"
+				name="q"
+				aria-label="Search articles & topics"
 				value={searchQuery || ''}
 				onChange={(e) => setSearchQuery(e.target.value || null)}
 				placeholder="Search articles & topics..."

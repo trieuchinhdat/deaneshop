@@ -6,7 +6,7 @@ export async function GET(req: Request) {
 		const { searchParams } = new URL(req.url)
 		const since = searchParams.get('since')
 
-		const [newOrders, allOrders, allCustomers, allReviews] = await Promise.all([
+		const [newOrders, allOrders, allCustomers, allReviews, allComments] = await Promise.all([
 			since
 				? writeClient.fetch(
 						`*[_type == "order" && _createdAt > $since] | order(_createdAt desc) {
@@ -83,6 +83,20 @@ export async function GET(req: Request) {
 					}
 				}`,
 			),
+
+			writeClient.fetch(
+				`*[_type == "blog.comment"] | order(createdAt desc) {
+					_id,
+					authorName,
+					authorEmail,
+					content,
+					isAuthorReply,
+					isApproved,
+					createdAt,
+					post->{ _id, title, "slug": metadata.slug.current },
+					parentComment->{ _id, authorName, content }
+				}`,
+			),
 		])
 
 		return NextResponse.json({
@@ -93,6 +107,7 @@ export async function GET(req: Request) {
 			orders: allOrders || [],
 			customers: allCustomers || [],
 			reviews: allReviews || [],
+			comments: allComments || [],
 			timestamp: new Date().toISOString(),
 		})
 	} catch (error: any) {

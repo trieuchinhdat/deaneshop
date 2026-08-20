@@ -165,6 +165,14 @@ export default defineType({
 			initialValue: 'default',
 			group: 'settings',
 		}),
+		defineField({
+			name: 'allowComments',
+			title: 'Allow Reader Comments & Discussion',
+			description: 'Enable or disable the comments section for this specific article.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'settings',
+		}),
 
 		// ================= GROUP 3: SEO & METADATA =================
 		defineField({

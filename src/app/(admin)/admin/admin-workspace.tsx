@@ -2,24 +2,38 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+	FiAlertCircle,
+	FiAlertTriangle,
+	FiArrowRight,
 	FiAward,
 	FiBell,
+	FiCheck,
 	FiCheckCircle,
 	FiChevronLeft,
 	FiChevronRight,
 	FiClock,
 	FiDownload,
+	FiExternalLink,
 	FiEye,
+	FiFileText,
+	FiFilter,
 	FiGift,
+	FiGrid,
 	FiImage,
+	FiLayers,
+	FiMail,
+	FiMenu,
+	FiMessageCircle,
 	FiMessageSquare,
 	FiPackage,
 	FiPhone,
 	FiPrinter,
 	FiRefreshCw,
 	FiSearch,
+	FiShield,
 	FiShoppingBag,
 	FiStar,
+	FiTrendingUp,
 	FiTruck,
 	FiUser,
 	FiUserCheck,
@@ -28,41 +42,54 @@ import {
 	FiVolume2,
 	FiVolumeX,
 	FiX,
+	FiXCircle,
 } from 'react-icons/fi'
 import { formatVND } from '@/lib/utils'
+import CommentModal from './comment-modal'
 import CustomerDetailModal from './customer-detail-modal'
 import OrderDetailModal from './order-detail-modal'
 import OrderPrintModal from './order-print-modal'
 import ReviewModal from './review-modal'
 
+type TabType = 'overview' | 'orders' | 'customers' | 'reviews' | 'comments'
+
 type AdminWorkspaceProps = {
 	initialOrders: any[]
 	initialCustomers: any[]
 	initialReviews: any[]
+	initialComments: any[]
+	adminUser?: any
 }
 
 const ORDER_STATUS_TABS = [
-	{ label: 'Tất cả', value: 'ALL' },
-	{ label: '⏳ Chờ xác nhận', value: 'PENDING' },
-	{ label: '📦 Đang xử lý', value: 'PROCESSING' },
-	{ label: '🚚 Đang giao', value: 'SHIPPING' },
-	{ label: '✅ Giao thành công', value: 'DELIVERED' },
-	{ label: '❌ Đã hủy / Hoàn', value: 'CANCELLED' },
+	{ label: 'Tất cả đơn', value: 'ALL' },
+	{ label: 'Chờ xác nhận', value: 'PENDING' },
+	{ label: 'Đang đóng gói', value: 'PROCESSING' },
+	{ label: 'Đang giao hàng', value: 'SHIPPING' },
+	{ label: 'Giao thành công', value: 'DELIVERED' },
+	{ label: 'Đã hủy / Hoàn', value: 'CANCELLED' },
 ]
 
 const CUSTOMER_TABS = [
-	{ label: 'Tất cả', value: 'ALL' },
-	{ label: '🟢 Khách tiềm năng (Popup)', value: 'lead' },
-	{ label: '🛒 Đã mua hàng', value: 'customer' },
-	{ label: '🌟 Khách VIP', value: 'vip' },
+	{ label: 'Tất cả khách', value: 'ALL' },
+	{ label: 'Khách tiềm năng (Lead)', value: 'lead' },
+	{ label: 'Đã mua hàng', value: 'customer' },
+	{ label: 'Khách VIP (> 2tr)', value: 'vip' },
 ]
 
 const REVIEW_TABS = [
 	{ label: 'Tất cả', value: 'ALL' },
-	{ label: '⏳ Chờ duyệt', value: 'PENDING' },
-	{ label: '✅ Đã duyệt', value: 'APPROVED' },
-	{ label: '⚠️ 1 - 2 sao (Cần CSKH)', value: 'NEGATIVE' },
-	{ label: '🌟 5 sao', value: 'FIVE_STAR' },
+	{ label: 'Chờ duyệt', value: 'PENDING' },
+	{ label: 'Đã duyệt', value: 'APPROVED' },
+	{ label: '1 - 2 sao (Cần CSKH)', value: 'NEGATIVE' },
+	{ label: '5 sao xuất sắc', value: 'FIVE_STAR' },
+]
+
+const COMMENT_TABS = [
+	{ label: 'Tất cả bình luận', value: 'ALL' },
+	{ label: 'Chờ duyệt', value: 'PENDING' },
+	{ label: 'Đã duyệt', value: 'APPROVED' },
+	{ label: 'Phản hồi chính thức', value: 'OFFICIAL_REPLY' },
 ]
 
 const TIMEFRAME_OPTIONS = [
@@ -72,17 +99,52 @@ const TIMEFRAME_OPTIONS = [
 	{ label: 'Toàn bộ thời gian', value: 'all' },
 ]
 
-const STATUS_BADGES: Record<string, { label: string; className: string }> = {
-	PENDING: { label: 'Chờ xác nhận', className: 'bg-amber-100 text-amber-800 border-amber-200' },
-	CONFIRMED: { label: 'Đã xác nhận', className: 'bg-blue-100 text-blue-800 border-blue-200' },
-	PROCESSING: { label: 'Đang đóng gói', className: 'bg-blue-100 text-blue-800 border-blue-200' },
-	SHIPPING: { label: 'Đang giao hàng', className: 'bg-purple-100 text-purple-800 border-purple-200' },
-	DELIVERED: { label: 'Giao thành công', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-	CANCELLED: { label: 'Đã hủy', className: 'bg-red-100 text-red-800 border-red-200' },
-	RETURNED: { label: 'Chuyển hoàn', className: 'bg-slate-200 text-slate-800 border-slate-300' },
+const STATUS_BADGES: Record<string, { label: string; bg: string; text: string; border: string }> = {
+	PENDING: {
+		label: 'Chờ xác nhận',
+		bg: 'bg-amber-50',
+		text: 'text-amber-800',
+		border: 'border-amber-200/80',
+	},
+	CONFIRMED: {
+		label: 'Đã xác nhận',
+		bg: 'bg-blue-50',
+		text: 'text-blue-800',
+		border: 'border-blue-200/80',
+	},
+	PROCESSING: {
+		label: 'Đang đóng gói',
+		bg: 'bg-indigo-50',
+		text: 'text-indigo-800',
+		border: 'border-indigo-200/80',
+	},
+	SHIPPING: {
+		label: 'Đang giao hàng',
+		bg: 'bg-purple-50',
+		text: 'text-purple-800',
+		border: 'border-purple-200/80',
+	},
+	DELIVERED: {
+		label: 'Giao thành công',
+		bg: 'bg-emerald-50',
+		text: 'text-emerald-800',
+		border: 'border-emerald-200/80',
+	},
+	CANCELLED: {
+		label: 'Đã hủy',
+		bg: 'bg-rose-50',
+		text: 'text-rose-800',
+		border: 'border-rose-200/80',
+	},
+	RETURNED: {
+		label: 'Chuyển hoàn',
+		bg: 'bg-slate-100',
+		text: 'text-slate-700',
+		border: 'border-slate-200',
+	},
 }
 
-// Crystal chime sound synthesizer using Web Audio API
+// Web Audio API crystal chime sound
 function playCrystalNotificationSound() {
 	try {
 		const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
@@ -111,7 +173,7 @@ function playCrystalNotificationSound() {
 		osc2.start(ctx.currentTime + 0.1)
 		osc2.stop(ctx.currentTime + 0.7)
 	} catch (e) {
-		console.warn('AudioContext not allowed without user interaction:', e)
+		console.warn('AudioContext warning:', e)
 	}
 }
 
@@ -119,8 +181,13 @@ export default function AdminWorkspace({
 	initialOrders = [],
 	initialCustomers = [],
 	initialReviews = [],
+	initialComments = [],
 }: AdminWorkspaceProps) {
-	const [activeTab, setActiveTab] = useState<'orders' | 'customers' | 'reviews'>('orders')
+	// Active Tab State
+	const [activeTab, setActiveTab] = useState<TabType>('overview')
+	const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+
+	// Main Data States
 	const [orders, setOrders] = useState<any[]>(Array.isArray(initialOrders) ? initialOrders : [])
 	const [customers, setCustomers] = useState<any[]>(
 		Array.isArray(initialCustomers) ? initialCustomers : [],
@@ -128,13 +195,17 @@ export default function AdminWorkspace({
 	const [reviews, setReviews] = useState<any[]>(
 		Array.isArray(initialReviews) ? initialReviews : [],
 	)
+	const [comments, setComments] = useState<any[]>(
+		Array.isArray(initialComments) ? initialComments : [],
+	)
 
-	// Timeframe & Pagination States
+	// Timeframe & Pagination
 	const [timeframe, setTimeframe] = useState('30d')
 	const [orderPage, setOrderPage] = useState(1)
 	const [customerPage, setCustomerPage] = useState(1)
 	const [reviewPage, setReviewPage] = useState(1)
-	const itemsPerPage = 15
+	const [commentPage, setCommentPage] = useState(1)
+	const itemsPerPage = 12
 
 	// Filter & Search states
 	const [orderStatusFilter, setOrderStatusFilter] = useState('ALL')
@@ -143,20 +214,23 @@ export default function AdminWorkspace({
 	const [customerSearchQuery, setCustomerSearchQuery] = useState('')
 	const [reviewStatusFilter, setReviewStatusFilter] = useState('ALL')
 	const [reviewSearchQuery, setReviewSearchQuery] = useState('')
+	const [commentStatusFilter, setCommentStatusFilter] = useState('ALL')
+	const [commentSearchQuery, setCommentSearchQuery] = useState('')
 
 	// Modals
 	const [selectedOrderForDetail, setSelectedOrderForDetail] = useState<any | null>(null)
 	const [selectedOrderForPrint, setSelectedOrderForPrint] = useState<any | null>(null)
 	const [selectedCustomerForDetail, setSelectedCustomerForDetail] = useState<any | null>(null)
 	const [selectedReviewForDetail, setSelectedReviewForDetail] = useState<any | null>(null)
+	const [selectedCommentForDetail, setSelectedCommentForDetail] = useState<any | null>(null)
 
-	// Realtime Order Notification states
+	// Realtime Polling & Sound
 	const [soundEnabled, setSoundEnabled] = useState(true)
 	const [newOrderAlertCount, setNewOrderAlertCount] = useState(0)
 	const lastCheckedTimeRef = useRef<string>(new Date().toISOString())
 	const [isPolling, setIsPolling] = useState(false)
 
-	// Auto-polling for new orders every 25s
+	// Auto-polling every 25s
 	useEffect(() => {
 		const interval = setInterval(async () => {
 			try {
@@ -175,10 +249,11 @@ export default function AdminWorkspace({
 					if (Array.isArray(data.orders)) setOrders(data.orders)
 					if (Array.isArray(data.customers)) setCustomers(data.customers)
 					if (Array.isArray(data.reviews)) setReviews(data.reviews)
+					if (Array.isArray(data.comments)) setComments(data.comments)
 					lastCheckedTimeRef.current = data.timestamp || new Date().toISOString()
 				}
 			} catch (err) {
-				console.error('Admin Polling error:', err)
+				console.error('Polling error:', err)
 			} finally {
 				setIsPolling(false)
 			}
@@ -193,9 +268,17 @@ export default function AdminWorkspace({
 		const pendingOrders = orders.filter(
 			(o) => !o.fulfillmentStatus || o.fulfillmentStatus === 'PENDING',
 		).length
-		const deliveringOrders = orders.filter((o) => o.fulfillmentStatus === 'SHIPPING').length
+		const processingOrders = orders.filter(
+			(o) => o.fulfillmentStatus === 'PROCESSING' || o.fulfillmentStatus === 'CONFIRMED',
+		).length
+		const shippingOrders = orders.filter((o) => o.fulfillmentStatus === 'SHIPPING').length
+		const deliveredOrders = orders.filter((o) => o.fulfillmentStatus === 'DELIVERED').length
+		const cancelledOrders = orders.filter(
+			(o) => o.fulfillmentStatus === 'CANCELLED' || o.fulfillmentStatus === 'RETURNED',
+		).length
+
 		const totalRevenue = orders
-			.filter((o) => o.fulfillmentStatus !== 'CANCELLED')
+			.filter((o) => o.fulfillmentStatus !== 'CANCELLED' && o.fulfillmentStatus !== 'RETURNED')
 			.reduce((acc, o) => acc + (Number(o?.pricing?.grandTotal) || 0), 0)
 
 		const totalCust = customers.length
@@ -205,20 +288,40 @@ export default function AdminWorkspace({
 		const vipCustomers = customers.filter(
 			(c) => c.cskhStatus === 'vip' || (Number(c.totalSpent) || 0) >= 2000000,
 		).length
+		const buyerCustomers = customers.filter((c) => (Number(c.orderCount) || 0) > 0).length
 
+		const totalReviews = reviews.length
 		const pendingReviews = reviews.filter((r) => !r.isApproved).length
+		const fiveStarReviews = reviews.filter((r) => Number(r.rating) === 5).length
+		const avgRating = totalReviews
+			? (reviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / totalReviews).toFixed(1)
+			: '5.0'
+
+		const totalComments = comments.length
+		const pendingComments = comments.filter((c) => !c.isApproved).length
+		const officialReplies = comments.filter((c) => c.isAuthorReply).length
 
 		return {
 			totalOrders,
 			pendingOrders,
-			deliveringOrders,
+			processingOrders,
+			shippingOrders,
+			deliveredOrders,
+			cancelledOrders,
 			totalRevenue,
 			totalCust,
 			popupLeads,
 			vipCustomers,
+			buyerCustomers,
+			totalReviews,
 			pendingReviews,
+			fiveStarReviews,
+			avgRating,
+			totalComments,
+			pendingComments,
+			officialReplies,
 		}
-	}, [orders, customers, reviews])
+	}, [orders, customers, reviews, comments])
 
 	// Filter Orders by Timeframe
 	const timeframeFilteredOrders = useMemo(() => {
@@ -259,7 +362,8 @@ export default function AdminWorkspace({
 				const matchName = order.customer?.name?.toLowerCase().includes(q)
 				const matchPhone = order.customer?.phone?.toLowerCase().includes(q)
 				const matchEmail = order.customer?.email?.toLowerCase().includes(q)
-				if (!matchId && !matchName && !matchPhone && !matchEmail) return false
+				const matchTracking = order.trackingCode?.toLowerCase().includes(q)
+				if (!matchId && !matchName && !matchPhone && !matchEmail && !matchTracking) return false
 			}
 
 			return true
@@ -336,7 +440,39 @@ export default function AdminWorkspace({
 		return filteredReviews.slice(start, start + itemsPerPage)
 	}, [filteredReviews, reviewPage])
 
-	// Quick 1-Click Status Update for Orders
+	// Filtered Comments List
+	const filteredComments = useMemo(() => {
+		return comments.filter((c) => {
+			if (commentStatusFilter !== 'ALL') {
+				if (commentStatusFilter === 'PENDING') {
+					if (c.isApproved) return false
+				} else if (commentStatusFilter === 'APPROVED') {
+					if (!c.isApproved) return false
+				} else if (commentStatusFilter === 'OFFICIAL_REPLY') {
+					if (!c.isAuthorReply) return false
+				}
+			}
+
+			if (commentSearchQuery.trim()) {
+				const q = commentSearchQuery.trim().toLowerCase()
+				const matchAuthor = c.authorName?.toLowerCase().includes(q)
+				const matchEmail = c.authorEmail?.toLowerCase().includes(q)
+				const matchContent = c.content?.toLowerCase().includes(q)
+				const matchPost = c.post?.title?.toLowerCase().includes(q)
+				if (!matchAuthor && !matchEmail && !matchContent && !matchPost) return false
+			}
+
+			return true
+		})
+	}, [comments, commentStatusFilter, commentSearchQuery])
+
+	const totalCommentPages = Math.ceil(filteredComments.length / itemsPerPage) || 1
+	const paginatedComments = useMemo(() => {
+		const start = (commentPage - 1) * itemsPerPage
+		return filteredComments.slice(start, start + itemsPerPage)
+	}, [filteredComments, commentPage])
+
+	// 1-Click Status Update for Orders
 	const handleQuickStatusChange = async (orderId: string, newStatus: string) => {
 		try {
 			setOrders((prev) =>
@@ -353,11 +489,11 @@ export default function AdminWorkspace({
 				}),
 			})
 		} catch (err) {
-			console.error('Quick status change error:', err)
+			console.error('Status update error:', err)
 		}
 	}
 
-	// Quick 1-Click Approve / Hide for Reviews
+	// 1-Click Toggle Review Approval
 	const handleQuickToggleReviewApproval = async (reviewId: string, currentApproved: boolean) => {
 		const nextState = !currentApproved
 		try {
@@ -374,13 +510,48 @@ export default function AdminWorkspace({
 				}),
 			})
 		} catch (err) {
-			console.error('Review approval toggle error:', err)
+			console.error('Review approval error:', err)
+		}
+	}
+
+	// 1-Click Toggle Comment Approval
+	const handleQuickToggleCommentApproval = async (
+		commentId: string,
+		currentApproved: boolean,
+	) => {
+		const nextState = !currentApproved
+		try {
+			setComments((prev) =>
+				prev.map((c) => (c._id === commentId ? { ...c, isApproved: nextState } : c)),
+			)
+
+			await fetch('/api/admin/comments/update', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					commentId,
+					isApproved: nextState,
+				}),
+			})
+		} catch (err) {
+			console.error('Comment approval error:', err)
 		}
 	}
 
 	// Export CSV Helpers
 	const exportOrdersToCSV = () => {
-		const headers = ['Mã Đơn', 'Khách Hàng', 'SĐT', 'Địa Chỉ', 'Sản Phẩm', 'Tổng Tiền', 'Trạng Thái', 'Ngày Tạo']
+		const headers = [
+			'Mã Đơn',
+			'Khách Hàng',
+			'SĐT',
+			'Địa Chỉ',
+			'Sản Phẩm',
+			'Tổng Tiền',
+			'Trạng Thái',
+			'Đơn Vị VC',
+			'Mã Vận Đơn',
+			'Ngày Tạo',
+		]
 		const rows = filteredOrders.map((o) => [
 			o.orderId || '',
 			o.customer?.name || '',
@@ -389,6 +560,8 @@ export default function AdminWorkspace({
 			`"${(Array.isArray(o.items) ? o.items : []).map((i: any) => `${i?.title || 'Sản phẩm'} (x${i?.quantity || 1})`).join(', ')}"`,
 			o.pricing?.grandTotal || 0,
 			o.fulfillmentStatus || 'PENDING',
+			o.carrier || '',
+			o.trackingCode || '',
 			o._createdAt ? new Date(o._createdAt).toLocaleString('vi-VN') : '',
 		])
 
@@ -406,7 +579,16 @@ export default function AdminWorkspace({
 	}
 
 	const exportCustomersToCSV = () => {
-		const headers = ['Họ Tên', 'Số Điện Thoại', 'Email', 'Địa Chỉ', 'Nguồn', 'Số Đơn', 'Tổng Chi Tiêu', 'Phân Khúc']
+		const headers = [
+			'Họ Tên',
+			'Số Điện Thoại',
+			'Email',
+			'Địa Chỉ',
+			'Nguồn',
+			'Số Đơn',
+			'Tổng Chi Tiêu',
+			'Phân Khúc',
+		]
 		const rows = filteredCustomers.map((c) => [
 			c.name || '',
 			`'${c.phone || ''}`,
@@ -432,7 +614,15 @@ export default function AdminWorkspace({
 	}
 
 	const exportReviewsToCSV = () => {
-		const headers = ['Người Đánh Giá', 'Sản Phẩm', 'Số Sao', 'Nội Dung', 'Trạng Thái', 'Phản Hồi Của Shop', 'Ngày Gửi']
+		const headers = [
+			'Người Đánh Giá',
+			'Sản Phẩm',
+			'Số Sao',
+			'Nội Dung',
+			'Trạng Thái',
+			'Phản Hồi Shop',
+			'Ngày Gửi',
+		]
 		const rows = filteredReviews.map((r) => [
 			r.author || '',
 			r.product?.title || '',
@@ -456,26 +646,97 @@ export default function AdminWorkspace({
 		document.body.removeChild(link)
 	}
 
+	const exportCommentsToCSV = () => {
+		const headers = [
+			'Người Bình Luận',
+			'Email',
+			'Bài Viết',
+			'Nội Dung',
+			'Trạng Thái',
+			'Là Tác Giả',
+			'Ngày Tạo',
+		]
+		const rows = filteredComments.map((c) => [
+			c.authorName || '',
+			c.authorEmail || '',
+			c.post?.title || '',
+			`"${(c.content || '').replace(/"/g, '""')}"`,
+			c.isApproved ? 'Đã duyệt' : 'Chờ duyệt',
+			c.isAuthorReply ? 'Tác giả' : 'Khách',
+			c.createdAt ? new Date(c.createdAt).toLocaleString('vi-VN') : '',
+		])
+
+		const csvContent =
+			'data:text/csv;charset=utf-8,\uFEFF' +
+			[headers.join(','), ...rows.map((e) => e.join(','))].join('\n')
+
+		const encodedUri = encodeURI(csvContent)
+		const link = document.createElement('a')
+		link.setAttribute('href', encodedUri)
+		link.setAttribute('download', `ecocros_comments_${new Date().toISOString().slice(0, 10)}.csv`)
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+	}
+
+	// Navigation items list
+	const navItems = [
+		{
+			id: 'overview' as TabType,
+			label: 'Tổng Quan',
+			icon: FiGrid,
+			badge: null,
+		},
+		{
+			id: 'orders' as TabType,
+			label: 'Quản Lý Đơn Hàng',
+			icon: FiPackage,
+			badge: kpiStats.pendingOrders > 0 ? kpiStats.pendingOrders : null,
+			badgeColor: 'bg-amber-100 text-amber-900 border border-amber-200',
+		},
+		{
+			id: 'customers' as TabType,
+			label: 'Hồ Sơ Khách Hàng (CRM)',
+			icon: FiUsers,
+			badge: kpiStats.totalCust || null,
+			badgeColor: 'bg-slate-100 text-slate-700 border border-slate-200',
+		},
+		{
+			id: 'reviews' as TabType,
+			label: 'Đánh Giá Sản Phẩm',
+			icon: FiStar,
+			badge: kpiStats.pendingReviews > 0 ? kpiStats.pendingReviews : null,
+			badgeColor: 'bg-amber-100 text-amber-900 border border-amber-200 font-bold',
+		},
+		{
+			id: 'comments' as TabType,
+			label: 'Bình Luận Blog & Q&A',
+			icon: FiMessageSquare,
+			badge: kpiStats.pendingComments > 0 ? kpiStats.pendingComments : null,
+			badgeColor: 'bg-indigo-100 text-indigo-900 border border-indigo-200 font-bold',
+		},
+	]
+
 	return (
-		<div className="space-y-6">
-			{/* Floating Realtime New Order Alert Toast */}
+		<div className="min-h-screen bg-slate-50/70 text-slate-900 flex flex-col md:flex-row antialiased font-sans">
+			{/* Realtime Alert Toast Floating */}
 			{newOrderAlertCount > 0 && (
-				<div className="sticky top-20 z-40 flex items-center justify-between gap-4 rounded-2xl bg-emerald-900 p-4 text-white shadow-2xl animate-in slide-in-from-top-4 border border-emerald-700/80">
+				<div className="fixed top-4 right-4 z-50 flex items-center justify-between gap-4 rounded-2xl bg-emerald-900 p-4 text-white shadow-2xl border border-emerald-700/80 backdrop-blur-md animate-in slide-in-from-top-4 max-w-md">
 					<div className="flex items-center gap-3">
-						<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500 text-white animate-bounce shadow-md">
-							<FiBell className="h-5 w-5" />
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-slate-950 animate-bounce shadow-md">
+							<FiBell className="h-5 w-5 font-bold text-white" />
 						</div>
 						<div>
-							<h4 className="font-extrabold text-sm sm:text-base">
+							<h4 className="font-extrabold text-sm text-white">
 								🔔 Có {newOrderAlertCount} đơn hàng mới vừa đặt!
 							</h4>
 							<p className="text-xs text-emerald-200">
-								Khách hàng vừa hoàn tất thanh toán. Vui lòng kiểm tra và gọi điện xác nhận.
+								Khách vừa đặt hàng thành công. Vui lòng kiểm tra và liên hệ.
 							</p>
 						</div>
 					</div>
 
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-1.5">
 						<button
 							type="button"
 							onClick={() => {
@@ -484,996 +745,1537 @@ export default function AdminWorkspace({
 								setOrderStatusFilter('PENDING')
 								setOrderPage(1)
 							}}
-							className="rounded-xl bg-white px-4 py-2 text-xs font-bold text-emerald-950 shadow-md hover:bg-emerald-50 transition active:scale-95 cursor-pointer"
+							className="rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 shadow-md hover:bg-slate-100 transition active:scale-95 cursor-pointer shrink-0"
 						>
-							Xem đơn mới ngay
+							Xem ngay
 						</button>
 						<button
 							type="button"
 							onClick={() => setNewOrderAlertCount(0)}
-							className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-300 hover:text-white hover:bg-emerald-800 transition cursor-pointer"
+							className="flex h-7 w-7 items-center justify-center rounded-lg text-emerald-300 hover:text-white hover:bg-emerald-800 transition cursor-pointer"
 						>
-							<FiX className="h-5 w-5" />
+							<FiX className="h-4 w-4" />
 						</button>
 					</div>
 				</div>
 			)}
 
-			{/* Top Bar: Title & Controls */}
-			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-				<div>
-					<div className="flex items-center gap-2.5">
-						<h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-							Quản Trị Bán Hàng & CSKH
-						</h1>
-						{isPolling && (
-							<span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping" title="Đang đồng bộ realtime" />
-						)}
+			{/* ================= DESKTOP LEFT SIDEBAR ================= */}
+			<aside className="hidden md:flex md:w-72 lg:w-80 flex-col shrink-0 border-r border-slate-200/90 bg-white sticky top-0 h-screen z-30 overflow-y-auto shadow-2xs">
+				{/* Brand Header */}
+				<div className="p-6 border-b border-slate-200/90">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-slate-900 via-slate-800 to-emerald-900 text-white font-black text-xl shadow-md">
+								E
+							</div>
+							<div>
+								<div className="flex items-center gap-1.5">
+									<span className="font-black text-lg tracking-tight text-slate-900">ECOCROS</span>
+									<span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black text-emerald-800 border border-emerald-200">
+										ADMIN
+									</span>
+								</div>
+								<p className="text-[11px] font-semibold text-slate-500">
+									Commerce Operations Hub
+								</p>
+							</div>
+						</div>
+
+						{/* Realtime Live Pulse */}
+						<div
+							className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600"
+							title="Đồng bộ dữ liệu Realtime 25s/lần"
+						>
+							<span
+								className={`h-2 w-2 rounded-full ${
+									isPolling ? 'bg-amber-500 animate-ping' : 'bg-emerald-500 animate-pulse'
+								}`}
+							/>
+							<span>{isPolling ? 'Syncing' : 'Live'}</span>
+						</div>
 					</div>
-					<p className="text-xs sm:text-sm text-slate-500 mt-1">
-						Quản lý đơn hàng, theo dõi giao vận, hồ sơ khách hàng 360° và duyệt đánh giá sản phẩm.
-					</p>
 				</div>
 
-				<div className="flex items-center gap-2 self-start sm:self-auto">
-					{/* Sound Notification Toggle */}
-					<button
-						type="button"
-						onClick={() => setSoundEnabled(!soundEnabled)}
-						className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition shadow-2xs cursor-pointer ${
-							soundEnabled
-								? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-								: 'bg-white text-slate-500 border-slate-200'
-						}`}
-						title={soundEnabled ? 'Chuông báo đơn mới đang bật' : 'Chuông báo đơn mới đang tắt'}
-					>
-						{soundEnabled ? <FiVolume2 className="h-4 w-4" /> : <FiVolumeX className="h-4 w-4" />}
-						<span className="hidden sm:inline">{soundEnabled ? 'Âm báo bật' : 'Âm báo tắt'}</span>
-					</button>
-
-					{/* Timeframe Selector */}
-					<div className="relative">
-						<select
-							value={timeframe}
-							onChange={(e) => {
-								setTimeframe(e.target.value)
-								setOrderPage(1)
-							}}
-							className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-2xs focus:border-emerald-600 focus:outline-hidden cursor-pointer"
-						>
-							{TIMEFRAME_OPTIONS.map((opt) => (
-								<option key={opt.value} value={opt.value}>
-									📅 {opt.label}
-								</option>
-							))}
-						</select>
+				{/* Navigation Links */}
+				<div className="flex-1 px-4 py-6 space-y-1.5">
+					<div className="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400">
+						Khu Vực Quản Trị
 					</div>
 
-					{/* Manual Refresh */}
+					{navItems.map((item) => {
+						const Icon = item.icon
+						const isActive = activeTab === item.id
+
+						return (
+							<button
+								key={item.id}
+								type="button"
+								onClick={() => setActiveTab(item.id)}
+								className={`flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-3.5 text-xs font-bold transition-all cursor-pointer ${
+									isActive
+										? 'bg-slate-900 text-white shadow-md font-black'
+										: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-transparent'
+								}`}
+							>
+								<div className="flex items-center gap-3">
+									<div
+										className={`flex h-8 w-8 items-center justify-center rounded-xl transition ${
+											isActive
+												? 'bg-emerald-500 text-slate-950 shadow-xs'
+												: 'bg-slate-100 text-slate-500'
+										}`}
+									>
+										<Icon className="h-4 w-4" />
+									</div>
+									<span className="tracking-tight">{item.label}</span>
+								</div>
+
+								{item.badge !== null && (
+									<span
+										className={`rounded-full px-2 py-0.5 text-[10px] font-black shadow-2xs ${
+											isActive
+												? 'bg-white/20 text-white'
+												: item.badgeColor || 'bg-slate-100 text-slate-600'
+										}`}
+									>
+										{item.badge}
+									</span>
+								)}
+							</button>
+						)
+					})}
+
+					{/* Quick External Tools Section */}
+					<div className="pt-6 px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400">
+						Lối Tắt Hệ Thống
+					</div>
+
+					<div className="space-y-1">
+						<a
+							href="/studio"
+							target="_blank"
+							rel="noreferrer"
+							className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group"
+						>
+							<div className="flex items-center gap-2.5">
+								<FiLayers className="h-4 w-4 text-indigo-600" />
+								<span>Sanity Studio CMS</span>
+							</div>
+							<FiExternalLink className="h-3.5 w-3.5 text-slate-400 group-hover:text-slate-900" />
+						</a>
+
+						<a
+							href="/"
+							target="_blank"
+							rel="noreferrer"
+							className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition group"
+						>
+							<div className="flex items-center gap-2.5">
+								<FiExternalLink className="h-4 w-4 text-emerald-600" />
+								<span>Xem Website Live</span>
+							</div>
+							<FiExternalLink className="h-3.5 w-3.5 text-slate-400 group-hover:text-slate-900" />
+						</a>
+					</div>
+				</div>
+
+				{/* Utility & Sound Controls */}
+				<div className="p-4 mx-4 mb-6 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+					<div className="flex items-center justify-between text-xs">
+						<span className="font-bold text-slate-700">Chuông báo đơn mới</span>
+						<button
+							type="button"
+							onClick={() => setSoundEnabled(!soundEnabled)}
+							className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-[11px] font-bold transition cursor-pointer ${
+								soundEnabled
+									? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+									: 'bg-white text-slate-500 border border-slate-200'
+							}`}
+						>
+							{soundEnabled ? <FiVolume2 className="h-3.5 w-3.5 text-emerald-600" /> : <FiVolumeX className="h-3.5 w-3.5" />}
+							<span>{soundEnabled ? 'Bật' : 'Tắt'}</span>
+						</button>
+					</div>
+
 					<button
 						type="button"
 						onClick={() => window.location.reload()}
-						className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 active:scale-95 transition cursor-pointer"
+						className="flex w-full items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 py-2 text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs"
 					>
 						<FiRefreshCw className="h-3.5 w-3.5 text-slate-500" />
-						<span className="hidden md:inline">Làm mới</span>
+						<span>Làm mới toàn bộ</span>
+					</button>
+				</div>
+			</aside>
+
+			{/* ================= MOBILE HEADER & DRAWER ================= */}
+			<div className="md:hidden sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md">
+				<div className="flex items-center gap-2.5">
+					<div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-white font-black text-sm shadow-sm">
+						E
+					</div>
+					<span className="font-black text-base tracking-tight text-slate-900">ECOCROS ADMIN</span>
+				</div>
+
+				<div className="flex items-center gap-2">
+					<button
+						type="button"
+						onClick={() => setSoundEnabled(!soundEnabled)}
+						className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700 border border-slate-200"
+					>
+						{soundEnabled ? <FiVolume2 className="h-4 w-4 text-emerald-600" /> : <FiVolumeX className="h-4 w-4" />}
+					</button>
+					<button
+						type="button"
+						onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+						className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xs"
+					>
+						{isMobileSidebarOpen ? <FiX className="h-5 w-5" /> : <FiMenu className="h-5 w-5" />}
 					</button>
 				</div>
 			</div>
 
-			{/* KPI Summary Cards */}
-			<div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-				{/* Card 1: Đơn Mới */}
-				<div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs">
-					<div className="flex items-center justify-between">
-						<span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-							Đơn mới chờ duyệt
-						</span>
-						<span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-							<FiClock className="h-4 w-4" />
-						</span>
-					</div>
-					<div className="mt-2 flex items-baseline gap-2">
-						<span className="font-mono text-2xl sm:text-3xl font-black text-slate-900">
-							{kpiStats.pendingOrders}
-						</span>
-						<span className="text-xs text-amber-600 font-bold">Cần xử lý</span>
-					</div>
-				</div>
-
-				{/* Card 2: Đang Giao */}
-				<div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs">
-					<div className="flex items-center justify-between">
-						<span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-							Đang giao hàng
-						</span>
-						<span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-100 text-purple-700">
-							<FiTruck className="h-4 w-4" />
-						</span>
-					</div>
-					<div className="mt-2 flex items-baseline gap-2">
-						<span className="font-mono text-2xl sm:text-3xl font-black text-slate-900">
-							{kpiStats.deliveringOrders}
-						</span>
-						<span className="text-xs text-purple-600 font-semibold">Trên đường giao</span>
-					</div>
-				</div>
-
-				{/* Card 3: Leads từ Popup */}
-				<div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs">
-					<div className="flex items-center justify-between">
-						<span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-							Khách tiềm năng
-						</span>
-						<span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-							<FiGift className="h-4 w-4" />
-						</span>
-					</div>
-					<div className="mt-2 flex items-baseline gap-2">
-						<span className="font-mono text-2xl sm:text-3xl font-black text-slate-900">
-							{kpiStats.popupLeads}
-						</span>
-						<span className="text-xs text-emerald-600 font-semibold">Từ Popup/Form</span>
-					</div>
-				</div>
-
-				{/* Card 4: Review Chờ Duyệt */}
-				<div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs">
-					<div className="flex items-center justify-between">
-						<span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-							Review Chờ Duyệt
-						</span>
-						<span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500 text-white">
-							<FiStar className="h-4 w-4 fill-white" />
-						</span>
-					</div>
-					<div className="mt-2 flex items-baseline gap-2">
-						<span className="font-mono text-2xl sm:text-3xl font-black text-amber-700">
-							{kpiStats.pendingReviews}
-						</span>
-						<span className="text-xs text-amber-600 font-bold">Chờ duyệt</span>
-					</div>
-				</div>
-			</div>
-
-			{/* Main Workspace Navigation (3 Tabs) */}
-			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-2">
-				<div className="flex flex-wrap items-center gap-2">
-					{/* Tab 1: Đơn hàng */}
-					<button
-						type="button"
-						onClick={() => setActiveTab('orders')}
-						className={`flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition-all cursor-pointer ${
-							activeTab === 'orders'
-								? 'bg-slate-900 text-white shadow-md'
-								: 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-						}`}
-					>
-						<FiPackage className="h-4 w-4" />
-						<span>Quản Lý Đơn Hàng</span>
-						<span
-							className={`rounded-full px-2 py-0.5 text-xs ${
-								activeTab === 'orders' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-							}`}
-						>
-							{filteredOrders.length}
-						</span>
-					</button>
-
-					{/* Tab 2: Khách hàng */}
-					<button
-						type="button"
-						onClick={() => setActiveTab('customers')}
-						className={`flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition-all cursor-pointer ${
-							activeTab === 'customers'
-								? 'bg-slate-900 text-white shadow-md'
-								: 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-						}`}
-					>
-						<FiUsers className="h-4 w-4" />
-						<span>Hồ Sơ Khách Hàng (CRM)</span>
-						<span
-							className={`rounded-full px-2 py-0.5 text-xs ${
-								activeTab === 'customers'
-									? 'bg-white/20 text-white'
-									: 'bg-slate-100 text-slate-600'
-							}`}
-						>
-							{filteredCustomers.length}
-						</span>
-					</button>
-
-					{/* Tab 3: Đánh giá */}
-					<button
-						type="button"
-						onClick={() => setActiveTab('reviews')}
-						className={`flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition-all cursor-pointer ${
-							activeTab === 'reviews'
-								? 'bg-slate-900 text-white shadow-md'
-								: 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-						}`}
-					>
-						<FiStar className="h-4 w-4" />
-						<span>Đánh Giá Sản Phẩm</span>
-						{kpiStats.pendingReviews > 0 ? (
-							<span className="rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold text-white">
-								{kpiStats.pendingReviews}
-							</span>
-						) : (
-							<span
-								className={`rounded-full px-2 py-0.5 text-xs ${
-									activeTab === 'reviews' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-								}`}
+			{/* Mobile Drawer Menu */}
+			{isMobileSidebarOpen && (
+				<div className="md:hidden fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-sm flex flex-col p-4 animate-in fade-in">
+					<div className="bg-white rounded-3xl p-5 shadow-2xl border border-slate-200 flex flex-col flex-1">
+						<div className="flex items-center justify-between pb-4 border-b border-slate-200">
+							<span className="font-black text-lg text-slate-900">Menu Quản Trị</span>
+							<button
+								type="button"
+								onClick={() => setIsMobileSidebarOpen(false)}
+								className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-700"
 							>
-								{filteredReviews.length}
-							</span>
-						)}
-					</button>
-				</div>
-
-				{/* Export Button */}
-				<button
-					type="button"
-					onClick={
-						activeTab === 'orders'
-							? exportOrdersToCSV
-							: activeTab === 'customers'
-								? exportCustomersToCSV
-								: exportReviewsToCSV
-					}
-					className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer"
-				>
-					<FiDownload className="h-4 w-4" />
-					<span>
-						Xuất Excel ({activeTab === 'orders' ? 'Đơn Hàng' : activeTab === 'customers' ? 'Khách Hàng' : 'Đánh Giá'})
-					</span>
-				</button>
-			</div>
-
-			{/* ================= TAB 1: ORDERS SECTION ================= */}
-			{activeTab === 'orders' && (
-				<div className="space-y-4">
-					{/* Search & Status Filters */}
-					<div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-						{/* Status Pills */}
-						<div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1">
-							{ORDER_STATUS_TABS.map((tab) => (
-								<button
-									key={tab.value}
-									type="button"
-									onClick={() => {
-										setOrderStatusFilter(tab.value)
-										setOrderPage(1)
-									}}
-									className={`rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
-										orderStatusFilter === tab.value
-											? 'bg-emerald-700 text-white shadow-xs'
-											: 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-									}`}
-								>
-									{tab.label}
-								</button>
-							))}
+								<FiX className="h-5 w-5" />
+							</button>
 						</div>
 
-						{/* Search Input */}
-						<div className="relative w-full md:w-80 flex-none">
-							<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-								<FiSearch className="h-4 w-4" />
+						<div className="flex-1 py-4 space-y-2 overflow-y-auto">
+							{navItems.map((item) => {
+								const Icon = item.icon
+								const isActive = activeTab === item.id
+
+								return (
+									<button
+										key={item.id}
+										type="button"
+										onClick={() => {
+											setActiveTab(item.id)
+											setIsMobileSidebarOpen(false)
+										}}
+										className={`flex w-full items-center justify-between rounded-2xl p-3.5 text-xs font-bold transition ${
+											isActive
+												? 'bg-slate-900 text-white shadow-md'
+												: 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+										}`}
+									>
+										<div className="flex items-center gap-3">
+											<Icon className="h-4 w-4" />
+											<span>{item.label}</span>
+										</div>
+										{item.badge !== null && (
+											<span className="rounded-full bg-black/20 px-2 py-0.5 text-[10px]">
+												{item.badge}
+											</span>
+										)}
+									</button>
+								)
+							})}
+
+							<div className="pt-4 border-t border-slate-200 space-y-2">
+								<a
+									href="/studio"
+									target="_blank"
+									className="flex items-center gap-2 rounded-2xl bg-slate-50 p-3.5 text-xs font-bold text-slate-700 hover:bg-slate-100"
+								>
+									<FiLayers className="h-4 w-4 text-indigo-600" />
+									<span>Mở Sanity Studio</span>
+								</a>
 							</div>
-							<input
-								type="text"
-								value={orderSearchQuery}
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* ================= MAIN CONTENT AREA ================= */}
+			<main className="flex-1 min-w-0 bg-slate-50/70 p-4 sm:p-6 lg:p-8 space-y-6 overflow-x-hidden">
+				{/* Top Bar Controls & Header */}
+				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/90">
+					<div>
+						<div className="flex items-center gap-3">
+							<h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-slate-900">
+								{activeTab === 'overview' && '📊 Tổng Quan Vận Hành Bán Hàng'}
+								{activeTab === 'orders' && '📦 Quản Lý Đơn Hàng & Giao Vận'}
+								{activeTab === 'customers' && '👥 Hồ Sơ Khách Hàng 360° (CRM)'}
+								{activeTab === 'reviews' && '⭐ Kiểm Duyệt Đánh Giá Sản Phẩm'}
+								{activeTab === 'comments' && '💬 Kiểm Duyệt Bình Luận Bài Viết Blog'}
+							</h1>
+						</div>
+						<p className="text-xs sm:text-sm text-slate-500 mt-1">
+							{activeTab === 'overview' &&
+								'Tổng hợp chỉ số doanh thu, trạng thái xử lý đơn hàng và phản hồi của khách hàng.'}
+							{activeTab === 'orders' &&
+								'Theo dõi quy trình đóng gói, giao vận, cập nhật trạng thái và in phiếu đóng gói.'}
+							{activeTab === 'customers' &&
+								'Thông tin khách hàng tích lũy, phân nhóm VIP và theo dõi ghi chú chăm sóc.'}
+							{activeTab === 'reviews' &&
+								'Kiểm tra nội dung review, hình ảnh/video thực tế và gửi phản hồi công khai của shop.'}
+							{activeTab === 'comments' &&
+								'Quản lý bình luận độc giả, phát hiện spam và trả lời với tư cách Chuyên gia / Tác giả.'}
+						</p>
+					</div>
+
+					<div className="flex items-center gap-2.5 self-start sm:self-auto">
+						{/* Timeframe selector */}
+						<div className="relative">
+							<select
+								value={timeframe}
 								onChange={(e) => {
-									setOrderSearchQuery(e.target.value)
+									setTimeframe(e.target.value)
 									setOrderPage(1)
 								}}
-								placeholder="Tìm SĐT, Tên, Mã đơn..."
-								className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-4 text-xs font-medium text-slate-900 shadow-2xs focus:border-emerald-600 focus:outline-hidden"
-							/>
+								className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-2xs focus:border-emerald-600 focus:outline-hidden cursor-pointer"
+							>
+								{TIMEFRAME_OPTIONS.map((opt) => (
+									<option key={opt.value} value={opt.value}>
+										📅 {opt.label}
+									</option>
+								))}
+							</select>
 						</div>
-					</div>
 
-					{/* Orders Table */}
-					<div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-						<div className="overflow-x-auto">
-							<table className="w-full text-left text-xs border-collapse">
-								<thead>
-									<tr className="border-b border-slate-200 bg-slate-50/80 font-bold uppercase tracking-wider text-slate-500">
-										<th className="py-3.5 px-4 w-32">Mã Đơn</th>
-										<th className="py-3.5 px-4">Khách Hàng</th>
-										<th className="py-3.5 px-4">Sản Phẩm</th>
-										<th className="py-3.5 px-4">Tổng Tiền</th>
-										<th className="py-3.5 px-4">Trạng Thái Giao</th>
-										<th className="py-3.5 px-4 text-right">Thao Tác</th>
-									</tr>
-								</thead>
-								<tbody className="divide-y divide-slate-100 font-medium">
-									{paginatedOrders.length === 0 ? (
-										<tr>
-											<td colSpan={6} className="py-12 text-center text-slate-400">
-												<FiShoppingBag className="mx-auto h-8 w-8 stroke-1 text-slate-300 mb-2" />
-												<p className="text-sm font-semibold">Không tìm thấy đơn hàng nào phù hợp</p>
-											</td>
-										</tr>
-									) : (
-										paginatedOrders.map((order) => {
-											const statusInfo =
-												STATUS_BADGES[order.fulfillmentStatus || 'PENDING'] ||
-												STATUS_BADGES.PENDING
-											const phoneClean = order.customer?.phone?.replace(/\D/g, '')
+						{/* Export Button */}
+						{activeTab !== 'overview' && (
+							<button
+								type="button"
+								onClick={
+									activeTab === 'orders'
+										? exportOrdersToCSV
+										: activeTab === 'customers'
+											? exportCustomersToCSV
+											: activeTab === 'reviews'
+												? exportReviewsToCSV
+												: exportCommentsToCSV
+								}
+								className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs"
+							>
+								<FiDownload className="h-3.5 w-3.5 text-slate-500" />
+								<span className="hidden sm:inline">Xuất CSV</span>
+							</button>
+						)}
+					</div>
+				</div>
+
+				{/* ================= TAB 0: EXECUTIVE OVERVIEW HUB ================= */}
+				{activeTab === 'overview' && (
+					<div className="space-y-6 animate-in fade-in duration-200">
+						{/* Top 4 Metric Cards */}
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+							{/* Card 1: Doanh thu */}
+							<div className="rounded-3xl border border-slate-200/90 bg-white p-5 shadow-xs relative overflow-hidden">
+								<div className="flex items-center justify-between">
+									<span className="text-xs font-black uppercase tracking-wider text-slate-400">
+										Tổng Doanh Thu
+									</span>
+									<span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+										<FiTrendingUp className="h-5 w-5" />
+									</span>
+								</div>
+								<div className="mt-3">
+									<div className="font-mono text-2xl sm:text-3xl font-black text-slate-900">
+										{formatVND(kpiStats.totalRevenue)}
+									</div>
+									<div className="flex items-center gap-1.5 text-xs text-emerald-700 font-bold mt-1">
+										<span>{kpiStats.deliveredOrders} đơn giao thành công</span>
+									</div>
+								</div>
+							</div>
+
+							{/* Card 2: Đơn cần xử lý */}
+							<div className="rounded-3xl border border-slate-200/90 bg-white p-5 shadow-xs relative overflow-hidden">
+								<div className="flex items-center justify-between">
+									<span className="text-xs font-black uppercase tracking-wider text-slate-400">
+										Đơn Hàng Cần Xử Lý
+									</span>
+									<span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+										<FiClock className="h-5 w-5" />
+									</span>
+								</div>
+								<div className="mt-3">
+									<div className="font-mono text-2xl sm:text-3xl font-black text-amber-700">
+										{kpiStats.pendingOrders}
+									</div>
+									<div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+										<span>{kpiStats.processingOrders} đang đóng gói</span>
+										<span>•</span>
+										<span>{kpiStats.shippingOrders} đang giao</span>
+									</div>
+								</div>
+							</div>
+
+							{/* Card 3: Khách hàng CRM */}
+							<div className="rounded-3xl border border-slate-200/90 bg-white p-5 shadow-xs relative overflow-hidden">
+								<div className="flex items-center justify-between">
+									<span className="text-xs font-black uppercase tracking-wider text-slate-400">
+										Khách Hàng & Leads
+									</span>
+									<span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+										<FiUsers className="h-5 w-5" />
+									</span>
+								</div>
+								<div className="mt-3">
+									<div className="font-mono text-2xl sm:text-3xl font-black text-slate-900">
+										{kpiStats.totalCust}
+									</div>
+									<div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+										<span className="text-emerald-700 font-bold">{kpiStats.vipCustomers} VIP</span>
+										<span>•</span>
+										<span>{kpiStats.popupLeads} Leads Popup</span>
+									</div>
+								</div>
+							</div>
+
+							{/* Card 4: Kiểm duyệt chờ xử lý */}
+							<div className="rounded-3xl border border-slate-200/90 bg-white p-5 shadow-xs relative overflow-hidden">
+								<div className="flex items-center justify-between">
+									<span className="text-xs font-black uppercase tracking-wider text-slate-400">
+										Kiểm Duyệt Nội Dung
+									</span>
+									<span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
+										<FiMessageCircle className="h-5 w-5" />
+									</span>
+								</div>
+								<div className="mt-3">
+									<div className="font-mono text-2xl sm:text-3xl font-black text-indigo-800">
+										{kpiStats.pendingReviews + kpiStats.pendingComments}
+									</div>
+									<div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+										<span>{kpiStats.pendingReviews} review</span>
+										<span>•</span>
+										<span>{kpiStats.pendingComments} comment blog</span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						{/* 2-Column Section: Recent Activities & Fast Actions */}
+						<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+							{/* Left 2 Cols: Recent Incoming Orders Stream */}
+							<div className="lg:col-span-2 rounded-3xl border border-slate-200/90 bg-white p-6 space-y-4 shadow-xs">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-2.5">
+										<FiPackage className="h-5 w-5 text-emerald-700" />
+										<h3 className="font-black text-base text-slate-900">
+											Đơn Hàng Gần Đây Nhất
+										</h3>
+									</div>
+									<button
+										type="button"
+										onClick={() => setActiveTab('orders')}
+										className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition cursor-pointer"
+									>
+										<span>Xem toàn bộ</span>
+										<FiArrowRight className="h-3.5 w-3.5" />
+									</button>
+								</div>
+
+								{orders.slice(0, 5).length === 0 ? (
+									<div className="text-center py-8 text-slate-400 text-xs">
+										Chưa có đơn hàng nào trong hệ thống.
+									</div>
+								) : (
+									<div className="space-y-2.5">
+										{orders.slice(0, 5).map((order) => {
+											const statusBadge =
+												STATUS_BADGES[order.fulfillmentStatus] || STATUS_BADGES.PENDING
 
 											return (
-												<tr key={order._id} className="hover:bg-slate-50/80 transition-colors">
-													{/* Mã Đơn */}
-													<td className="py-3.5 px-4 font-mono font-bold text-slate-900">
-														<span className="block">{order.orderId}</span>
-														<span className="text-[10px] text-slate-400 font-normal">
-															{order._createdAt
-																? new Date(order._createdAt).toLocaleDateString('vi-VN')
-																: ''}
-														</span>
-													</td>
-
-													{/* Khách Hàng */}
-													<td className="py-3.5 px-4">
-														<p className="font-bold text-slate-900">{order.customer?.name || 'Khách vãng lai'}</p>
-														<div className="flex items-center gap-2 mt-0.5">
-															{order.customer?.phone && (
-																<span className="text-xs font-semibold text-emerald-700">
-																	📞 {order.customer.phone}
-																</span>
-															)}
+												<div
+													key={order._id}
+													className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-50/70 border border-slate-200/80 hover:border-slate-300 transition"
+												>
+													<div className="flex items-center gap-3">
+														<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-700 border border-slate-200 font-mono text-xs font-bold shadow-2xs">
+															#
 														</div>
-														<p className="text-[11px] text-slate-500 truncate max-w-xs mt-0.5">
-															{order.customer?.address}
-														</p>
-													</td>
-
-													{/* Sản Phẩm */}
-													<td className="py-3.5 px-4">
-														<div className="space-y-0.5 max-w-xs">
-															{(Array.isArray(order.items) ? order.items : []).slice(0, 2).map((it: any, idx: number) => (
-																<div key={idx} className="truncate text-slate-700">
-																	• {it?.title || 'Sản phẩm'} <strong className="text-slate-900">x{it?.quantity || 1}</strong>
-																</div>
-															))}
-															{(Array.isArray(order.items) ? order.items : []).length > 2 && (
-																<span className="text-[10px] font-bold text-slate-400">
-																	+ {(order.items || []).length - 2} sản phẩm khác
+														<div>
+															<div className="flex items-center gap-2">
+																<span className="font-mono font-black text-sm text-slate-900">
+																	{order.orderId || order._id.slice(0, 8)}
 																</span>
-															)}
+																<span
+																	className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}
+																>
+																	{statusBadge.label}
+																</span>
+															</div>
+															<p className="text-xs text-slate-500 mt-0.5">
+																{order.customer?.name || 'Khách vãng lai'} •{' '}
+																{order.customer?.phone || 'Chưa có SĐT'}
+															</p>
 														</div>
-													</td>
+													</div>
 
-													{/* Tổng Tiền */}
-													<td className="py-3.5 px-4">
-														<span className="font-mono text-sm font-black text-slate-900 block">
-															{formatVND(order.pricing?.grandTotal || 0)}
-														</span>
-														<span className="text-[10px] font-semibold text-slate-400">
-															{order.paymentMethod === 'COD' ? 'Thu hộ COD' : order.paymentMethod}
-														</span>
-													</td>
+													<div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200">
+														<div className="text-right">
+															<span className="font-mono font-black text-sm text-slate-900 block">
+																{formatVND(order.pricing?.grandTotal || 0)}
+															</span>
+															<span className="text-[10px] text-slate-400">
+																{order._createdAt
+																	? new Date(order._createdAt).toLocaleDateString('vi-VN')
+																	: ''}
+															</span>
+														</div>
 
-													{/* Trạng Thái 1-Click Dropdown */}
-													<td className="py-3.5 px-4">
-														<select
-															value={order.fulfillmentStatus || 'PENDING'}
-															onChange={(e) => handleQuickStatusChange(order._id, e.target.value)}
-															className={`rounded-xl border px-2.5 py-1 text-xs font-bold shadow-2xs focus:outline-hidden cursor-pointer ${statusInfo.className}`}
+														<button
+															type="button"
+															onClick={() => setSelectedOrderForDetail(order)}
+															className="flex h-8 w-8 items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-900 hover:text-white transition cursor-pointer shadow-2xs"
+															title="Xem chi tiết đơn"
 														>
-															<option value="PENDING">⏳ Chờ xác nhận</option>
-															<option value="PROCESSING">📦 Đang đóng gói</option>
-															<option value="SHIPPING">🚚 Đang giao hàng</option>
-															<option value="DELIVERED">✅ Giao thành công</option>
-															<option value="CANCELLED">❌ Đã hủy</option>
-															<option value="RETURNED">🔄 Hoàn hàng</option>
-														</select>
-													</td>
+															<FiEye className="h-4 w-4" />
+														</button>
+													</div>
+												</div>
+											)
+										})}
+									</div>
+								)}
+							</div>
 
-													{/* Thao Tác */}
-													<td className="py-3.5 px-4 text-right">
-														<div className="flex items-center justify-end gap-1.5">
-															{phoneClean && (
-																<>
-																	<a
-																		href={`tel:${order.customer.phone}`}
-																		className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition no-underline shadow-2xs"
-																		title="Gọi điện thoại"
-																	>
-																		<FiPhone className="h-3.5 w-3.5" />
-																	</a>
-																	<a
-																		href={`https://zalo.me/${phoneClean}`}
-																		target="_blank"
-																		className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition no-underline shadow-2xs"
-																		title="Nhắn tin Zalo"
-																	>
-																		<FiMessageSquare className="h-3.5 w-3.5" />
-																	</a>
-																</>
+							{/* Right 1 Col: Quick Mod Action Cards */}
+							<div className="space-y-4">
+								{/* Reviews Pending Box */}
+								<div className="rounded-3xl border border-slate-200/90 bg-white p-5 space-y-3 shadow-xs">
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-2">
+											<FiStar className="h-4 w-4 text-amber-500 fill-amber-500" />
+											<h4 className="font-black text-sm text-slate-900">Đánh Giá Chờ Duyệt</h4>
+										</div>
+										<span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-800 border border-amber-200">
+											{kpiStats.pendingReviews} mới
+										</span>
+									</div>
+									<p className="text-xs text-slate-500">
+										Có {kpiStats.pendingReviews} đánh giá sản phẩm cần kiểm duyệt trước khi hiển thị công khai.
+									</p>
+									<button
+										type="button"
+										onClick={() => {
+											setActiveTab('reviews')
+											setReviewStatusFilter('PENDING')
+										}}
+										className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 py-2.5 text-xs font-bold transition cursor-pointer"
+									>
+										<span>Kiểm duyệt Đánh giá</span>
+										<FiArrowRight className="h-3.5 w-3.5" />
+									</button>
+								</div>
+
+								{/* Comments Pending Box */}
+								<div className="rounded-3xl border border-slate-200/90 bg-white p-5 space-y-3 shadow-xs">
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-2">
+											<FiMessageSquare className="h-4 w-4 text-indigo-600" />
+											<h4 className="font-black text-sm text-slate-900">Bình Luận Blog Chờ</h4>
+										</div>
+										<span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-black text-indigo-800 border border-indigo-200">
+											{kpiStats.pendingComments} mới
+										</span>
+									</div>
+									<p className="text-xs text-slate-500">
+										Độc giả gửi câu hỏi/bình luận trên bài viết cần kiểm duyệt và trả lời chính thức.
+									</p>
+									<button
+										type="button"
+										onClick={() => {
+											setActiveTab('comments')
+											setCommentStatusFilter('PENDING')
+										}}
+										className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 py-2.5 text-xs font-bold transition cursor-pointer"
+									>
+										<span>Kiểm duyệt Bình luận</span>
+										<FiArrowRight className="h-3.5 w-3.5" />
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* ================= TAB 1: ORDERS MANAGEMENT ================= */}
+				{activeTab === 'orders' && (
+					<div className="space-y-6 animate-in fade-in duration-200">
+						{/* Orders Specific KPI Overview Cards */}
+						<div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-slate-400 block">
+									Tổng đơn hàng
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-slate-900">
+										{filteredOrders.length}
+									</span>
+									<span className="text-[10px] text-slate-400 font-bold">đơn trong bộ lọc</span>
+								</div>
+							</div>
+
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-amber-700 block">
+									Chờ xác nhận
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-amber-700">
+										{kpiStats.pendingOrders}
+									</span>
+									<span className="text-[10px] text-amber-600 font-bold">Cần gọi xác nhận</span>
+								</div>
+							</div>
+
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-purple-700 block">
+									Đang giao hàng
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-purple-700">
+										{kpiStats.shippingOrders}
+									</span>
+									<span className="text-[10px] text-purple-600 font-bold">Đang vận chuyển</span>
+								</div>
+							</div>
+
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-emerald-700 block">
+									Doanh thu lọc
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-xl font-black text-emerald-700 truncate">
+										{formatVND(
+											filteredOrders
+												.filter(
+													(o) =>
+														o.fulfillmentStatus !== 'CANCELLED' &&
+														o.fulfillmentStatus !== 'RETURNED',
+												)
+												.reduce((acc, o) => acc + (Number(o?.pricing?.grandTotal) || 0), 0),
+										)}
+									</span>
+								</div>
+							</div>
+						</div>
+
+						{/* Filters Bar: Status Pills & Search */}
+						<div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+							{/* Status Pills */}
+							<div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1">
+								{ORDER_STATUS_TABS.map((tab) => (
+									<button
+										key={tab.value}
+										type="button"
+										onClick={() => {
+											setOrderStatusFilter(tab.value)
+											setOrderPage(1)
+										}}
+										className={`rounded-xl px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
+											orderStatusFilter === tab.value
+												? 'bg-slate-900 text-white shadow-xs font-black'
+												: 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+										}`}
+									>
+										{tab.label}
+									</button>
+								))}
+							</div>
+
+							{/* Search Box */}
+							<div className="relative w-full lg:w-72">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+									<FiSearch className="h-4 w-4" />
+								</div>
+								<input
+									type="text"
+									value={orderSearchQuery}
+									onChange={(e) => {
+										setOrderSearchQuery(e.target.value)
+										setOrderPage(1)
+									}}
+									placeholder="Tìm mã đơn, tên khách, SĐT..."
+									className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-hidden shadow-2xs"
+								/>
+							</div>
+						</div>
+
+						{/* Orders Table */}
+						<div className="rounded-3xl border border-slate-200/90 bg-white overflow-hidden shadow-xs">
+							<div className="overflow-x-auto">
+								<table className="w-full text-left text-xs">
+									<thead className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-black uppercase tracking-wider text-slate-500">
+										<tr>
+											<th className="px-4 py-3.5">Mã Đơn / Ngày Tạo</th>
+											<th className="px-4 py-3.5">Khách Hàng</th>
+											<th className="px-4 py-3.5">Sản Phẩm</th>
+											<th className="px-4 py-3.5">Tổng Tiền</th>
+											<th className="px-4 py-3.5">Trạng Thái</th>
+											<th className="px-4 py-3.5">Thao Tác Nhanh</th>
+											<th className="px-4 py-3.5 text-right">Chi Tiết</th>
+										</tr>
+									</thead>
+									<tbody className="divide-y divide-slate-100">
+										{paginatedOrders.length === 0 ? (
+											<tr>
+												<td colSpan={7} className="px-4 py-12 text-center text-slate-400">
+													Không tìm thấy đơn hàng nào phù hợp với bộ lọc.
+												</td>
+											</tr>
+										) : (
+											paginatedOrders.map((order) => {
+												const statusBadge =
+													STATUS_BADGES[order.fulfillmentStatus] || STATUS_BADGES.PENDING
+
+												return (
+													<tr key={order._id} className="hover:bg-slate-50/60 transition">
+														{/* Col 1: Order ID */}
+														<td className="px-4 py-3.5 font-mono">
+															<span className="font-black text-sm text-slate-900 block">
+																{order.orderId || order._id.slice(0, 8)}
+															</span>
+															<span className="text-[10px] text-slate-400">
+																{order._createdAt
+																	? new Date(order._createdAt).toLocaleString('vi-VN')
+																	: ''}
+															</span>
+														</td>
+
+														{/* Col 2: Customer */}
+														<td className="px-4 py-3.5">
+															<div className="font-bold text-slate-900">
+																{order.customer?.name || 'Khách vãng lai'}
+															</div>
+															<div className="text-[11px] text-slate-500">
+																{order.customer?.phone || 'Chưa có SĐT'}
+															</div>
+															{order.customer?.address && (
+																<div className="text-[10px] text-slate-400 line-clamp-1 max-w-xs mt-0.5">
+																	{order.customer.address}
+																</div>
 															)}
+														</td>
 
+														{/* Col 3: Items */}
+														<td className="px-4 py-3.5">
+															<div className="text-slate-700 line-clamp-2 max-w-xs font-medium">
+																{(Array.isArray(order.items) ? order.items : [])
+																	.map((i: any) => `${i?.title || 'Sản phẩm'} (x${i?.quantity || 1})`)
+																	.join(', ') || '0 sản phẩm'}
+															</div>
+														</td>
+
+														{/* Col 4: Total */}
+														<td className="px-4 py-3.5 font-mono">
+															<span className="font-black text-sm text-emerald-700 block">
+																{formatVND(order.pricing?.grandTotal || 0)}
+															</span>
+															<span className="text-[10px] text-slate-400 uppercase">
+																{order.paymentMethod || 'COD'}
+															</span>
+														</td>
+
+														{/* Col 5: Status */}
+														<td className="px-4 py-3.5">
+															<span
+																className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold border ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}
+															>
+																{statusBadge.label}
+															</span>
+														</td>
+
+														{/* Col 6: Quick Status Change Dropdown */}
+														<td className="px-4 py-3.5">
+															<select
+																value={order.fulfillmentStatus || 'PENDING'}
+																onChange={(e) =>
+																	handleQuickStatusChange(order._id, e.target.value)
+																}
+																className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-bold text-slate-700 focus:border-emerald-600 focus:outline-hidden cursor-pointer shadow-2xs"
+															>
+																<option value="PENDING">Chờ xác nhận</option>
+																<option value="PROCESSING">Đang đóng gói</option>
+																<option value="SHIPPING">Đang giao hàng</option>
+																<option value="DELIVERED">Giao thành công</option>
+																<option value="CANCELLED">Hủy đơn</option>
+																<option value="RETURNED">Chuyển hoàn</option>
+															</select>
+														</td>
+
+														{/* Col 7: Actions */}
+														<td className="px-4 py-3.5 text-right space-x-1.5">
 															<button
 																type="button"
 																onClick={() => setSelectedOrderForPrint(order)}
-																className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition shadow-2xs cursor-pointer"
-																title="In phiếu giao hàng A5"
+																className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer"
+																title="In phiếu đóng gói"
 															>
-																<FiPrinter className="h-3.5 w-3.5" />
+																<FiPrinter className="h-4 w-4" />
 															</button>
 
 															<button
 																type="button"
 																onClick={() => setSelectedOrderForDetail(order)}
-																className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition shadow-2xs cursor-pointer"
-																title="Xem chi tiết đơn"
+																className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition cursor-pointer shadow-xs"
+																title="Xem chi tiết đơn hàng"
 															>
-																<FiEye className="h-3.5 w-3.5" />
+																<FiEye className="h-4 w-4" />
 															</button>
-														</div>
-													</td>
-												</tr>
-											)
-										})
-									)}
-								</tbody>
-							</table>
-						</div>
+														</td>
+													</tr>
+												)
+											})
+										)}
+									</tbody>
+								</table>
+							</div>
 
-						{/* Orders Pagination Bar */}
-						{totalOrderPages > 1 && (
-							<div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 px-4 py-3 text-xs text-slate-500">
-								<div>
-									Hiển thị <strong>{(orderPage - 1) * itemsPerPage + 1}</strong> -{' '}
-									<strong>{Math.min(orderPage * itemsPerPage, filteredOrders.length)}</strong> trên{' '}
-									<strong>{filteredOrders.length}</strong> đơn hàng
+							{/* Pagination */}
+							{totalOrderPages > 1 && (
+								<div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 bg-slate-50/50 text-xs">
+									<span className="text-slate-500">
+										Trang <span className="font-bold text-slate-900">{orderPage}</span> /{' '}
+										{totalOrderPages} ({filteredOrders.length} đơn)
+									</span>
+
+									<div className="flex items-center gap-2">
+										<button
+											type="button"
+											disabled={orderPage === 1}
+											onClick={() => setOrderPage((p) => Math.max(1, p - 1))}
+											className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition cursor-pointer shadow-2xs"
+										>
+											<FiChevronLeft className="h-4 w-4" />
+										</button>
+										<button
+											type="button"
+											disabled={orderPage === totalOrderPages}
+											onClick={() => setOrderPage((p) => Math.min(totalOrderPages, p + 1))}
+											className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition cursor-pointer shadow-2xs"
+										>
+											<FiChevronRight className="h-4 w-4" />
+										</button>
+									</div>
 								</div>
+							)}
+						</div>
+					</div>
+				)}
 
-								<div className="flex items-center gap-1.5">
-									<button
-										type="button"
-										onClick={() => setOrderPage((p) => Math.max(p - 1, 1))}
-										disabled={orderPage === 1}
-										className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-									>
-										<FiChevronLeft className="h-4 w-4" />
-									</button>
-
-									{Array.from({ length: totalOrderPages }).map((_, idx) => {
-										const pageNum = idx + 1
-										if (
-											pageNum === 1 ||
-											pageNum === totalOrderPages ||
-											(pageNum >= orderPage - 1 && pageNum <= orderPage + 1)
-										) {
-											return (
-												<button
-													key={pageNum}
-													type="button"
-													onClick={() => setOrderPage(pageNum)}
-													className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer ${
-														orderPage === pageNum
-															? 'bg-slate-900 text-white shadow-xs'
-															: 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-													}`}
-												>
-													{pageNum}
-												</button>
-											)
-										}
-										return null
-									})}
-
-									<button
-										type="button"
-										onClick={() => setOrderPage((p) => Math.min(p + 1, totalOrderPages))}
-										disabled={orderPage === totalOrderPages}
-										className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-									>
-										<FiChevronRight className="h-4 w-4" />
-									</button>
+				{/* ================= TAB 2: CUSTOMERS CRM ================= */}
+				{activeTab === 'customers' && (
+					<div className="space-y-6 animate-in fade-in duration-200">
+						{/* Customers Specific KPI Overview Cards */}
+						<div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-slate-400 block">
+									Tổng khách hàng
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-slate-900">
+										{filteredCustomers.length}
+									</span>
+									<span className="text-[10px] text-slate-400 font-bold">hồ sơ</span>
 								</div>
 							</div>
-						)}
-					</div>
-				</div>
-			)}
 
-			{/* ================= TAB 2: CUSTOMERS SECTION ================= */}
-			{activeTab === 'customers' && (
-				<div className="space-y-4">
-					{/* Search & Segment Filters */}
-					<div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-						{/* Segment Pills */}
-						<div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1">
-							{CUSTOMER_TABS.map((tab) => (
-								<button
-									key={tab.value}
-									type="button"
-									onClick={() => {
-										setCustomerTabFilter(tab.value)
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-emerald-700 block">
+									Khách VIP
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-emerald-700">
+										{kpiStats.vipCustomers}
+									</span>
+									<span className="text-[10px] text-emerald-600 font-bold">Chi tiêu {'>'} 2tr</span>
+								</div>
+							</div>
+
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-blue-700 block">
+									Leads Popup & Form
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-blue-700">
+										{kpiStats.popupLeads}
+									</span>
+									<span className="text-[10px] text-blue-600 font-bold">Tiềm năng</span>
+								</div>
+							</div>
+
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-indigo-700 block">
+									Đã mua hàng
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-indigo-700">
+										{kpiStats.buyerCustomers}
+									</span>
+									<span className="text-[10px] text-indigo-600 font-bold">Khách thực tế</span>
+								</div>
+							</div>
+						</div>
+
+						{/* Filters Bar: Tabs & Search */}
+						<div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+							<div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1">
+								{CUSTOMER_TABS.map((tab) => (
+									<button
+										key={tab.value}
+										type="button"
+										onClick={() => {
+											setCustomerTabFilter(tab.value)
+											setCustomerPage(1)
+										}}
+										className={`rounded-xl px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
+											customerTabFilter === tab.value
+												? 'bg-slate-900 text-white shadow-xs font-black'
+												: 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+										}`}
+									>
+										{tab.label}
+									</button>
+								))}
+							</div>
+
+							<div className="relative w-full lg:w-72">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+									<FiSearch className="h-4 w-4" />
+								</div>
+								<input
+									type="text"
+									value={customerSearchQuery}
+									onChange={(e) => {
+										setCustomerSearchQuery(e.target.value)
 										setCustomerPage(1)
 									}}
-									className={`rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
-										customerTabFilter === tab.value
-											? 'bg-slate-900 text-white shadow-xs'
-											: 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-									}`}
-								>
-									{tab.label}
-								</button>
-							))}
-						</div>
-
-						{/* Search Input */}
-						<div className="relative w-full md:w-80 flex-none">
-							<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-								<FiSearch className="h-4 w-4" />
+									placeholder="Tìm tên, SĐT, email khách..."
+									className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-hidden shadow-2xs"
+								/>
 							</div>
-							<input
-								type="text"
-								value={customerSearchQuery}
-								onChange={(e) => {
-									setCustomerSearchQuery(e.target.value)
-									setCustomerPage(1)
-								}}
-								placeholder="Tìm tên, SĐT, Email..."
-								className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-4 text-xs font-medium text-slate-900 shadow-2xs focus:border-emerald-600 focus:outline-hidden"
-							/>
 						</div>
-					</div>
 
-					{/* Customers Table */}
-					<div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-						<div className="overflow-x-auto">
-							<table className="w-full text-left text-xs border-collapse">
-								<thead>
-									<tr className="border-b border-slate-200 bg-slate-50/80 font-bold uppercase tracking-wider text-slate-500">
-										<th className="py-3.5 px-4">Khách Hàng</th>
-										<th className="py-3.5 px-4">Liên Hệ</th>
-										<th className="py-3.5 px-4">Nguồn Tiếp Cận</th>
-										<th className="py-3.5 px-4">Đơn / Chi Tiêu</th>
-										<th className="py-3.5 px-4">Phân Khúc</th>
-										<th className="py-3.5 px-4 text-right">Thao Tác</th>
-									</tr>
-								</thead>
-								<tbody className="divide-y divide-slate-100 font-medium">
-									{paginatedCustomers.length === 0 ? (
+						{/* Customers Table */}
+						<div className="rounded-3xl border border-slate-200/90 bg-white overflow-hidden shadow-xs">
+							<div className="overflow-x-auto">
+								<table className="w-full text-left text-xs">
+									<thead className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-black uppercase tracking-wider text-slate-500">
 										<tr>
-											<td colSpan={6} className="py-12 text-center text-slate-400">
-												<FiUsers className="mx-auto h-8 w-8 stroke-1 text-slate-300 mb-2" />
-												<p className="text-sm font-semibold">Chưa có khách hàng nào trong mục này</p>
-											</td>
+											<th className="px-4 py-3.5">Họ Tên & Liên Hệ</th>
+											<th className="px-4 py-3.5">Email</th>
+											<th className="px-4 py-3.5">Phân Khúc</th>
+											<th className="px-4 py-3.5">Số Đơn</th>
+											<th className="px-4 py-3.5">Tổng Chi Tiêu</th>
+											<th className="px-4 py-3.5">Ghi Chú CSKH</th>
+											<th className="px-4 py-3.5 text-right">Chi Tiết</th>
 										</tr>
-									) : (
-										paginatedCustomers.map((cust) => {
-											const phoneClean = cust.phone?.replace(/\D/g, '')
-											const isVip =
-												cust.cskhStatus === 'vip' || (Number(cust.totalSpent) || 0) >= 2000000
-											const isLead =
-												cust.cskhStatus === 'lead' || cust.orderCount === 0 || !cust.orderCount
-
-											return (
-												<tr key={cust._id} className="hover:bg-slate-50/80 transition-colors">
-													{/* Khách Hàng */}
-													<td className="py-3.5 px-4">
-														<div className="flex items-center gap-2.5">
-															<div className="flex h-8 w-8 flex-none items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">
-																<FiUser className="h-4 w-4" />
-															</div>
-															<div>
-																<p className="font-bold text-slate-900">
-																	{cust.name || cust.phone || 'Khách vãng lai'}
-																</p>
-																<span className="text-[10px] text-slate-400">
-																	{cust.createdAt
-																		? `Tham gia: ${new Date(cust.createdAt).toLocaleDateString('vi-VN')}`
-																		: ''}
-																</span>
-															</div>
+									</thead>
+									<tbody className="divide-y divide-slate-100">
+										{paginatedCustomers.length === 0 ? (
+											<tr>
+												<td colSpan={7} className="px-4 py-12 text-center text-slate-400">
+													Không tìm thấy khách hàng nào phù hợp.
+												</td>
+											</tr>
+										) : (
+											paginatedCustomers.map((cust) => (
+												<tr key={cust._id} className="hover:bg-slate-50/60 transition">
+													<td className="px-4 py-3.5">
+														<div className="font-bold text-slate-900 text-sm">
+															{cust.name || 'Khách tiềm năng'}
+														</div>
+														<div className="flex items-center gap-1.5 text-slate-500 text-[11px] mt-0.5">
+															<FiPhone className="h-3 w-3" />
+															<span>{cust.phone || 'Chưa có SĐT'}</span>
 														</div>
 													</td>
 
-													{/* Liên Hệ */}
-													<td className="py-3.5 px-4">
-														<p className="font-semibold text-emerald-700">{cust.phone}</p>
-														{cust.email && (
-															<p className="text-[11px] text-slate-500 truncate max-w-xs">
-																{cust.email}
-															</p>
-														)}
+													<td className="px-4 py-3.5 text-slate-700 font-medium">
+														{cust.email || '—'}
 													</td>
 
-													{/* Nguồn */}
-													<td className="py-3.5 px-4">
-														<span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
-															{cust.source === 'newsletter' ? (
-																'📰 Newsletter'
-															) : cust.source === 'popup' ? (
-																'🎁 Popup'
-															) : cust.source === 'order' || cust.source === 'checkout' ? (
-																'🛍️ Đơn hàng'
-															) : cust.source === 'register' || cust.source === 'google' ? (
-																'👤 Đăng ký'
-															) : (
-																cust.source || 'Trực tiếp'
-															)}
-														</span>
-														{cust.couponReceived && (
-															<span className="block text-[10px] text-amber-700 font-mono font-bold mt-0.5">
-																Mã: {cust.couponReceived}
+													<td className="px-4 py-3.5">
+														{cust.cskhStatus === 'vip' || (Number(cust.totalSpent) || 0) >= 2000000 ? (
+															<span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 text-[10px] font-black">
+																<FiAward className="h-3 w-3" /> VIP
 															</span>
-														)}
-													</td>
-
-													{/* Đơn & Tổng Chi Tiêu */}
-													<td className="py-3.5 px-4">
-														<span className="font-mono text-sm font-bold text-slate-900 block">
-															{formatVND(cust.totalSpent || 0)}
-														</span>
-														<span className="text-[11px] font-semibold text-slate-500">
-															{cust.orderCount || 0} đơn hàng
-														</span>
-													</td>
-
-													{/* Phân Khúc */}
-													<td className="py-3.5 px-4">
-														{isVip ? (
-															<span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800 border border-amber-200">
-																<FiAward className="h-3 w-3" />
-																<span>VIP</span>
-															</span>
-														) : isLead ? (
-															<span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800 border border-emerald-200">
-																<FiUserPlus className="h-3 w-3" />
-																<span>Tiềm năng</span>
+														) : cust.cskhStatus === 'lead' || (Number(cust.orderCount) || 0) === 0 ? (
+															<span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 text-[10px] font-bold">
+																<FiGift className="h-3 w-3" /> Lead Popup
 															</span>
 														) : (
-															<span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-800 border border-blue-200">
-																<FiUserCheck className="h-3 w-3" />
-																<span>Đã mua hàng</span>
+															<span className="inline-flex items-center gap-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 px-2 py-0.5 text-[10px] font-bold">
+																<FiUserCheck className="h-3 w-3" /> Đã Mua Hàng
 															</span>
 														)}
 													</td>
 
-													{/* Thao Tác */}
-													<td className="py-3.5 px-4 text-right">
-														<div className="flex items-center justify-end gap-1.5">
-															{phoneClean && (
-																<>
-																	<a
-																		href={`tel:${cust.phone}`}
-																		className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition no-underline shadow-2xs"
-																		title="Gọi điện thoại"
-																	>
-																		<FiPhone className="h-3.5 w-3.5" />
-																	</a>
-																	<a
-																		href={`https://zalo.me/${phoneClean}`}
-																		target="_blank"
-																		className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition no-underline shadow-2xs"
-																		title="Nhắn tin Zalo"
-																	>
-																		<FiMessageSquare className="h-3.5 w-3.5" />
-																	</a>
-																</>
-															)}
+													<td className="px-4 py-3.5 font-mono text-slate-900 font-bold">
+														{cust.orderCount || 0} đơn
+													</td>
 
-															<button
-																type="button"
-																onClick={() => setSelectedCustomerForDetail(cust)}
-																className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition shadow-2xs cursor-pointer"
-																title="Xem hồ sơ khách hàng"
-															>
-																<FiEye className="h-3.5 w-3.5" />
-															</button>
-														</div>
+													<td className="px-4 py-3.5 font-mono font-black text-emerald-700">
+														{formatVND(cust.totalSpent || 0)}
+													</td>
+
+													<td className="px-4 py-3.5">
+														<span className="text-slate-500 line-clamp-1 max-w-xs text-[11px]">
+															{Array.isArray(cust.internalNotes) && cust.internalNotes.length > 0
+																? cust.internalNotes[0].note
+																: '— Chưa có ghi chú —'}
+														</span>
+													</td>
+
+													<td className="px-4 py-3.5 text-right">
+														<button
+															type="button"
+															onClick={() => setSelectedCustomerForDetail(cust)}
+															className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-900 hover:text-white transition cursor-pointer"
+															title="Xem & Cập nhật ghi chú CSKH"
+														>
+															<FiEye className="h-4 w-4" />
+														</button>
 													</td>
 												</tr>
-											)
-										})
-									)}
-								</tbody>
-							</table>
-						</div>
+											))
+										)}
+									</tbody>
+								</table>
+							</div>
 
-						{/* Customers Pagination Bar */}
-						{totalCustomerPages > 1 && (
-							<div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 px-4 py-3 text-xs text-slate-500">
-								<div>
-									Hiển thị <strong>{(customerPage - 1) * itemsPerPage + 1}</strong> -{' '}
-									<strong>{Math.min(customerPage * itemsPerPage, filteredCustomers.length)}</strong> trên{' '}
-									<strong>{filteredCustomers.length}</strong> khách hàng
+							{totalCustomerPages > 1 && (
+								<div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 bg-slate-50/50 text-xs">
+									<span className="text-slate-500">
+										Trang <span className="font-bold text-slate-900">{customerPage}</span> /{' '}
+										{totalCustomerPages} ({filteredCustomers.length} khách)
+									</span>
+
+									<div className="flex items-center gap-2">
+										<button
+											type="button"
+											disabled={customerPage === 1}
+											onClick={() => setCustomerPage((p) => Math.max(1, p - 1))}
+											className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition cursor-pointer shadow-2xs"
+										>
+											<FiChevronLeft className="h-4 w-4" />
+										</button>
+										<button
+											type="button"
+											disabled={customerPage === totalCustomerPages}
+											onClick={() => setCustomerPage((p) => Math.min(totalCustomerPages, p + 1))}
+											className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition cursor-pointer shadow-2xs"
+										>
+											<FiChevronRight className="h-4 w-4" />
+										</button>
+									</div>
 								</div>
+							)}
+						</div>
+					</div>
+				)}
 
-								<div className="flex items-center gap-1.5">
-									<button
-										type="button"
-										onClick={() => setCustomerPage((p) => Math.max(p - 1, 1))}
-										disabled={customerPage === 1}
-										className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-									>
-										<FiChevronLeft className="h-4 w-4" />
-									</button>
-
-									{Array.from({ length: totalCustomerPages }).map((_, idx) => {
-										const pageNum = idx + 1
-										if (
-											pageNum === 1 ||
-											pageNum === totalCustomerPages ||
-											(pageNum >= customerPage - 1 && pageNum <= customerPage + 1)
-										) {
-											return (
-												<button
-													key={pageNum}
-													type="button"
-													onClick={() => setCustomerPage(pageNum)}
-													className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer ${
-														customerPage === pageNum
-															? 'bg-slate-900 text-white shadow-xs'
-															: 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-													}`}
-												>
-													{pageNum}
-												</button>
-											)
-										}
-										return null
-									})}
-
-									<button
-										type="button"
-										onClick={() => setCustomerPage((p) => Math.min(p + 1, totalCustomerPages))}
-										disabled={customerPage === totalCustomerPages}
-										className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-									>
-										<FiChevronRight className="h-4 w-4" />
-									</button>
+				{/* ================= TAB 3: PRODUCT REVIEWS ================= */}
+				{activeTab === 'reviews' && (
+					<div className="space-y-6 animate-in fade-in duration-200">
+						{/* Reviews Specific KPI Overview Cards */}
+						<div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-slate-400 block">
+									Tổng đánh giá
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-slate-900">
+										{filteredReviews.length}
+									</span>
+									<span className="text-[10px] text-slate-400 font-bold">nhận xét</span>
 								</div>
 							</div>
-						)}
-					</div>
-				</div>
-			)}
 
-			{/* ================= TAB 3: REVIEWS SECTION ================= */}
-			{activeTab === 'reviews' && (
-				<div className="space-y-4">
-					{/* Search & Status Filters */}
-					<div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-						{/* Status Pills */}
-						<div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1">
-							{REVIEW_TABS.map((tab) => (
-								<button
-									key={tab.value}
-									type="button"
-									onClick={() => {
-										setReviewStatusFilter(tab.value)
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-amber-700 block">
+									Chờ duyệt
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-amber-700">
+										{kpiStats.pendingReviews}
+									</span>
+									<span className="text-[10px] text-amber-600 font-bold">Cần xét duyệt</span>
+								</div>
+							</div>
+
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-emerald-700 block">
+									Điểm trung bình
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-emerald-700">
+										{kpiStats.avgRating}
+									</span>
+									<span className="text-[10px] text-emerald-600 font-bold">/ 5.0 sao</span>
+								</div>
+							</div>
+
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-yellow-700 block">
+									5 sao xuất sắc
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-yellow-700">
+										{kpiStats.fiveStarReviews}
+									</span>
+									<span className="text-[10px] text-yellow-600 font-bold">Hài lòng</span>
+								</div>
+							</div>
+						</div>
+
+						{/* Filters Bar */}
+						<div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+							<div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1">
+								{REVIEW_TABS.map((tab) => (
+									<button
+										key={tab.value}
+										type="button"
+										onClick={() => {
+											setReviewStatusFilter(tab.value)
+											setReviewPage(1)
+										}}
+										className={`rounded-xl px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
+											reviewStatusFilter === tab.value
+												? 'bg-slate-900 text-white shadow-xs font-black'
+												: 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+										}`}
+									>
+										{tab.label}
+									</button>
+								))}
+							</div>
+
+							<div className="relative w-full lg:w-72">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+									<FiSearch className="h-4 w-4" />
+								</div>
+								<input
+									type="text"
+									value={reviewSearchQuery}
+									onChange={(e) => {
+										setReviewSearchQuery(e.target.value)
 										setReviewPage(1)
 									}}
-									className={`rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
-										reviewStatusFilter === tab.value
-											? 'bg-amber-600 text-white shadow-xs'
-											: 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-									}`}
-								>
-									{tab.label}
-								</button>
-							))}
+									placeholder="Tìm tên khách, sản phẩm, nội dung..."
+									className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-hidden shadow-2xs"
+								/>
+							</div>
 						</div>
 
-						{/* Search Input */}
-						<div className="relative w-full md:w-80 flex-none">
-							<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-								<FiSearch className="h-4 w-4" />
+						{/* Reviews Table */}
+						<div className="rounded-3xl border border-slate-200/90 bg-white overflow-hidden shadow-xs">
+							<div className="overflow-x-auto">
+								<table className="w-full text-left text-xs">
+									<thead className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-black uppercase tracking-wider text-slate-500">
+										<tr>
+											<th className="px-4 py-3.5">Người Đánh Giá / Sản Phẩm</th>
+											<th className="px-4 py-3.5">Số Sao</th>
+											<th className="px-4 py-3.5">Nội Dung Nhận Xét</th>
+											<th className="px-4 py-3.5">Media Thực Tế</th>
+											<th className="px-4 py-3.5">Trạng Thái</th>
+											<th className="px-4 py-3.5">Duyệt Nhanh</th>
+											<th className="px-4 py-3.5 text-right">Chi Tiết</th>
+										</tr>
+									</thead>
+									<tbody className="divide-y divide-slate-100">
+										{paginatedReviews.length === 0 ? (
+											<tr>
+												<td colSpan={7} className="px-4 py-12 text-center text-slate-400">
+													Không tìm thấy đánh giá nào phù hợp.
+												</td>
+											</tr>
+										) : (
+											paginatedReviews.map((rev) => {
+												const safeImages = Array.isArray(rev?.images) ? rev.images : []
+												const safeVideos = Array.isArray(rev?.videos) ? rev.videos : []
+												const mediaCount = safeImages.length + safeVideos.length
+
+												return (
+													<tr key={rev._id} className="hover:bg-slate-50/60 transition">
+														<td className="px-4 py-3.5">
+															<div className="font-bold text-slate-900 text-sm">
+																{rev.author || 'Khách hàng'}
+															</div>
+															<div className="text-emerald-700 font-semibold text-[11px] mt-0.5 line-clamp-1 max-w-xs">
+																📦 {rev.product?.title || '[Sản phẩm chung]'}
+															</div>
+															<div className="text-[10px] text-slate-400 mt-0.5">
+																{rev.createdAt
+																	? new Date(rev.createdAt).toLocaleDateString('vi-VN')
+																	: ''}
+															</div>
+														</td>
+
+														<td className="px-4 py-3.5 font-mono">
+															<div className="flex items-center gap-1">
+																<span className="font-black text-amber-600 text-sm">
+																	{rev.rating || 5}★
+																</span>
+															</div>
+														</td>
+
+														<td className="px-4 py-3.5">
+															<p className="text-slate-700 line-clamp-2 max-w-sm font-medium">
+																{rev.comment || '(Không để lại nhận xét bằng chữ)'}
+															</p>
+															{rev.response && (
+																<span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-semibold mt-1">
+																	<FiCheck className="h-3 w-3" /> Shop đã phản hồi
+																</span>
+															)}
+														</td>
+
+														<td className="px-4 py-3.5">
+															{mediaCount > 0 ? (
+																<span className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+																	<FiImage className="h-3 w-3 text-indigo-600" />
+																	<span>{mediaCount} tệp</span>
+																</span>
+															) : (
+																<span className="text-slate-400 text-[10px]">Không có</span>
+															)}
+														</td>
+
+														<td className="px-4 py-3.5">
+															{rev.isApproved ? (
+																<span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold">
+																	Đã duyệt (Hiện)
+																</span>
+															) : (
+																<span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 text-[10px] font-bold">
+																	Chờ duyệt (Ẩn)
+																</span>
+															)}
+														</td>
+
+														<td className="px-4 py-3.5">
+															<button
+																type="button"
+																onClick={() =>
+																	handleQuickToggleReviewApproval(rev._id, rev.isApproved)
+																}
+																className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition cursor-pointer ${
+																	rev.isApproved
+																		? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+																		: 'bg-emerald-600 text-white font-black hover:bg-emerald-700 shadow-2xs'
+																}`}
+															>
+																{rev.isApproved ? 'Ẩn review' : 'Duyệt ngay'}
+															</button>
+														</td>
+
+														<td className="px-4 py-3.5 text-right">
+															<button
+																type="button"
+																onClick={() => setSelectedReviewForDetail(rev)}
+																className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-900 hover:text-white transition cursor-pointer"
+																title="Xem ảnh & phản hồi shop"
+															>
+																<FiEye className="h-4 w-4" />
+															</button>
+														</td>
+													</tr>
+												)
+											})
+										)}
+									</tbody>
+								</table>
 							</div>
-							<input
-								type="text"
-								value={reviewSearchQuery}
-								onChange={(e) => {
-									setReviewSearchQuery(e.target.value)
-									setReviewPage(1)
-								}}
-								placeholder="Tìm tên khách, sản phẩm, nhận xét..."
-								className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-4 text-xs font-medium text-slate-900 shadow-2xs focus:border-emerald-600 focus:outline-hidden"
-							/>
+
+							{totalReviewPages > 1 && (
+								<div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 bg-slate-50/50 text-xs">
+									<span className="text-slate-500">
+										Trang <span className="font-bold text-slate-900">{reviewPage}</span> /{' '}
+										{totalReviewPages} ({filteredReviews.length} đánh giá)
+									</span>
+
+									<div className="flex items-center gap-2">
+										<button
+											type="button"
+											disabled={reviewPage === 1}
+											onClick={() => setReviewPage((p) => Math.max(1, p - 1))}
+											className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition cursor-pointer shadow-2xs"
+										>
+											<FiChevronLeft className="h-4 w-4" />
+										</button>
+										<button
+											type="button"
+											disabled={reviewPage === totalReviewPages}
+											onClick={() => setReviewPage((p) => Math.min(totalReviewPages, p + 1))}
+											className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition cursor-pointer shadow-2xs"
+										>
+											<FiChevronRight className="h-4 w-4" />
+										</button>
+									</div>
+								</div>
+							)}
 						</div>
 					</div>
+				)}
 
-					{/* Reviews Table */}
-					<div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-						<div className="overflow-x-auto">
-							<table className="w-full text-left text-xs border-collapse">
-								<thead>
-									<tr className="border-b border-slate-200 bg-slate-50/80 font-bold uppercase tracking-wider text-slate-500">
-										<th className="py-3.5 px-4">Người Đánh Giá</th>
-										<th className="py-3.5 px-4">Sản Phẩm & Số Sao</th>
-										<th className="py-3.5 px-4 max-w-sm">Nội Dung Nhận Xét</th>
-										<th className="py-3.5 px-4">Ảnh / Video</th>
-										<th className="py-3.5 px-4">Trạng Thái</th>
-										<th className="py-3.5 px-4 text-right">Thao Tác</th>
-									</tr>
-								</thead>
-								<tbody className="divide-y divide-slate-100 font-medium">
-									{paginatedReviews.length === 0 ? (
+				{/* ================= TAB 4: BLOG COMMENTS ================= */}
+				{activeTab === 'comments' && (
+					<div className="space-y-6 animate-in fade-in duration-200">
+						{/* Comments Specific KPI Overview Cards */}
+						<div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-slate-400 block">
+									Tổng bình luận
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-slate-900">
+										{filteredComments.length}
+									</span>
+									<span className="text-[10px] text-slate-400 font-bold">bình luận blog</span>
+								</div>
+							</div>
+
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-indigo-700 block">
+									Chờ duyệt
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-indigo-700">
+										{kpiStats.pendingComments}
+									</span>
+									<span className="text-[10px] text-indigo-600 font-bold">Cần xét duyệt</span>
+								</div>
+							</div>
+
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-emerald-700 block">
+									Đã hiển thị công khai
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-emerald-700">
+										{comments.filter((c) => c.isApproved).length}
+									</span>
+									<span className="text-[10px] text-emerald-600 font-bold">Đã duyệt</span>
+								</div>
+							</div>
+
+							<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+								<span className="text-[11px] font-black uppercase tracking-wider text-blue-700 block">
+									Phản hồi Tác giả
+								</span>
+								<div className="mt-1 flex items-baseline gap-2">
+									<span className="font-mono text-2xl font-black text-blue-700">
+										{kpiStats.officialReplies}
+									</span>
+									<span className="text-[10px] text-blue-600 font-bold">Official badge</span>
+								</div>
+							</div>
+						</div>
+
+						{/* Filters Bar */}
+						<div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+							<div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1">
+								{COMMENT_TABS.map((tab) => (
+									<button
+										key={tab.value}
+										type="button"
+										onClick={() => {
+											setCommentStatusFilter(tab.value)
+											setCommentPage(1)
+										}}
+										className={`rounded-xl px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
+											commentStatusFilter === tab.value
+												? 'bg-slate-900 text-white shadow-xs font-black'
+												: 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+										}`}
+									>
+										{tab.label}
+									</button>
+								))}
+							</div>
+
+							<div className="relative w-full lg:w-72">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+									<FiSearch className="h-4 w-4" />
+								</div>
+								<input
+									type="text"
+									value={commentSearchQuery}
+									onChange={(e) => {
+										setCommentSearchQuery(e.target.value)
+										setCommentPage(1)
+									}}
+									placeholder="Tìm tên, email, nội dung, bài..."
+									className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-hidden shadow-2xs"
+								/>
+							</div>
+						</div>
+
+						{/* Comments Table */}
+						<div className="rounded-3xl border border-slate-200/90 bg-white overflow-hidden shadow-xs">
+							<div className="overflow-x-auto">
+								<table className="w-full text-left text-xs">
+									<thead className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-black uppercase tracking-wider text-slate-500">
 										<tr>
-											<td colSpan={6} className="py-12 text-center text-slate-400">
-												<FiStar className="mx-auto h-8 w-8 stroke-1 text-slate-300 mb-2" />
-												<p className="text-sm font-semibold">Chưa có đánh giá nào trong mục này</p>
-											</td>
+											<th className="px-4 py-3.5">Người Bình Luận / Email</th>
+											<th className="px-4 py-3.5">Bài Viết Đích</th>
+											<th className="px-4 py-3.5">Nội Dung Bình Luận</th>
+											<th className="px-4 py-3.5">Huy Hiệu</th>
+											<th className="px-4 py-3.5">Trạng Thái</th>
+											<th className="px-4 py-3.5">Duyệt Nhanh</th>
+											<th className="px-4 py-3.5 text-right">Chi Tiết</th>
 										</tr>
-									) : (
-										paginatedReviews.map((rev) => {
-											const isAppr = Boolean(rev.isApproved)
-											const ratingVal = Number(rev.rating) || 5
-											const mediaCount = (Array.isArray(rev.images) ? rev.images : []).length + (Array.isArray(rev.videos) ? rev.videos : []).length
-
-											return (
-												<tr key={rev._id} className="hover:bg-slate-50/80 transition-colors">
-													{/* Người Đánh Giá */}
-													<td className="py-3.5 px-4">
-														<p className="font-bold text-slate-900">{rev.author || 'Khách hàng'}</p>
-														<span className="text-[10px] text-slate-400">
-															{rev.createdAt
-																? new Date(rev.createdAt).toLocaleDateString('vi-VN')
+									</thead>
+									<tbody className="divide-y divide-slate-100">
+										{paginatedComments.length === 0 ? (
+											<tr>
+												<td colSpan={7} className="px-4 py-12 text-center text-slate-400">
+													Không tìm thấy bình luận nào phù hợp.
+												</td>
+											</tr>
+										) : (
+											paginatedComments.map((com) => (
+												<tr key={com._id} className="hover:bg-slate-50/60 transition">
+													<td className="px-4 py-3.5">
+														<div className="font-bold text-slate-900 text-sm">
+															{com.authorName || 'Độc giả'}
+														</div>
+														<div className="text-slate-500 text-[11px] mt-0.5">
+															{com.authorEmail || 'Chưa có email'}
+														</div>
+														<div className="text-[10px] text-slate-400 mt-0.5">
+															{com.createdAt
+																? new Date(com.createdAt).toLocaleDateString('vi-VN')
 																: ''}
-														</span>
-													</td>
-
-													{/* Sản Phẩm & Sao */}
-													<td className="py-3.5 px-4">
-														<p className="font-bold text-slate-900 truncate max-w-xs">
-															{rev.product?.title || '[Sản phẩm chung]'}
-														</p>
-														<div className="flex items-center gap-0.5 mt-0.5">
-															{Array.from({ length: 5 }).map((_, i) => (
-																<FiStar
-																	key={i}
-																	className={`h-3.5 w-3.5 ${
-																		i < ratingVal ? 'text-amber-400 fill-amber-400' : 'text-slate-300'
-																	}`}
-																/>
-															))}
-															<span className="ml-1 text-[11px] font-bold text-slate-700">({ratingVal})</span>
 														</div>
 													</td>
 
-													{/* Nội Dung Nhận Xét */}
-													<td className="py-3.5 px-4 max-w-xs">
-														<p className="text-slate-700 leading-snug line-clamp-2">{rev.comment}</p>
-														{rev.response && (
-															<div className="mt-1 text-[11px] text-emerald-800 bg-emerald-50 rounded-md p-1.5 border border-emerald-200">
-																<strong>Shop trả lời:</strong> {rev.response}
-															</div>
+													<td className="px-4 py-3.5">
+														<div className="font-bold text-indigo-700 line-clamp-1 max-w-xs">
+															{com.post?.title || 'Bài viết Blog'}
+														</div>
+														{com.parentComment && (
+															<span className="text-[10px] text-slate-500 italic block mt-0.5">
+																↳ Trả lời {com.parentComment.authorName || 'khách'}
+															</span>
 														)}
 													</td>
 
-													{/* Đính Kèm */}
-													<td className="py-3.5 px-4">
-														{mediaCount > 0 ? (
-															<span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">
-																<FiImage className="h-3.5 w-3.5" />
-																<span>{mediaCount} tệp</span>
+													<td className="px-4 py-3.5">
+														<p className="text-slate-700 line-clamp-2 max-w-sm font-medium">
+															{com.content}
+														</p>
+													</td>
+
+													<td className="px-4 py-3.5">
+														{com.isAuthorReply ? (
+															<span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 text-[10px] font-black">
+																<FiAward className="h-3 w-3" /> Tác Giả
 															</span>
 														) : (
-															<span className="text-slate-300 text-xs">Không</span>
+															<span className="text-slate-500 text-[10px]">Độc giả</span>
 														)}
 													</td>
 
-													{/* Trạng Thái 1-Click Toggle */}
-													<td className="py-3.5 px-4">
+													<td className="px-4 py-3.5">
+														{com.isApproved ? (
+															<span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold">
+																Đã duyệt (Hiện)
+															</span>
+														) : (
+															<span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 text-[10px] font-bold">
+																Chờ duyệt (Ẩn)
+															</span>
+														)}
+													</td>
+
+													<td className="px-4 py-3.5">
 														<button
 															type="button"
-															onClick={() => handleQuickToggleReviewApproval(rev._id, isAppr)}
-															className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold transition shadow-2xs cursor-pointer ${
-																isAppr
-																	? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-200'
-																	: 'bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-200'
+															onClick={() =>
+																handleQuickToggleCommentApproval(com._id, com.isApproved)
+															}
+															className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition cursor-pointer ${
+																com.isApproved
+																	? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+																	: 'bg-indigo-600 text-white font-black hover:bg-indigo-700 shadow-2xs'
 															}`}
 														>
-															{isAppr ? <FiCheckCircle className="h-3.5 w-3.5 text-emerald-700" /> : <FiClock className="h-3.5 w-3.5 text-amber-700" />}
-															<span>{isAppr ? 'Đã duyệt' : 'Chờ duyệt'}</span>
+															{com.isApproved ? 'Ẩn đi' : 'Duyệt ngay'}
 														</button>
 													</td>
 
-													{/* Thao Tác */}
-													<td className="py-3.5 px-4 text-right">
+													<td className="px-4 py-3.5 text-right">
 														<button
 															type="button"
-															onClick={() => setSelectedReviewForDetail(rev)}
-															className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800 transition shadow-2xs cursor-pointer"
-															title="Xem chi tiết & Phản hồi"
+															onClick={() => setSelectedCommentForDetail(com)}
+															className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-900 hover:text-white transition cursor-pointer"
+															title="Xem chi tiết & Trả lời tác giả"
 														>
-															<FiEye className="h-3.5 w-3.5" />
-															<span>Chi tiết / Trả lời</span>
+															<FiEye className="h-4 w-4" />
 														</button>
 													</td>
 												</tr>
-											)
-										})
-									)}
-								</tbody>
-							</table>
-						</div>
-
-						{/* Reviews Pagination Bar */}
-						{totalReviewPages > 1 && (
-							<div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 px-4 py-3 text-xs text-slate-500">
-								<div>
-									Hiển thị <strong>{(reviewPage - 1) * itemsPerPage + 1}</strong> -{' '}
-									<strong>{Math.min(reviewPage * itemsPerPage, filteredReviews.length)}</strong> trên{' '}
-									<strong>{filteredReviews.length}</strong> đánh giá
-								</div>
-
-								<div className="flex items-center gap-1.5">
-									<button
-										type="button"
-										onClick={() => setReviewPage((p) => Math.max(p - 1, 1))}
-										disabled={reviewPage === 1}
-										className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-									>
-										<FiChevronLeft className="h-4 w-4" />
-									</button>
-
-									{Array.from({ length: totalReviewPages }).map((_, idx) => {
-										const pageNum = idx + 1
-										if (
-											pageNum === 1 ||
-											pageNum === totalReviewPages ||
-											(pageNum >= reviewPage - 1 && pageNum <= reviewPage + 1)
-										) {
-											return (
-												<button
-													key={pageNum}
-													type="button"
-													onClick={() => setReviewPage(pageNum)}
-													className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer ${
-														reviewPage === pageNum
-															? 'bg-slate-900 text-white shadow-xs'
-															: 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-													}`}
-												>
-													{pageNum}
-												</button>
-											)
-										}
-										return null
-									})}
-
-									<button
-										type="button"
-										onClick={() => setReviewPage((p) => Math.min(p + 1, totalReviewPages))}
-										disabled={reviewPage === totalReviewPages}
-										className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-									>
-										<FiChevronRight className="h-4 w-4" />
-									</button>
-								</div>
+											))
+										)}
+									</tbody>
+								</table>
 							</div>
-						)}
-					</div>
-				</div>
-			)}
 
-			{/* Order Detail Modal */}
+							{totalCommentPages > 1 && (
+								<div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 bg-slate-50/50 text-xs">
+									<span className="text-slate-500">
+										Trang <span className="font-bold text-slate-900">{commentPage}</span> /{' '}
+										{totalCommentPages} ({filteredComments.length} bình luận)
+									</span>
+
+									<div className="flex items-center gap-2">
+										<button
+											type="button"
+											disabled={commentPage === 1}
+											onClick={() => setCommentPage((p) => Math.max(1, p - 1))}
+											className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition cursor-pointer shadow-2xs"
+										>
+											<FiChevronLeft className="h-4 w-4" />
+										</button>
+										<button
+											type="button"
+											disabled={commentPage === totalCommentPages}
+											onClick={() => setCommentPage((p) => Math.min(totalCommentPages, p + 1))}
+											className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition cursor-pointer shadow-2xs"
+										>
+											<FiChevronRight className="h-4 w-4" />
+										</button>
+									</div>
+								</div>
+							)}
+						</div>
+					</div>
+				)}
+			</main>
+
+			{/* ================= MODALS ================= */}
+			{/* 1. Order Detail Modal */}
 			{selectedOrderForDetail && (
 				<OrderDetailModal
 					order={selectedOrderForDetail}
 					onClose={() => setSelectedOrderForDetail(null)}
+					onOpenPrint={(order) => setSelectedOrderForPrint(order)}
 					onOrderUpdated={(updated) => {
 						setOrders((prev) => prev.map((o) => (o._id === updated._id ? updated : o)))
 						setSelectedOrderForDetail(updated)
 					}}
-					onOpenPrint={(ord) => {
-						setSelectedOrderForDetail(null)
-						setSelectedOrderForPrint(ord)
-					}}
 				/>
 			)}
 
-			{/* Order Print Modal */}
+			{/* 2. Order Print Invoice Modal */}
 			{selectedOrderForPrint && (
 				<OrderPrintModal
 					order={selectedOrderForPrint}
@@ -1481,7 +2283,7 @@ export default function AdminWorkspace({
 				/>
 			)}
 
-			{/* Customer Detail Modal */}
+			{/* 3. Customer CRM Detail Modal */}
 			{selectedCustomerForDetail && (
 				<CustomerDetailModal
 					customer={selectedCustomerForDetail}
@@ -1493,7 +2295,7 @@ export default function AdminWorkspace({
 				/>
 			)}
 
-			{/* Review Detail & Response Modal */}
+			{/* 4. Product Review Detail Modal */}
 			{selectedReviewForDetail && (
 				<ReviewModal
 					review={selectedReviewForDetail}
@@ -1501,6 +2303,25 @@ export default function AdminWorkspace({
 					onReviewUpdated={(updated) => {
 						setReviews((prev) => prev.map((r) => (r._id === updated._id ? updated : r)))
 						setSelectedReviewForDetail(updated)
+					}}
+				/>
+			)}
+
+			{/* 5. Blog Comment Moderation & Reply Modal */}
+			{selectedCommentForDetail && (
+				<CommentModal
+					comment={selectedCommentForDetail}
+					onClose={() => setSelectedCommentForDetail(null)}
+					onCommentUpdated={(updated) => {
+						setComments((prev) => prev.map((c) => (c._id === updated._id ? updated : c)))
+						setSelectedCommentForDetail(updated)
+					}}
+					onCommentDeleted={(deletedId) => {
+						setComments((prev) => prev.filter((c) => c._id !== deletedId))
+						setSelectedCommentForDetail(null)
+					}}
+					onReplyCreated={(newReply) => {
+						setComments((prev) => [newReply, ...prev])
 					}}
 				/>
 			)}

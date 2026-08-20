@@ -21,6 +21,7 @@ import {
 	FiSmile,
 	FiUsers,
 	FiMessageCircle,
+	FiTag,
 	FiEdit3,
 } from 'react-icons/fi'
 import { group, singleton } from './lib/builders'
@@ -73,6 +74,9 @@ export default structureTool({
 				S.documentTypeListItem('logo').title('Brand Logos').icon(FiSmile),
 				S.documentTypeListItem('person').title('Team & Authors').icon(FiUsers),
 				S.documentTypeListItem('quote').title('Quotes & Testimonials').icon(FiMessageCircle),
+				S.documentTypeListItem('affiliate.product')
+					.title('Affiliate Products (Catalog)')
+					.icon(FiTag),
 
 				S.divider(),
 

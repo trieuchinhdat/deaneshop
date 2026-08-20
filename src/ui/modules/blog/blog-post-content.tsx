@@ -35,6 +35,7 @@ import RelatedPosts from './related-posts'
 import RelatedProducts from './related-products'
 import Schema from './schema'
 import SocialShare from './social-share'
+import CommentsSection from './comments/comments-section'
 
 export default function BlogPostContentComponent({
 	post,
@@ -285,6 +286,16 @@ export default function BlogPostContentComponent({
 
 						{/* Author E-E-A-T Bio Box */}
 						{post.author && <AuthorBox author={post.author} />}
+
+						{/* Comments & Discussion Thread Engine (UI/UX Pro Max) */}
+						<CommentsSection
+							postId={post._id}
+							comments={post.comments || []}
+							enableComments={blogSettings?.enableComments !== false}
+							allowComments={post.allowComments !== false}
+							title={blogSettings?.commentSectionTitle}
+							subtitle={blogSettings?.commentSectionSubtitle}
+						/>
 
 						{/* Related Products Showcase (reusing official ProductCard UI) */}
 						{enableRelatedProducts &&

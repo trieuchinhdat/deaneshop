@@ -303,6 +303,14 @@ const BLOG_POST_QUERY = groq`*[_type == 'blog.post' && metadata.slug.current == 
 			}
 		}
 	},
+	'comments': *[_type == 'blog.comment' && post._ref == ^._id && isApproved == true] | order(createdAt asc){
+		_id,
+		authorName,
+		content,
+		isAuthorReply,
+		createdAt,
+		'parentId': parentComment._ref
+	},
 	'globalBefore': (
 		*[_type == 'global-module' && path == '*'].before[]{ ${MODULES_QUERY} }
 		+ *[_type == 'global-module' && path == $blogDir].before[]{ ${MODULES_QUERY} }

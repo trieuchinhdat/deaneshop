@@ -298,6 +298,32 @@ export default defineType({
 			hidden: ({ parent }) => parent?.enableLatestPosts === false,
 			group: 'widgets',
 		}),
+		defineField({
+			name: 'enableComments',
+			title: 'Enable Discussion & Comments Section',
+			description: 'Allow readers to submit comments and questions on blog posts.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'widgets',
+		}),
+		defineField({
+			name: 'commentSectionTitle',
+			title: 'Comments Section Title',
+			type: 'string',
+			initialValue: 'Comments & Discussion',
+			placeholder: 'Comments & Discussion',
+			hidden: ({ parent }) => parent?.enableComments === false,
+			group: 'widgets',
+		}),
+		defineField({
+			name: 'commentSectionSubtitle',
+			title: 'Comments Section Subtitle',
+			type: 'string',
+			initialValue: 'Join the conversation or ask a question. Our team reviews all inquiries.',
+			placeholder: 'Join the conversation or ask a question.',
+			hidden: ({ parent }) => parent?.enableComments === false,
+			group: 'widgets',
+		}),
 	],
 	preview: {
 		prepare: () => ({

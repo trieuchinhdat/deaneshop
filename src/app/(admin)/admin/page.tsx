@@ -1,12 +1,21 @@
+import { getAdminSession } from '@/lib/admin-auth'
 import { writeClient } from '@/sanity/lib/write-client'
+import AdminStudioGuard from './admin-studio-guard'
 import AdminWorkspace from './admin-workspace'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function AdminPage() {
-	// Parallel fetch: Orders, Customers, Reviews
-	const [orders, customers, reviews] = await Promise.all([
+	// 1. Kiểm tra phiên xác thực quyền Admin / Sanity Studio
+	const session = await getAdminSession()
+
+	if (!session) {
+		return <AdminStudioGuard />
+	}
+
+	// 2. Tải song song toàn bộ dữ liệu quản trị (Đơn hàng, Khách hàng CRM, Đánh giá, Bình luận blog)
+	const [orders, customers, reviews, comments] = await Promise.all([
 		writeClient.fetch(
 			`*[_type == "order"] | order(_createdAt desc) {
 				_id,
@@ -63,6 +72,19 @@ export default async function AdminPage() {
 				}
 			}`,
 		),
+		writeClient.fetch(
+			`*[_type == "blog.comment"] | order(createdAt desc) {
+				_id,
+				authorName,
+				authorEmail,
+				content,
+				isAuthorReply,
+				isApproved,
+				createdAt,
+				post->{ _id, title, "slug": metadata.slug.current },
+				parentComment->{ _id, authorName, content }
+			}`,
+		),
 	])
 
 	return (
@@ -70,6 +92,8 @@ export default async function AdminPage() {
 			initialOrders={orders || []}
 			initialCustomers={customers || []}
 			initialReviews={reviews || []}
+			initialComments={comments || []}
+			adminUser={session}
 		/>
 	)
 }

@@ -3,8 +3,9 @@ import { writeClient } from '@/sanity/lib/write-client'
 
 export async function POST(req: Request) {
 	try {
-		const body = await req.json()
-		const { customerId, cskhStatus, newNote, author = 'Admin CSKH' } = body
+		const body = await req.json().catch(() => ({}))
+		const { customerId, cskhStatus, newNote, internalNote, author = 'Admin CSKH' } = body
+		const noteText = newNote || internalNote
 
 		if (!customerId) {
 			return NextResponse.json(
@@ -32,11 +33,11 @@ export async function POST(req: Request) {
 			patch.set({ cskhStatus })
 		}
 
-		if (newNote && newNote.trim()) {
+		if (noteText && noteText.trim()) {
 			const noteItem = {
 				_key: `${Date.now()}`,
 				author,
-				note: newNote.trim(),
+				note: noteText.trim(),
 				timestamp: new Date().toISOString(),
 			}
 			const updatedNotes = [noteItem, ...(currentCustomer.internalNotes || [])]

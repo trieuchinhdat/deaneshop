@@ -1,74 +1,115 @@
+import { Suspense } from 'react'
 import type { Metadata } from 'next'
-import { getCartCheckoutSettings, getPage, getProductSettings } from '@/sanity/lib/queries'
+import {
+	getCheckoutSettings,
+	getGlobalModules,
+	getPage,
+	getProductSettings,
+} from '@/sanity/lib/queries'
 import CartCheckoutClient from '@/ui/modules/cart-checkout/cart-checkout-client'
 import ModulesResolver from '@/ui/modules'
 
 export async function generateMetadata(): Promise<Metadata> {
-	const page = await getPage(['checkout'])
-	const { title, description, noIndex } = page?.metadata ?? {}
+	const [checkoutSettings, page] = await Promise.all([
+		getCheckoutSettings(),
+		getPage(['checkout']),
+	])
+
+	const meta = checkoutSettings?.metadata ?? page?.metadata ?? {}
+	const title = meta.title || checkoutSettings?.title || 'Fast & Secure Checkout'
+	const description =
+		meta.description ||
+		checkoutSettings?.description ||
+		'Complete your order with express delivery and secure payment.'
 
 	return {
-		title: title || 'Thanh toán & Giỏ hàng',
-		description: description || 'Trang thanh toán đơn hàng',
+		title,
+		description,
 		robots: {
-			index: noIndex ? false : undefined,
+			index: meta.noIndex ? false : undefined,
 		},
 	}
 }
 
 export default async function CheckoutPage() {
-	const [page, productSettings, cartCheckoutSettings] = await Promise.all([
-		getPage(['checkout']),
+	const [checkoutSettings, productSettings, globalModules, page] = await Promise.all([
+		getCheckoutSettings(),
 		getProductSettings(),
-		getCartCheckoutSettings(),
+		getGlobalModules('checkout'),
+		getPage(['checkout']),
 	])
 
-	// Tìm module cart-checkout từ page nếu có
-	const pageCartCheckoutModule = page?.modules?.find(
-		(m: any) => m?._type === 'cart-checkout',
-	) as any
-
-	// Lọc bớt các module cart-checkout trong page modules để tránh render đúp
-	const otherModules = page?.modules?.filter(
-		(m: any) => m?._type !== 'cart-checkout',
-	)
+	const title = checkoutSettings?.title || page?.title || 'Fast & Secure Checkout'
+	const description =
+		checkoutSettings?.description ||
+		(page as any)?.description ||
+		'Complete your shipping information and payment details below.'
+	const submitText = checkoutSettings?.submitText || 'Place Order'
+	const showSummary = checkoutSettings?.showSummary ?? true
 
 	const webhookUrl =
-		pageCartCheckoutModule?.webhookUrl ||
-		cartCheckoutSettings?.webhookUrl ||
+		checkoutSettings?.webhookUrl ||
 		(productSettings as any)?.webhookUrl ||
 		''
 
 	const priceShipping =
-		pageCartCheckoutModule?.priceShipping ??
-		cartCheckoutSettings?.priceShipping ??
+		checkoutSettings?.priceShipping ??
 		(productSettings as any)?.priceShipping ??
 		0
 
-	const title = pageCartCheckoutModule?.title || page?.title || 'Thanh toán'
-	const description =
-		pageCartCheckoutModule?.description || (page as any)?.description || ''
-	const submitText = pageCartCheckoutModule?.submitText || 'Đặt hàng'
-	const showSummary = pageCartCheckoutModule?.showSummary ?? true
+	const topModules = [
+		...(globalModules?.before || []),
+		...(checkoutSettings?.topModules || []),
+	]
+
+	// Preserve any non-checkout modules from legacy page if present
+	const legacyOtherModules = (page?.modules || []).filter(
+		(m: any) => m?._type !== 'cart-checkout',
+	)
+
+	const bottomModules = [
+		...(checkoutSettings?.bottomModules || []),
+		...legacyOtherModules,
+		...(globalModules?.after || []),
+	]
 
 	return (
 		<main className="min-h-screen py-6 lg:py-10 bg-gray-50/50">
+			{/* 1. Top CRO / Urgency Banners */}
+			{topModules.length > 0 && (
+				<div className="mb-6">
+					<ModulesResolver
+						modules={topModules}
+						productSettings={productSettings}
+					/>
+				</div>
+			)}
+
+			{/* 2. Fixed Core Functional View */}
 			<div className="container-max">
-				<CartCheckoutClient
-					title={title}
-					description={description}
-					webhookUrl={webhookUrl}
-					submitText={submitText}
-					showSummary={showSummary}
-					priceShipping={priceShipping}
-				/>
+				<Suspense
+					fallback={
+						<div className="min-h-[400px] flex items-center justify-center text-sm text-slate-400">
+							Loading checkout...
+						</div>
+					}
+				>
+					<CartCheckoutClient
+						title={title}
+						description={description}
+						webhookUrl={webhookUrl}
+						submitText={submitText}
+						showSummary={showSummary}
+						priceShipping={priceShipping}
+					/>
+				</Suspense>
 			</div>
 
-			{/* Hiển thị các Global Modules hoặc Modules bổ sung từ Sanity nếu có */}
-			{otherModules && otherModules.length > 0 && (
+			{/* 3. Bottom CRO Modules (Trust badges, FAQ, Guarantees) */}
+			{bottomModules.length > 0 && (
 				<div className="mt-8">
 					<ModulesResolver
-						page={{ ...(page as any), modules: otherModules as any }}
+						modules={bottomModules}
 						productSettings={productSettings}
 					/>
 				</div>
@@ -76,4 +117,3 @@ export default async function CheckoutPage() {
 		</main>
 	)
 }
-

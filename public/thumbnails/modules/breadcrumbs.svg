@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="100%" height="100%">
+  <rect width="320" height="180" rx="10" fill="#0f172a"/>
+  <rect x="1" y="1" width="318" height="178" rx="9" fill="none" stroke="#334155" stroke-width="1.5"/>
+
+  <!-- Top Breadcrumbs Navigation Bar -->
+  <g transform="translate(24, 26)">
+    <rect x="0" y="0" width="272" height="34" rx="8" fill="#1e293b" stroke="#334155"/>
+
+    <!-- Home Icon -->
+    <path d="M16 20 L22 14 L28 20 V24 H16 Z" fill="#60a5fa"/>
+    <rect x="34" y="15" width="26" height="4" rx="2" fill="#94a3b8"/>
+
+    <!-- Chevron 1 -->
+    <path d="M68 15 L72 17 L68 19" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+
+    <!-- Category -->
+    <rect x="80" y="15" width="45" height="4" rx="2" fill="#94a3b8"/>
+
+    <!-- Chevron 2 -->
+    <path d="M133 15 L137 17 L133 19" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+
+    <!-- Subcategory -->
+    <rect x="145" y="15" width="40" height="4" rx="2" fill="#94a3b8"/>
+
+    <!-- Chevron 3 -->
+    <path d="M193 15 L197 17 L193 19" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+
+    <!-- Active Current Page -->
+    <rect x="205" y="14" width="55" height="6" rx="2" fill="#10b981"/>
+  </g>
+
+  <!-- Page Content Simulation Below -->
+  <g transform="translate(24, 76)">
+    <rect x="0" y="0" width="140" height="12" rx="3" fill="#f8fafc"/>
+    <rect x="0" y="20" width="272" height="6" rx="2" fill="#334155"/>
+    <rect x="0" y="32" width="272" height="6" rx="2" fill="#334155"/>
+    <rect x="0" y="44" width="210" height="6" rx="2" fill="#334155"/>
+    <rect x="0" y="56" width="160" height="6" rx="2" fill="#334155"/>
+
+    <rect x="0" y="70" width="70" height="18" rx="4" fill="#10b981"/>
+  </g>
+</svg>

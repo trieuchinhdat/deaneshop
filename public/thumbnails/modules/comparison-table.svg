@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="100%" height="100%">
+  <!-- Container Background & Border -->
+  <rect width="320" height="180" rx="10" fill="#0f172a"/>
+  <rect x="1" y="1" width="318" height="178" rx="9" fill="none" stroke="#334155" stroke-width="1.5"/>
+
+  <!-- Top Badge & Header Headline -->
+  <rect x="96" y="12" width="128" height="11" rx="5.5" fill="#10b981" fill-opacity="0.18"/>
+  <text x="160" y="20.5" font-size="6.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" fill="#34d399" text-anchor="middle" letter-spacing="0.6">US VS. THEM MATRIX</text>
+  <rect x="80" y="27" width="160" height="7" rx="3.5" fill="#f8fafc"/>
+
+  <!-- Outer Table Container -->
+  <rect x="16" y="40" width="288" height="126" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.2"/>
+
+  <!-- Column 2 (DEANFLOW / US) Highlight Background & Accent Border -->
+  <rect x="112" y="38" width="96" height="128" rx="8" fill="#10b981" fill-opacity="0.08" stroke="#10b981" stroke-width="1.5"/>
+
+  <!-- Floating Brand Badge over Column 2 -->
+  <rect x="123" y="32" width="74" height="14" rx="7" fill="#10b981"/>
+  <text x="160" y="42.5" font-size="7.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">DEANFLOW</text>
+
+  <!-- Column 1 Header (Criteria) -->
+  <rect x="28" y="49" width="56" height="5" rx="2.5" fill="#94a3b8"/>
+
+  <!-- Column 3 Header (Competitors / Conventional) -->
+  <text x="256" y="54" font-size="7.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="600" fill="#94a3b8" text-anchor="middle" letter-spacing="0.4">OTHERS</text>
+
+  <!-- Horizontal Divider under Headers -->
+  <line x1="16" y1="62" x2="304" y2="62" stroke="#334155" stroke-width="1"/>
+
+  <!-- Vertical Column Guidelines (Subtle) -->
+  <line x1="112" y1="62" x2="112" y2="166" stroke="#334155" stroke-dasharray="2 2" stroke-width="0.8"/>
+  <line x1="208" y1="62" x2="208" y2="166" stroke="#334155" stroke-dasharray="2 2" stroke-width="0.8"/>
+
+  <!-- ROW 1: Home Compostable -->
+  <g transform="translate(0, 0)">
+    <rect x="26" y="73" width="66" height="5" rx="2.5" fill="#f8fafc"/>
+    <rect x="26" y="80" width="46" height="3" rx="1.5" fill="#64748b"/>
+
+    <!-- US: Check -->
+    <circle cx="160" cy="76" r="7.5" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1.2"/>
+    <path d="M156.5 76 L159 78.5 L164 73.5" stroke="#34d399" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+    <!-- THEM: Cross -->
+    <circle cx="256" cy="76" r="7.5" fill="#ef4444" fill-opacity="0.15" stroke="#ef4444" stroke-width="1.2"/>
+    <path d="M252.8 72.8 L259.2 79.2 M259.2 72.8 L252.8 79.2" stroke="#f87171" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- Row 1 Divider -->
+  <line x1="20" y1="88" x2="300" y2="88" stroke="#334155" stroke-opacity="0.6" stroke-width="0.8"/>
+
+  <!-- ROW 2: FDA Food-Contact Safe -->
+  <g transform="translate(0, 0)">
+    <rect x="26" y="99" width="72" height="5" rx="2.5" fill="#f8fafc"/>
+    <rect x="26" y="106" width="52" height="3" rx="1.5" fill="#64748b"/>
+
+    <!-- US: Check -->
+    <circle cx="160" cy="102" r="7.5" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1.2"/>
+    <path d="M156.5 102 L159 104.5 L164 99.5" stroke="#34d399" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+    <!-- THEM: Cross -->
+    <circle cx="256" cy="102" r="7.5" fill="#ef4444" fill-opacity="0.15" stroke="#ef4444" stroke-width="1.2"/>
+    <path d="M252.8 98.8 L259.2 105.2 M259.2 98.8 L252.8 105.2" stroke="#f87171" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- Row 2 Divider -->
+  <line x1="20" y1="114" x2="300" y2="114" stroke="#334155" stroke-opacity="0.6" stroke-width="0.8"/>
+
+  <!-- ROW 3: Zero Microplastics / Resilient -->
+  <g transform="translate(0, 0)">
+    <rect x="26" y="125" width="58" height="5" rx="2.5" fill="#f8fafc"/>
+    <rect x="26" y="132" width="40" height="3" rx="1.5" fill="#64748b"/>
+
+    <!-- US: Check -->
+    <circle cx="160" cy="128" r="7.5" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1.2"/>
+    <path d="M156.5 128 L159 130.5 L164 125.5" stroke="#34d399" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+    <!-- THEM: Warning Alert -->
+    <circle cx="256" cy="128" r="7.5" fill="#f59e0b" fill-opacity="0.15" stroke="#f59e0b" stroke-width="1.2"/>
+    <path d="M256 124.5 V128.5 M256 131.2 V131.7" stroke="#fbbf24" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- Row 3 Divider -->
+  <line x1="20" y1="140" x2="300" y2="140" stroke="#334155" stroke-opacity="0.6" stroke-width="0.8"/>
+
+  <!-- ROW 4: 72% Lower Carbon Footprint -->
+  <g transform="translate(0, 0)">
+    <rect x="26" y="151" width="64" height="5" rx="2.5" fill="#f8fafc"/>
+    <rect x="26" y="158" width="48" height="3" rx="1.5" fill="#64748b"/>
+
+    <!-- US: Check -->
+    <circle cx="160" cy="154" r="7.5" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1.2"/>
+    <path d="M156.5 154 L159 156.5 L164 151.5" stroke="#34d399" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+    <!-- THEM: Cross -->
+    <circle cx="256" cy="154" r="7.5" fill="#ef4444" fill-opacity="0.15" stroke="#ef4444" stroke-width="1.2"/>
+    <path d="M252.8 150.8 L259.2 157.2 M259.2 150.8 L252.8 157.2" stroke="#f87171" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

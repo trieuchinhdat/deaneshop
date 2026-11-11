@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from 'next'
 import '@/app.css'
 
+const brandName = process.env.NEXT_PUBLIC_SITE_NAME || 'Store'
+
 export const metadata: Metadata = {
-	title: 'Quản Trị Bán Hàng & CSKH | Ecocros Store',
+	title: `Lead Workspace | ${brandName}`,
 	description:
-		'Trung tâm quản lý Đơn hàng, Khách hàng CRM, Đánh giá sản phẩm và Bình luận bài viết dành cho nhân viên vận hành.',
+		'Lead qualification, website activity, acquisition insights, and timely customer follow-ups.',
 	robots: {
 		index: false,
 		follow: false,
@@ -14,7 +16,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
 	width: 'device-width',
 	initialScale: 1,
-	maximumScale: 1,
+	viewportFit: 'cover',
 	themeColor: '#f8fafc',
 }
 
@@ -24,8 +26,11 @@ export default function AdminRootLayout({
 	children: React.ReactNode
 }) {
 	return (
-		<html lang="vi" className="h-full bg-slate-50">
-			<body className="min-h-screen bg-slate-50/70 text-slate-900 antialiased font-sans flex flex-col selection:bg-emerald-600 selection:text-white">
+		<html lang="en" className="h-full bg-slate-50" suppressHydrationWarning>
+			<body
+				className="min-h-screen bg-slate-50/70 text-slate-900 antialiased font-sans flex flex-col selection:bg-emerald-600 selection:text-white"
+				suppressHydrationWarning
+			>
 				{children}
 			</body>
 		</html>

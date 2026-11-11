@@ -1,28 +1,30 @@
-### 2. `ARCHITECTURE.md`
+# Kiến trúc hiện tại
 
-> **Mục đích**: Mô tả bức tranh tổng thể về sơ đồ thư mục, luồng dữ liệu (Data Flow), và cơ chế render để AI đưa ra giải pháp đúng vị trí component mà không bị tạo trùng lặp code.
+Cập nhật từ mã nguồn ngày 2026-11-11. Đây là bản đồ để review, không phải xác nhận production readiness.
 
-**Nội dung mẫu gợi ý cho `ARCHITECTURE.md`:**
+## Luồng chính
 
-```markdown
-# PROJECT ARCHITECTURE & DATA FLOW
+1. Next.js App Router trong `src/app/(frontend)/` render trang từ nội dung Sanity.
+2. `src/sanity/lib/queries.ts` lấy các field cần thiết; `src/ui/modules/index.tsx` ánh xạ `_type` sang UI module.
+3. Form gửi inquiry tới `src/app/(frontend)/api/leads/route.ts`. Dữ liệu nghiệp vụ được lưu qua `src/lib/d1.ts` vào Cloudflare D1.
+4. `src/app/(admin)/admin/page.tsx` dựng `lead-workspace-client.tsx` cho người dùng đã đăng nhập. Workspace hiển thị Leads, Follow-ups, Insights, Customers và Team theo quyền.
+5. `src/lib/admin-auth.ts` và `src/lib/admin-roles.ts` cùng các API admin kiểm soát phiên, vai trò và phạm vi dữ liệu. `src/lib/outbox.ts` xử lý công việc gửi thông báo.
 
-## Directory Layout
+## Ranh giới dữ liệu
 
-- `src/app/(frontend)/`: Next.js App Router routes (`page.tsx`, `layout.tsx`).
-- `src/sanity/`: Sanity Studio configurations, schemas, live client, and GROQ queries.
-  - `schemaTypes/documents/`: Master models (Product, Post, Site Settings).
-  - `schemaTypes/modules/`: Block-based UI components configurable in CMS.
-  - `lib/queries.ts`: Main GROQ queries fetching pages & modules.
-- `src/ui/`: UI components library.
-  - `ui/modules/`: Component implementations corresponding to Sanity modules.
-  - `ui/header/`, `ui/footer/`: Global structural components.
-- `src/store/`: Zustand state stores (e.g., `use-cart-store.ts`).
+| Hệ thống | Trách nhiệm |
+| --- | --- |
+| Sanity | Trang, bài viết, sản phẩm, module, cấu hình trình bày |
+| D1 | Inquiry, đánh giá lead, follow-up, nhân sự, ghi chú, orders cũ, outbox |
+| Zustand | Trạng thái tương tác phía trình duyệt; không là nguồn dữ liệu nghiệp vụ |
 
-## Data Fetching Strategy
+Migrations đang ở `migrations/0000_baseline.sql` đến `0009_wholesale_rfq_leads.sql`. Không suy ra môi trường remote đã chạy các migration này từ việc file có trong repo.
 
-1. Next.js Server Components query Sanity using `sanityFetchLive` from `src/sanity/lib/live.ts`.
-2. Fetched data includes an array of `modules`.
-3. `page.tsx` renders `<ModulesResolver modules={data.modules} />`.
-4. Client components subscribe to Zustand stores for cart state & checkout.
-```
+## Quy ước thay đổi
+
+- Trang `page.tsx` là Server Component; tương tác nằm trong client component riêng.
+- Module mới phải đi qua tên hiển thị, schema với `defineModulePreview()`, registry, GROQ, typegen và `ModulesResolver`. Xem [CMS-SCHEMA.md](CMS-SCHEMA.md).
+- Dùng type Sanity sinh từ `npm run typegen` cho dữ liệu CMS; D1 có domain type riêng trong `src/lib/d1.ts`.
+- Legacy order/quote APIs và `admin-workspace.tsx` vẫn còn trong source, nhưng `/admin` hiện mount Lead Workspace. Việc loại bỏ cần audit các consumer trước.
+
+Xem [định vị](STRATEGY_POSITIONING.md), [trạng thái](docs/REVIEW_STATUS.md) và [checklist review](docs/REVIEW_CHECKLIST.md).

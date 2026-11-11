@@ -27,7 +27,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 		}
 	}, [isOpen])
 
-	// Đóng modal khi nhấn phím ESC
+	// Close modal on ESC key press
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === 'Escape' && isOpen) {
@@ -56,7 +56,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 			className="fixed inset-0 z-[100] overflow-y-auto"
 			role="dialog"
 			aria-modal="true"
-			aria-label="Cửa sổ tìm kiếm nhanh"
+			aria-label="Quick Search Modal"
 		>
 			{/* Backdrop Overlay */}
 			<div
@@ -82,7 +82,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 							type="search"
 							value={query}
 							onChange={(e) => setQuery(e.target.value)}
-							placeholder="Tìm kiếm sản phẩm, thương hiệu..."
+							placeholder="Search products, collections, brands..."
 							className="w-full bg-transparent text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none"
 							autoComplete="off"
 						/>
@@ -93,7 +93,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 								onClick={() => setQuery('')}
 								className="rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-200 transition-colors shrink-0"
 							>
-								Xóa
+								Clear
 							</button>
 						)}
 
@@ -101,7 +101,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 							type="button"
 							onClick={onClose}
 							className="flex size-11 shrink-0 items-center justify-center rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-							aria-label="Đóng tìm kiếm"
+							aria-label="Close search"
 						>
 							<HiXMark className="text-xl" />
 						</button>
@@ -110,10 +110,10 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
 					{/* Quick Suggestions */}
 					<div className="bg-gray-50/60 dark:bg-gray-800/40 p-4 sm:p-6">
 						<p className="mb-3 text-[11px] font-bold tracking-wider text-gray-600 dark:text-gray-400 uppercase">
-							Gợi ý tìm kiếm phổ biến
+							Popular Searches
 						</p>
 						<div className="flex flex-wrap gap-2">
-							{['Khuyến mãi', 'Tất cả sản phẩm', 'Flash Sale', 'Bán chạy', 'Sản phẩm mới'].map(
+							{['All Products', 'Best Sellers', 'New Arrivals', 'Special Deals', 'Sustainable'].map(
 								(tag) => (
 									<button
 										key={tag}

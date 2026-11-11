@@ -27,7 +27,7 @@ export default function AuthorBox({ author }: AuthorBoxProps) {
 	if (!author?.name) return null
 
 	return (
-		<div className="my-10 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50/60 p-6 sm:p-7 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/40">
+		<div className="not-prose my-10 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50/60 p-5 sm:p-7 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/40">
 			<div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
 				{/* Avatar */}
 				<div className="relative size-20 sm:size-24 shrink-0 overflow-hidden rounded-full border-2 border-white bg-zinc-100 shadow-sm dark:border-zinc-800 dark:bg-zinc-800">
@@ -50,7 +50,7 @@ export default function AuthorBox({ author }: AuthorBoxProps) {
 				<div className="flex-1 space-y-2">
 					<div className="space-y-0.5">
 						<span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-							Written by
+							About the Author
 						</span>
 						<h4 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
 							{author.name}

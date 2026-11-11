@@ -28,7 +28,7 @@ export default function ImageGallery({
 	}[layout] || 'grid-cols-1 sm:grid-cols-2'
 
 	return (
-		<figure className="my-8 space-y-3">
+		<figure className="not-prose my-8 space-y-3">
 			{title && (
 				<strong className="block text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
 					{title}

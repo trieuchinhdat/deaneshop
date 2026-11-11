@@ -7,7 +7,8 @@ export const revalidate = 3600 // Cache for 1 hour, stale-while-revalidate
 const LLMS_QUERY = groq`{
 	'site': *[_type == 'site'][0]{
 		title,
-		description
+		siteName,
+		'description': coalesce(defaultSeoDescription, description, '')
 	},
 	'pages': *[
 		_type == 'page'
@@ -53,7 +54,7 @@ const LLMS_QUERY = groq`{
 }`
 
 export async function GET() {
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://ecocros.com'
+	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://deanflow.com'
 
 	try {
 		// Timeout protection (max 2.5s) to guarantee no crawler/Lighthouse timeout
@@ -71,10 +72,10 @@ export async function GET() {
 
 		const data = await Promise.race([fetchPromise, timeoutPromise])
 
-		const siteTitle = data?.site?.title || 'Ecocros'
+		const siteTitle = data?.site?.siteName || data?.site?.title || 'Store'
 		const siteDescription =
 			data?.site?.description ||
-			'Ecocros - Modern E-Commerce Platform offering curated lifestyle, technology, and home products with fast shipping and guaranteed quality.'
+			`${siteTitle} - Modern E-Commerce Platform offering curated lifestyle, technology, and home products with fast shipping and guaranteed quality.`
 
 		const sections: string[] = []
 
@@ -162,8 +163,9 @@ export async function GET() {
 		console.error('Error generating llms.txt:', error)
 
 		// Resilient fallback markdown complying with llmstxt.org
+		const fallbackBrand = process.env.NEXT_PUBLIC_SITE_NAME || 'Store'
 		const fallbackMarkdown = [
-			`# Ecocros`,
+			`# ${fallbackBrand}`,
 			`> Modern E-Commerce Platform offering curated lifestyle, home, and tech products.`,
 			``,
 			`## Navigation`,

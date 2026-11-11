@@ -1,28 +1,32 @@
 import { defineField, defineType } from 'sanity'
+import { FiUsers } from 'react-icons/fi'
 
 export default defineType({
 	name: 'customer',
-	title: 'Khách hàng (Customers)',
+	title: 'Customer CRM [Archive]',
+	description: '⚠️ Live customer CRM records are managed in Cloudflare D1 (/admin). Documents here are legacy read-only records.',
 	type: 'document',
+	readOnly: true,
+	icon: FiUsers,
 	fields: [
 		defineField({
 			name: 'name',
-			title: 'Họ và tên',
+			title: 'Full Name',
 			type: 'string',
 		}),
 		defineField({
 			name: 'phone',
-			title: 'Số điện thoại',
+			title: 'Phone Number',
 			type: 'string',
 		}),
 		defineField({
 			name: 'email',
-			title: 'Email',
+			title: 'Email Address',
 			type: 'string',
 		}),
 		defineField({
 			name: 'avatar',
-			title: 'Ảnh đại diện (Avatar URL)',
+			title: 'Avatar Image URL',
 			type: 'url',
 		}),
 		defineField({
@@ -32,100 +36,120 @@ export default defineType({
 		}),
 		defineField({
 			name: 'authProvider',
-			title: 'Phương thức xác thực',
+			title: 'Identity Provider',
 			type: 'string',
 			options: {
 				list: [
 					{ title: 'Google OAuth (Gmail)', value: 'google' },
-					{ title: 'Số điện thoại / Mật khẩu', value: 'credentials' },
-					{ title: 'Khách vãng lai (Guest Checkout)', value: 'guest' },
+					{ title: 'Phone / Credentials', value: 'credentials' },
+					{ title: 'Guest Checkout', value: 'guest' },
 				],
 			},
 			initialValue: 'guest',
 		}),
 		defineField({
 			name: 'lastLoginAt',
-			title: 'Thời gian đăng nhập gần nhất',
+			title: 'Last Active / Login At',
 			type: 'datetime',
 		}),
 		defineField({
 			name: 'address',
-			title: 'Địa chỉ giao hàng gần nhất',
+			title: 'Street Address',
 			type: 'text',
 			rows: 2,
 		}),
 		defineField({
+			name: 'city',
+			title: 'City',
+			type: 'string',
+		}),
+		defineField({
+			name: 'state',
+			title: 'State / Province / Region',
+			type: 'string',
+		}),
+		defineField({
+			name: 'postalCode',
+			title: 'Postal / ZIP Code',
+			type: 'string',
+		}),
+		defineField({
+			name: 'country',
+			title: 'Country',
+			type: 'string',
+		}),
+		defineField({
 			name: 'source',
-			title: 'Nguồn tiếp cận ban đầu',
+			title: 'Acquisition Source',
 			type: 'string',
 			options: {
 				list: [
-					{ title: '📰 Đăng ký nhận tin (Newsletter)', value: 'newsletter' },
-					{ title: '🎁 Popup Voucher Marketing', value: 'popup' },
-					{ title: '🛍️ Đặt hàng trực tiếp (Order)', value: 'order' },
-					{ title: '👤 Đăng ký tài khoản (Register)', value: 'register' },
-					{ title: '🌐 Khác / Nhập thủ công', value: 'other' },
+					{ title: 'Newsletter Subscription', value: 'newsletter' },
+					{ title: 'Popup Voucher Offer', value: 'popup' },
+					{ title: 'Commercial Inquiry / Order', value: 'order' },
+					{ title: 'Account Registration', value: 'register' },
+					{ title: 'Other / Manual Import', value: 'other' },
 				],
 			},
 			initialValue: 'newsletter',
 		}),
 		defineField({
 			name: 'cskhStatus',
-			title: 'Trạng thái CSKH / Phân khúc',
+			title: 'CRM Lifecycle / Segment',
 			type: 'string',
 			options: {
 				list: [
-					{ title: '🟢 Khách tiềm năng (Lead / Chưa mua hàng)', value: 'lead' },
-					{ title: '🟡 Đang tư vấn / Chăm sóc (Contacted)', value: 'contacted' },
-					{ title: '🛒 Khách đã mua hàng (Active Customer)', value: 'customer' },
-					{ title: '🌟 Khách hàng VIP (VIP Customer)', value: 'vip' },
-					{ title: '⚪ Ngừng liên hệ / Khách hủy (Inactive)', value: 'inactive' },
+					{ title: 'Lead / Prospect', value: 'lead' },
+					{ title: 'Contacted / In Follow-up', value: 'contacted' },
+					{ title: 'Active Customer', value: 'customer' },
+					{ title: 'VIP Account', value: 'vip' },
+					{ title: 'Inactive / Unsubscribed', value: 'inactive' },
 				],
 			},
 			initialValue: 'lead',
 		}),
 		defineField({
 			name: 'couponReceived',
-			title: 'Mã ưu đãi đã nhận',
-			description: 'Mã giảm giá được cấp từ Popup hoặc chương trình khuyến mãi.',
+			title: 'Claimed Discount Code',
+			description: 'Coupon code issued via promotional popup or marketing campaign.',
 			type: 'string',
 		}),
 		defineField({
 			name: 'orderCount',
-			title: 'Tổng số đơn hàng đã đặt',
+			title: 'Total Orders Placed',
 			type: 'number',
 			initialValue: 0,
 		}),
 		defineField({
 			name: 'totalSpent',
-			title: 'Tổng chi tiêu tích lũy (VNĐ)',
+			title: 'Lifetime Value (LTV in USD)',
 			type: 'number',
 			initialValue: 0,
 		}),
 		defineField({
 			name: 'lastOrderAt',
-			title: 'Thời gian đặt đơn gần nhất',
+			title: 'Most Recent Order Date',
 			type: 'datetime',
 		}),
 		defineField({
 			name: 'createdAt',
-			title: 'Ngày tạo hồ sơ',
+			title: 'Profile Created Date',
 			type: 'datetime',
 			initialValue: () => new Date().toISOString(),
 		}),
 		defineField({
 			name: 'internalNotes',
-			title: 'Nhật ký & Ghi chú CSKH',
+			title: 'CRM Activity Log & Notes',
 			type: 'array',
 			of: [
 				{
 					type: 'object',
 					fields: [
-						defineField({ name: 'author', title: 'Nhân viên CSKH', type: 'string' }),
-						defineField({ name: 'note', title: 'Nội dung ghi chú', type: 'text', rows: 2 }),
+						defineField({ name: 'author', title: 'Staff / Agent', type: 'string' }),
+						defineField({ name: 'note', title: 'Note Details', type: 'text', rows: 2 }),
 						defineField({
 							name: 'timestamp',
-							title: 'Thời gian ghi',
+							title: 'Recorded At',
 							type: 'datetime',
 							initialValue: () => new Date().toISOString(),
 						}),
@@ -137,9 +161,9 @@ export default defineType({
 							timestamp: 'timestamp',
 						},
 						prepare({ author, note, timestamp }) {
-							const time = timestamp ? new Date(timestamp).toLocaleString('vi-VN') : ''
+							const time = timestamp ? new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''
 							return {
-								title: `${author || 'CSKH'}: ${note || ''}`,
+								title: `${author || 'CRM'}: ${note || ''}`,
 								subtitle: time,
 							}
 						},
@@ -158,25 +182,26 @@ export default defineType({
 			total: 'totalSpent',
 		},
 		prepare({ name, phone, email, status, orders, total }) {
-			const displayName = name ? `${name} (${phone || email})` : phone || email || 'Khách vãng lai'
-			const formattedTotal = total
-				? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total)
-				: '0 đ'
-			const orderText = orders ? `${orders} đơn` : '0 đơn'
+			const displayName = name ? `${name} (${phone || email})` : phone || email || 'Guest Customer'
+			const formattedTotal = total !== undefined
+				? `$${Number(total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+				: '$0.00'
+			const orderText = orders ? `${orders} order${orders > 1 ? 's' : ''}` : '0 orders'
 			const statusLabel =
 				status === 'vip'
-					? '🌟 VIP'
+					? 'VIP'
 					: status === 'customer'
-						? '🛒 Đã mua'
+						? 'Customer'
 						: status === 'contacted'
-							? '🟡 Đang tư vấn'
+							? 'In Touch'
 							: status === 'lead'
-								? '🟢 Tiềm năng'
-								: '⚪ Ngừng'
+								? 'Lead'
+								: 'Inactive'
 
 			return {
 				title: displayName,
-				subtitle: `[${statusLabel}] • ${orderText} • Tổng chi: ${formattedTotal}`,
+				subtitle: `[${statusLabel}] • ${orderText} • Total: ${formattedTotal}`,
+				media: FiUsers,
 			}
 		},
 	},

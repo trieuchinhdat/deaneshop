@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="100%" height="100%">
+  <rect width="320" height="180" rx="10" fill="#0f172a"/>
+  <rect x="1" y="1" width="318" height="178" rx="9" fill="none" stroke="#334155" stroke-width="1.5"/>
+
+  <!-- Left Side: Descriptive Elements -->
+  <rect x="24" y="45" width="60" height="10" rx="5" fill="#3b82f6" fill-opacity="0.2"/>
+  <rect x="32" y="48" width="44" height="4" rx="2" fill="#60a5fa"/>
+  <rect x="24" y="64" width="76" height="10" rx="4" fill="#f8fafc"/>
+  <rect x="24" y="80" width="70" height="5" rx="2" fill="#64748b"/>
+  <rect x="24" y="90" width="60" height="5" rx="2" fill="#475569"/>
+
+  <path d="M75 125 C85 135 100 145 116 148" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
+  <polygon points="116,145 122,149 116,153" fill="#3b82f6"/>
+
+  <!-- Center: Mobile Smartphone Mockup Frame -->
+  <rect x="124" y="12" width="96" height="156" rx="14" fill="#020617" stroke="#475569" stroke-width="2"/>
+  <!-- Dynamic Island / Speaker notch -->
+  <rect x="156" y="16" width="32" height="4" rx="2" fill="#334155"/>
+
+  <!-- Mobile screen content -->
+  <rect x="132" y="26" width="80" height="40" rx="4" fill="#1e293b"/>
+  <rect x="132" y="72" width="60" height="6" rx="3" fill="#f8fafc"/>
+  <rect x="132" y="82" width="76" height="4" rx="2" fill="#475569"/>
+  <rect x="132" y="89" width="70" height="4" rx="2" fill="#475569"/>
+  <rect x="132" y="96" width="55" height="4" rx="2" fill="#475569"/>
+  <rect x="132" y="103" width="74" height="4" rx="2" fill="#334155"/>
+
+  <!-- STICKY BOTTOM BAR (Docked) -->
+  <rect x="124" y="132" width="96" height="34" rx="0" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+  <!-- Mini thumbnail -->
+  <rect x="128" y="136" width="18" height="18" rx="3" fill="#334155"/>
+  <!-- Price -->
+  <rect x="150" y="138" width="18" height="6" rx="2" fill="#f8fafc"/>
+  <rect x="150" y="146" width="14" height="4" rx="2" fill="#10b981"/>
+  <!-- Buy Now Button -->
+  <rect x="174" y="136" width="42" height="20" rx="4" fill="#10b981"/>
+  <rect x="180" y="144" width="30" height="4" rx="2" fill="#ffffff"/>
+
+  <!-- Right Side Accent Indicators -->
+  <rect x="238" y="55" width="58" height="8" rx="4" fill="#f8fafc"/>
+  <rect x="238" y="68" width="50" height="5" rx="2" fill="#64748b"/>
+  <rect x="238" y="88" width="58" height="20" rx="5" fill="#1e293b" stroke="#334155"/>
+  <circle cx="248" cy="98" r="4" fill="#10b981"/>
+  <rect x="256" y="96" width="32" height="4" rx="2" fill="#94a3b8"/>
+</svg>

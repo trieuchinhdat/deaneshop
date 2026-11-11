@@ -13,8 +13,9 @@ export default function MobileToggle({ isOpen = false, onToggle }: MobileToggleP
 			type="button"
 			onClick={onToggle}
 			className="relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl p-2.5 text-header-foreground hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 transition-all select-none md:hidden"
-			aria-label={isOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
+			aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
 			aria-expanded={isOpen}
+			aria-controls="mobile-navigation-drawer"
 		>
 			{/* Animated Morphing Hamburger to X Icon */}
 			<div className="flex h-4 w-5 flex-col justify-between" aria-hidden="true">

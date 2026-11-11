@@ -1,9 +1,15 @@
 import { defineField, defineType } from 'sanity'
 import { MdShoppingCartCheckout } from 'react-icons/md'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'cart-checkout',
-	title: 'Cart / Checkout',
+	title: 'Cart & Direct Checkout [DEPRECATED]',
+	description:
+		'Legacy module. Cart & Direct Checkout is now managed via Checkout & Cart Settings singleton.',
+	deprecated: {
+		reason: 'Checkout is a fixed system view configured via Checkout & Cart Settings singleton.',
+	},
 	type: 'object',
 	icon: MdShoppingCartCheckout,
 	groups: [
@@ -65,13 +71,14 @@ export default defineType({
 			initialValue: false,
 		}),
 	],
-	preview: {
-		prepare() {
-			return {
-				title: 'Cart / Checkout',
-				subtitle: 'Zustand cart',
-				media: MdShoppingCartCheckout,
-			}
+	preview: defineModulePreview({
+		schemaName: 'cart-checkout',
+		icon: MdShoppingCartCheckout,
+		select: {
+			width: 'width',
 		},
-	},
+		metadata: (doc) => [
+			doc.width ? 'Full Width' : null,
+		],
+	}),
 })

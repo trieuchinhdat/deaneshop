@@ -86,19 +86,19 @@ export default function SocialShare({
 	return (
 		<div
 			className={cn(
-				'flex flex-wrap items-center gap-2 py-3 text-xs sm:text-sm',
+				'flex flex-wrap items-center gap-1.5 sm:gap-2 py-2 text-xs sm:text-sm',
 				className,
 			)}
 		>
-			<span className="font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider text-[11px] mr-1">
-				Share:
+			<span className="font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider text-[11px] mr-1 shrink-0">
+				Share analysis:
 			</span>
 
 			{/* Native Share on mobile devices */}
 			<button
 				type="button"
 				onClick={handleNativeShare}
-				className="flex size-11 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-700 transition-all hover:bg-zinc-900 hover:text-white hover:border-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-white dark:hover:text-zinc-900 cursor-pointer shadow-2xs"
+				className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-700 transition-all hover:bg-zinc-900 hover:text-white hover:border-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-white dark:hover:text-zinc-900 cursor-pointer shadow-2xs"
 				title="Share"
 				aria-label="Share this article"
 			>
@@ -115,7 +115,7 @@ export default function SocialShare({
 						target="_blank"
 						rel="noopener noreferrer"
 						className={cn(
-							'flex size-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-2xs transition-all hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300',
+							'flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-2xs transition-all hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300',
 							item.color,
 						)}
 						title={`Share on ${item.name}`}
@@ -131,7 +131,7 @@ export default function SocialShare({
 				type="button"
 				onClick={handleCopy}
 				className={cn(
-					'relative flex min-h-[44px] items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-semibold shadow-2xs transition-all cursor-pointer select-none',
+					'relative flex min-h-[40px] sm:min-h-[44px] shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold shadow-2xs transition-all cursor-pointer select-none whitespace-nowrap',
 					copied
 						? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
 						: 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800',
@@ -142,12 +142,12 @@ export default function SocialShare({
 				{copied ? (
 					<>
 						<Check className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-						<span>Copied!</span>
+						<span>Link copied!</span>
 					</>
 				) : (
 					<>
 						<Link2 className="size-3.5" />
-						<span>Copy Link</span>
+						<span>Copy link</span>
 					</>
 				)}
 			</button>

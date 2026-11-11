@@ -2,8 +2,8 @@ import { PortableText } from 'next-sanity'
 import {
 	Info,
 	Lightbulb,
-	AlertTriangle,
-	AlertCircle,
+	TriangleAlert,
+	CircleAlert,
 	Quote,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -30,13 +30,13 @@ const CALLOUT_STYLES = {
 	warning: {
 		container: 'bg-amber-50/70 border-amber-300 text-amber-950 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-200',
 		iconColor: 'text-amber-600 dark:text-amber-400',
-		icon: AlertTriangle,
+		icon: TriangleAlert,
 		defaultTitle: 'Important Note',
 	},
 	danger: {
 		container: 'bg-rose-50/70 border-rose-300 text-rose-950 dark:bg-rose-950/30 dark:border-rose-800 dark:text-rose-200',
 		iconColor: 'text-rose-600 dark:text-rose-400',
-		icon: AlertCircle,
+		icon: CircleAlert,
 		defaultTitle: 'Caution',
 	},
 	quote: {
@@ -60,21 +60,21 @@ export default function CalloutBox({
 		<aside
 			role="note"
 			className={cn(
-				'my-6 flex gap-3.5 rounded-xl border p-4 sm:p-5 shadow-xs transition-all',
+				'not-prose my-6 flex gap-3 sm:gap-3.5 rounded-xl border p-3.5 sm:p-5 shadow-xs transition-all',
 				config.container,
 			)}
 		>
 			<div className="shrink-0 pt-0.5">
-				<IconComponent className={cn('size-5 sm:size-6', config.iconColor)} aria-hidden="true" />
+				<IconComponent className={cn('size-5 shrink-0', config.iconColor)} aria-hidden="true" />
 			</div>
-			<div className="min-w-0 flex-1 space-y-1.5 text-sm sm:text-base leading-relaxed">
+			<div className="min-w-0 flex-1 space-y-1.5 text-xs sm:text-sm leading-relaxed">
 				{headingText && (
-					<strong className="block font-semibold tracking-tight">
+					<strong className="block font-semibold tracking-tight text-sm sm:text-base">
 						{headingText}
 					</strong>
 				)}
 				{content && content.length > 0 && (
-					<div className="prose prose-sm max-w-none opacity-90">
+					<div className="opacity-90 space-y-2 break-words">
 						<PortableText value={content} />
 					</div>
 				)}

@@ -1,181 +1,335 @@
 'use client'
 
 import { FiPrinter, FiX } from 'react-icons/fi'
-import { formatVND } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 
 type OrderPrintModalProps = {
-	order: any
+	order?: any
+	orders?: any[]
 	onClose: () => void
+	brandName?: string
+	companyName?: string
+	supportEmail?: string
 }
 
-export default function OrderPrintModal({ order, onClose }: OrderPrintModalProps) {
+export default function OrderPrintModal({
+	order,
+	orders,
+	onClose,
+	brandName,
+	companyName,
+	supportEmail,
+}: OrderPrintModalProps) {
 	const handlePrint = () => {
 		window.print()
 	}
 
-	const safeItems = Array.isArray(order?.items) ? order.items : []
+	const brand = brandName || 'STORE'
+	const storeTitle = companyName || `${brand} GLOBAL STORE`
+	const emailContact = supportEmail || 'support@store.com'
+
+	const orderList = Array.isArray(orders) && orders.length > 0
+		? orders
+		: order
+			? [order]
+			: []
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-			<div className="relative flex max-h-[95vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl border border-slate-200">
+		<div
+			id="order-print-document"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs print:static print:z-auto print:bg-white print:p-0 print:m-0 print:block"
+		>
+			<div className="relative flex max-h-[95vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl print:max-h-none print:max-w-none print:w-full print:rounded-none print:border-none print:shadow-none print:overflow-visible print:p-0 print:m-0">
 				{/* Non-printable Action Toolbar */}
-				<div className="print:hidden flex items-center justify-between border-b border-slate-200 bg-slate-100/80 px-6 py-3">
-					<span className="font-bold text-xs text-slate-600 uppercase tracking-wider">
-						Xem Trước Phiếu Giao Hàng & Thu Tiền (Khổ A5 Chuẩn)
-					</span>
+				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 bg-slate-100/90 px-4 sm:px-6 py-3 print:hidden">
 					<div className="flex items-center gap-2">
+						<span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
+							{orderList.length > 1
+								? `Bulk Packing Slips (${orderList.length} Orders - Standard A4/A5)`
+								: 'Invoice & Packing Slip (Standard A4/A5)'}
+						</span>
+						{orderList.length > 1 && (
+							<span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">
+								1-Click All Slips
+							</span>
+						)}
+					</div>
+					<div className="flex items-center gap-2 self-end sm:self-auto">
 						<button
 							type="button"
 							onClick={handlePrint}
-							className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-1.5 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition active:scale-95 cursor-pointer"
+							className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-md transition hover:bg-slate-800 active:scale-95"
 						>
 							<FiPrinter className="h-4 w-4" />
-							<span>In Phiếu Ngay</span>
+							<span>Print {orderList.length > 1 ? `(${orderList.length})` : ''}</span>
 						</button>
 						<button
 							type="button"
 							onClick={onClose}
-							className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-200 transition cursor-pointer"
+							className="flex h-9 w-9 min-h-[36px] min-w-[36px] cursor-pointer items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-200 active:scale-95"
+							aria-label="Close Print Preview"
 						>
 							<FiX className="h-4 w-4" />
 						</button>
 					</div>
 				</div>
 
-				{/* Printable A5 Document Body */}
-				<div className="flex-1 overflow-y-auto p-8 text-black bg-white print:p-0 print:overflow-visible">
-					{/* Header */}
-					<div className="flex items-start justify-between border-b-2 border-slate-900 pb-4">
-						<div>
-							<h1 className="text-xl font-black tracking-tight">ECOCROS STORE</h1>
-							<p className="text-[11px] text-slate-600 mt-0.5">Hotline: 0900.000.000 | Website: ecocros.vn</p>
-							<p className="text-[11px] text-slate-600">Địa chỉ gửi: Kho tổng ECOCROS</p>
-						</div>
-						<div className="text-right">
-							<h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
-								PHIẾU GIAO HÀNG (COD)
-							</h2>
-							<p className="font-mono font-bold text-sm text-slate-900 mt-0.5">#{order.orderId}</p>
-							<p className="text-[10px] text-slate-500">
-								Ngày: {order._createdAt ? new Date(order._createdAt).toLocaleDateString('vi-VN') : ''}
-							</p>
-						</div>
-					</div>
+				{/* Printable A5/A4 Document Body */}
+				<div className="flex-1 overflow-y-auto bg-white p-6 sm:p-8 text-black print:overflow-visible print:p-0">
+					{orderList.map((ord, idx) => {
+						const isLast = idx === orderList.length - 1
+						const safeItems = Array.isArray(ord?.items) ? ord.items : []
+						const formattedDate = ord?._createdAt
+							? new Date(ord._createdAt).toLocaleDateString('en-US', {
+									year: 'numeric',
+									month: 'short',
+									day: 'numeric',
+								})
+							: new Date().toLocaleDateString('en-US', {
+									year: 'numeric',
+									month: 'short',
+									day: 'numeric',
+								})
 
-					{/* Recipient & Sender Info */}
-					<div className="grid grid-cols-2 gap-4 py-4 border-b border-slate-300 text-xs">
-						<div className="border-r border-slate-200 pr-3 space-y-1">
-							<p className="font-bold uppercase tracking-wider text-slate-500 text-[10px]">
-								NGƯỜI NHẬN HÀNG:
-							</p>
-							<p className="font-bold text-sm text-slate-900">{order.customer?.name || 'Khách vãng lai'}</p>
-							<p className="font-mono font-bold text-slate-800">SĐT: {order.customer?.phone}</p>
-							<p className="text-slate-700 leading-snug mt-1">{order.customer?.address}</p>
-						</div>
-
-						<div className="pl-3 space-y-1">
-							<p className="font-bold uppercase tracking-wider text-slate-500 text-[10px]">
-								VẬN CHUYỂN & THANH TOÁN:
-							</p>
-							<p className="text-slate-700">
-								Đơn vị: <strong>{order.carrier || 'Giao Tiết Kiệm'}</strong>
-							</p>
-							{order.trackingCode && (
-								<p className="font-mono text-slate-700">
-									Mã VĐ: <strong>{order.trackingCode}</strong>
-								</p>
-							)}
-							<p className="text-slate-700">
-								Hình thức: <strong>{order.paymentMethod === 'COD' ? 'Thu hộ COD khi nhận' : order.paymentMethod}</strong>
-							</p>
-							{order.customerNote && (
-								<p className="italic text-slate-600 bg-slate-50 p-1.5 rounded-lg text-[11px] mt-1 border border-slate-200">
-									Ghi chú: "{order.customerNote}"
-								</p>
-							)}
-						</div>
-					</div>
-
-					{/* Product Table */}
-					<div className="py-4">
-						<table className="w-full text-left text-xs border-collapse border border-slate-300">
-							<thead>
-								<tr className="bg-slate-100 font-bold border-b border-slate-300 text-slate-800">
-									<th className="p-2 border-r border-slate-300 w-8 text-center">STT</th>
-									<th className="p-2 border-r border-slate-300">Tên Sản Phẩm</th>
-									<th className="p-2 border-r border-slate-300 text-center w-12">SL</th>
-									<th className="p-2 border-r border-slate-300 text-right w-24">Đơn Giá</th>
-									<th className="p-2 text-right w-24">Thành Tiền</th>
-								</tr>
-							</thead>
-							<tbody className="divide-y divide-slate-200">
-								{safeItems.map((item: any, idx: number) => (
-									<tr key={idx} className="border-b border-slate-200">
-										<td className="p-2 border-r border-slate-300 text-center font-mono">{idx + 1}</td>
-										<td className="p-2 border-r border-slate-300">
-											<span className="font-bold">{item.title || 'Sản phẩm'}</span>
-										</td>
-										<td className="p-2 border-r border-slate-300 text-center font-bold font-mono">
-											{item.quantity || 1}
-										</td>
-										<td className="p-2 border-r border-slate-300 text-right font-mono">
-											{formatVND(item.price || 0)}
-										</td>
-										<td className="p-2 text-right font-mono font-bold">
-											{formatVND((item.price || 0) * (item.quantity || 1))}
-										</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-
-					{/* Total Calculation & Big COD box */}
-					<div className="flex justify-between items-start pt-2 pb-6 border-b border-slate-300">
-						<div className="text-[11px] text-slate-500 max-w-xs leading-snug">
-							<p>• Quý khách vui lòng kiểm tra hàng trước khi thanh toán.</p>
-							<p>• Mọi khiếu nại xin vui lòng liên hệ Hotline trong 48h kể từ khi nhận hàng.</p>
-						</div>
-
-						<div className="w-56 space-y-1 text-xs">
-							<div className="flex justify-between">
-								<span>Tạm tính:</span>
-								<span className="font-mono">{formatVND(order.pricing?.subtotal || order.pricing?.grandTotal || 0)}</span>
-							</div>
-							<div className="flex justify-between">
-								<span>Phí vận chuyển:</span>
-								<span className="font-mono">
-									{order.pricing?.shippingFee ? formatVND(order.pricing.shippingFee) : '0 ₫'}
-								</span>
-							</div>
-							{order.pricing?.discountTotal > 0 && (
-								<div className="flex justify-between text-slate-700">
-									<span>Giảm giá:</span>
-									<span className="font-mono">-{formatVND(order.pricing.discountTotal)}</span>
+						return (
+							<div
+								key={ord._id || ord.orderId || idx}
+								className={`print:break-after-page ${
+									!isLast ? 'mb-12 border-b-4 border-dashed border-slate-300 pb-10 print:mb-0 print:border-none print:pb-0' : ''
+								}`}
+							>
+								{/* Header */}
+								<div className="flex items-start justify-between border-b-2 border-slate-900 pb-3 print:pb-2.5 avoid-break">
+									<div>
+										<h1 className="text-xl font-black tracking-tight text-slate-900 uppercase print:text-lg">
+											{storeTitle}
+										</h1>
+										<p className="mt-0.5 text-[11px] text-slate-600 print:text-[10px]">
+											Official Direct Fulfillment | {emailContact}
+										</p>
+										<p className="text-[11px] text-slate-600 print:text-[10px]">
+											Origin: {brand} Fulfillment Hub
+										</p>
+									</div>
+									<div className="text-right">
+										<h2 className="text-sm font-black tracking-wider text-slate-900 uppercase print:text-xs">
+											PACKING SLIP & INVOICE
+										</h2>
+										<p className="mt-0.5 font-mono text-sm font-bold text-slate-900 print:text-xs">
+											#{ord.orderId || ord._id}
+										</p>
+										<p className="text-[11px] text-slate-500 print:text-[10px]">
+											Date: {formattedDate}
+										</p>
+									</div>
 								</div>
-							)}
-							<div className="flex justify-between items-baseline pt-2 border-t-2 border-slate-900 font-black text-sm">
-								<span>TỔNG THU COD:</span>
-								<span className="font-mono text-base text-slate-900">
-									{formatVND(order.pricing?.grandTotal || 0)}
-								</span>
-							</div>
-						</div>
-					</div>
 
-					{/* Signatures */}
-					<div className="grid grid-cols-2 gap-8 text-center pt-6 text-xs font-bold">
-						<div>
-							<p className="uppercase tracking-wider text-slate-500 text-[10px]">NGƯỜI GIAO HÀNG</p>
-							<p className="text-[10px] text-slate-400 font-normal italic mt-0.5">(Ký và ghi rõ họ tên)</p>
-							<div className="h-16" />
-						</div>
-						<div>
-							<p className="uppercase tracking-wider text-slate-500 text-[10px]">NGƯỜI NHẬN HÀNG</p>
-							<p className="text-[10px] text-slate-400 font-normal italic mt-0.5">(Ký và ghi rõ họ tên)</p>
-							<div className="h-16" />
-						</div>
-					</div>
+								{/* Recipient & Shipping Info */}
+								<div className="grid grid-cols-2 gap-4 border-b border-slate-300 py-3 text-xs print:py-2.5 print:text-[11px] avoid-break">
+									<div className="space-y-1 border-r border-slate-200 pr-3">
+										<p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+											SHIP TO (RECIPIENT):
+										</p>
+										<p className="text-sm font-bold text-slate-900 print:text-xs">
+											{ord.customer?.name || 'Valued Customer'}
+										</p>
+										{ord.customer?.phone && (
+											<p className="font-mono font-bold text-slate-800 print:text-[11px]">
+												Phone: {ord.customer.phone}
+											</p>
+										)}
+										{ord.customer?.email && (
+											<p className="text-slate-600 print:text-[10px]">
+												Email: {ord.customer.email}
+											</p>
+										)}
+										<p className="mt-1 leading-snug text-slate-700 print:text-[10px]">
+											{ord.customer?.address || 'Standard Delivery Address'}
+											{ord.customer?.city ? `, ${ord.customer.city}` : ''}
+											{ord.customer?.state ? `, ${ord.customer.state}` : ''}
+											{ord.customer?.postalCode ? ` ${ord.customer.postalCode}` : ''}
+											{ord.customer?.country ? `, ${ord.customer.country}` : ''}
+										</p>
+									</div>
+
+									<div className="space-y-1 pl-3">
+										<p className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+											SHIPPING & PAYMENT:
+										</p>
+										<p className="text-slate-700 print:text-[10px]">
+											Courier:{' '}
+											<strong>
+												{ord.carrier || 'International Express Courier'}
+											</strong>
+										</p>
+										{ord.trackingCode && (
+											<p className="font-mono text-slate-700 print:text-[10px]">
+												Tracking ID: <strong>{ord.trackingCode}</strong>
+											</p>
+										)}
+										<p className="text-slate-700 print:text-[10px]">
+											Payment Method:{' '}
+											<strong>
+												{ord.paymentMethod === 'COD'
+													? 'Cash On Delivery (COD)'
+													: ord.paymentMethod || 'Manual Fulfillment'}
+											</strong>
+										</p>
+										<p className="text-slate-700 print:text-[10px]">
+											Payment Status:{' '}
+											<span className="font-bold text-slate-900 uppercase">
+												{ord.paymentStatus || 'UNPAID'}
+											</span>
+										</p>
+										{ord.customerNote && (
+											<p className="mt-1 rounded-lg border border-slate-200 bg-slate-50 p-1.5 text-[10px] text-slate-600 italic">
+												Note: &quot;{ord.customerNote}&quot;
+											</p>
+										)}
+									</div>
+								</div>
+
+								{/* Product Line Items Table */}
+								<div className="py-3 print:py-2">
+									<table className="w-full border-collapse border border-slate-300 text-left text-xs print:text-[11px]">
+										<thead>
+											<tr className="border-b border-slate-300 bg-slate-100 font-bold text-slate-800 print:bg-slate-100">
+												<th className="border-r border-slate-300 p-1.5 print:p-1">
+													#
+												</th>
+												<th className="border-r border-slate-300 p-1.5 print:p-1">
+													Item Description
+												</th>
+												<th className="border-r border-slate-300 p-1.5 text-center print:p-1">
+													Qty
+												</th>
+												<th className="border-r border-slate-300 p-1.5 text-right print:p-1">
+													Unit Price
+												</th>
+												<th className="p-1.5 text-right print:p-1">Amount</th>
+											</tr>
+										</thead>
+										<tbody>
+											{safeItems.map((item: any, iIndex: number) => {
+												const quantity = Number(item.quantity) || 1
+												const price = Number(item.price) || 0
+												return (
+													<tr
+														key={item.id || item._key || iIndex}
+														className="border-b border-slate-200 text-slate-800 print:border-slate-300"
+													>
+														<td className="border-r border-slate-300 p-1.5 text-center font-mono text-[11px] text-slate-500 print:p-1 print:text-[10px]">
+															{iIndex + 1}
+														</td>
+														<td className="border-r border-slate-300 p-1.5 print:p-1">
+															<p className="font-bold text-slate-900 print:text-[11px]">
+																{item.title || 'Product Item'}
+															</p>
+															{item.sku && (
+																<span className="font-mono text-[10px] text-slate-400 print:text-[9px]">
+																	SKU: {item.sku}
+																</span>
+															)}
+															{item.selectedOptions && (
+																<span className="ml-2 text-[10px] text-slate-500 print:text-[9px]">
+																	{typeof item.selectedOptions === 'object'
+																		? Object.entries(item.selectedOptions)
+																				.map(([k, v]) => `${k}: ${v}`)
+																				.join(', ')
+																		: JSON.stringify(item.selectedOptions)}
+																</span>
+															)}
+														</td>
+														<td className="border-r border-slate-300 p-1.5 text-center font-mono font-bold print:p-1 print:text-[10px]">
+															{quantity}
+														</td>
+														<td className="border-r border-slate-300 p-1.5 text-right font-mono print:p-1 print:text-[10px]">
+															{formatPrice(price)}
+														</td>
+														<td className="p-1.5 text-right font-mono font-bold print:p-1 print:text-[10px]">
+															{formatPrice(price * quantity)}
+														</td>
+													</tr>
+												)
+											})}
+										</tbody>
+									</table>
+								</div>
+
+								{/* Financial Summary */}
+								<div className="flex items-start justify-between border-b border-slate-300 pt-2 pb-3 print:pb-2.5 avoid-break">
+									<div className="max-w-xs text-[10px] leading-snug text-slate-500">
+										<p className="font-medium">
+											• Thank you for shopping with {brand}.
+										</p>
+										<p>• Please inspect contents upon delivery.</p>
+										<p>
+											• For inquiries or claims, contact {emailContact} within
+											48 hours.
+										</p>
+									</div>
+
+									<div className="w-56 space-y-1 text-xs print:text-[11px]">
+										<div className="flex justify-between">
+											<span className="text-slate-600">Subtotal:</span>
+											<span className="font-mono">
+												{formatPrice(
+													ord.pricing?.subtotal ||
+														ord.pricing?.grandTotal ||
+														ord.total ||
+														0,
+												)}
+											</span>
+										</div>
+										<div className="flex justify-between">
+											<span className="text-slate-600">Shipping:</span>
+											<span className="font-mono">
+												{ord.pricing?.shippingFee
+													? formatPrice(ord.pricing.shippingFee)
+													: '$0.00'}
+											</span>
+										</div>
+										{Number(ord.pricing?.discount) > 0 && (
+											<div className="flex justify-between text-emerald-700">
+												<span>Discount:</span>
+												<span className="font-mono">
+													-{formatPrice(ord.pricing.discount)}
+												</span>
+											</div>
+										)}
+										<div className="flex items-baseline justify-between border-t-2 border-slate-900 pt-1.5 text-xs font-black print:text-xs">
+											<span className="uppercase">Total Amount:</span>
+											<span className="font-mono text-sm font-black text-slate-900">
+												{formatPrice(ord.pricing?.grandTotal || ord.total || 0)}
+											</span>
+										</div>
+									</div>
+								</div>
+
+								{/* Signature Blocks */}
+								<div className="grid grid-cols-2 gap-8 pt-4 text-center text-xs font-bold avoid-break print:pt-3">
+									<div>
+										<p className="text-[10px] tracking-wider text-slate-500 uppercase">
+											PACKED & VERIFIED BY
+										</p>
+										<p className="mt-0.5 text-[9px] font-normal text-slate-400 italic">
+											(Signature & Date)
+										</p>
+										<div className="h-10 print:h-8" />
+									</div>
+									<div>
+										<p className="text-[10px] tracking-wider text-slate-500 uppercase">
+											RECIPIENT ACKNOWLEDGMENT
+										</p>
+										<p className="mt-0.5 text-[9px] font-normal text-slate-400 italic">
+											(Signature & Date)
+										</p>
+										<div className="h-10 print:h-8" />
+									</div>
+								</div>
+							</div>
+						)
+					})}
 				</div>
 			</div>
 		</div>

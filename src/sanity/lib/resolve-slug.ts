@@ -1,4 +1,4 @@
-import { ROUTES } from '@/lib/env'
+import { resolveEntityRoute } from '@/lib/routing'
 
 export default function resolveSlug({
 	_type,
@@ -16,17 +16,11 @@ export default function resolveSlug({
 	if (external) return external
 
 	if (internal) {
-		const segment =
-			_type === 'blog.post'
-				? `/${ROUTES.blog}/`
-				: _type === 'collection'
-					? `/${ROUTES.collections}/`
-					: _type === 'product'
-						? `/${ROUTES.products}/`
-						: '/'
-		const path = internal === 'index' ? null : internal
-
-		return [segment, path, params].filter(Boolean).join('')
+		return resolveEntityRoute({
+			type: _type,
+			slug: internal,
+			params,
+		})
 	}
 
 	return undefined

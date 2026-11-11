@@ -11,8 +11,8 @@ import {
 	FiRefreshCw,
 	FiX,
 } from 'react-icons/fi'
-import Swal from 'sweetalert2'
-import { cn, formatVND } from '@/lib/utils'
+import { showSimpleToast } from '@/lib/toast'
+import { cn, formatPrice } from '@/lib/utils'
 import { urlFor } from '@/sanity/lib/image'
 import {
 	CartItem,
@@ -29,50 +29,23 @@ interface CartVariantModalProps {
 
 function getColorCode(colorName: string): string {
 	const map: Record<string, string> = {
-		Đen: '#000000',
 		Black: '#000000',
-		Trắng: '#FFFFFF',
 		White: '#FFFFFF',
-		Đỏ: '#EF4444',
 		Red: '#EF4444',
-		Xanh: '#3B82F6',
 		Blue: '#3B82F6',
-		'Xanh dương': '#2563EB',
-		'Xanh lam': '#1D4ED8',
-		'Xanh lá': '#10B981',
 		Green: '#10B981',
-		'Xanh ngọc': '#06B6D4',
-		'Xanh rêu': '#4D7C0F',
-		'Xanh navy': '#1E3A8A',
 		Navy: '#1E3A8A',
-		Vàng: '#F59E0B',
 		Yellow: '#F59E0B',
-		'Vàng chanh': '#FACC15',
-		'Vàng kem': '#FEF08A',
-		Hồng: '#EC4899',
 		Pink: '#EC4899',
-		'Hồng phấn': '#FBCFE8',
-		'Hồng đất': '#BE185D',
-		Xám: '#6B7280',
 		Gray: '#6B7280',
-		'Xám ghi': '#4B5563',
-		'Xám nhạt': '#E5E7EB',
-		Cam: '#F97316',
 		Orange: '#F97316',
-		'Cam đất': '#C2410C',
-		Tím: '#8B5CF6',
 		Purple: '#8B5CF6',
-		'Tím than': '#581C87',
-		Nâu: '#78350F',
 		Brown: '#78350F',
-		'Nâu đất': '#92400E',
-		'Nâu bò': '#B45309',
-		Be: '#F5F5DC',
 		Beige: '#F5F5DC',
-		Kem: '#FFFDD0',
 		Cream: '#FFFDD0',
-		Bạc: '#E2E8F0',
 		Silver: '#CBD5E1',
+		Teal: '#06B6D4',
+		Olive: '#4D7C0F',
 	}
 	return map[colorName] || map[colorName?.trim()] || '#D1D5DB'
 }
@@ -95,7 +68,7 @@ export default function CartVariantModal({
 	>({})
 	const [quantity, setQuantity] = useState(1)
 
-	// Quản lý animation slide/fade
+	// Manage slide/fade animation
 	useEffect(() => {
 		let timer: NodeJS.Timeout
 		if (isOpen && item) {
@@ -124,7 +97,7 @@ export default function CartVariantModal({
 		}
 	}, [isOpen, item])
 
-	// Đóng mượt mà
+	// Smooth close
 	const handleClose = () => {
 		setIsVisible(false)
 		setTimeout(() => {
@@ -132,7 +105,7 @@ export default function CartVariantModal({
 		}, 300)
 	}
 
-	// Bắt phím Escape
+	// Escape key listener
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === 'Escape' && isOpen) {
@@ -143,7 +116,7 @@ export default function CartVariantModal({
 		return () => window.removeEventListener('keydown', handleKeyDown)
 	}, [isOpen])
 
-	// Tự động nạp danh sách options & variants nếu CartItem chưa có đủ dữ liệu
+	// Automatically fetch options & variants if CartItem does not have them cached
 	useEffect(() => {
 		if (!isOpen || !item) return
 
@@ -166,7 +139,7 @@ export default function CartVariantModal({
 				if (isCancelled) return
 				if (data.success && data.product) {
 					setFetchedProduct(data.product)
-					// Cập nhật metadata vào store để dùng lần sau không cần fetch lại
+					// Update store metadata for future reuse
 					updateItemData(item.id, {
 						options: data.product.options || [],
 						variants: data.product.variants || [],
@@ -188,7 +161,7 @@ export default function CartVariantModal({
 		}
 	}, [isOpen, item?.id, item?.productId, item?.slug, item?.variants])
 
-	// Nguồn options & variants tổng hợp
+	// Unified options & variants source
 	const availableVariants: ProductVariant[] = useMemo(() => {
 		if (item?.variants && item.variants.length > 0) return item.variants
 		if (fetchedProduct?.variants && fetchedProduct.variants.length > 0)
@@ -214,7 +187,7 @@ export default function CartVariantModal({
 						}
 					})
 				} else if (v.title) {
-					const name = 'Biến thể'
+					const name = 'Variant'
 					if (!optionsMap.has(name)) optionsMap.set(name, new Set())
 					optionsMap.get(name)!.add(v.title.trim())
 				}
@@ -230,7 +203,7 @@ export default function CartVariantModal({
 		return []
 	}, [item?.options, fetchedProduct?.options, availableVariants])
 
-	// Khởi tạo selected options nếu chưa đủ
+	// Initialize selected options if incomplete
 	useEffect(() => {
 		if (availableOptions.length > 0) {
 			setSelectedOptions((prev) => {
@@ -244,7 +217,7 @@ export default function CartVariantModal({
 					}
 				})
 
-				// Nếu item có variantTitle và options chỉ có 1 nhóm tên "Biến thể"
+				// If item has variantTitle and options only has 1 group
 				if (item?.variantTitle && availableOptions.length === 1) {
 					const singleOpt = availableOptions[0]
 					if (
@@ -261,13 +234,17 @@ export default function CartVariantModal({
 		}
 	}, [availableOptions, item?.variantTitle])
 
-	// Tìm Variant khớp với Selected Options
+	// Find Variant matching Selected Options
 	const activeVariant = useMemo(() => {
 		if (!availableVariants.length) return null
 
 		const matched = availableVariants.find((v) => {
 			if (!v.options || v.options.length === 0) {
-				if (v.title && selectedOptions['Biến thể'] === v.title.trim())
+				if (
+					v.title &&
+					(selectedOptions['Variant'] === v.title.trim() ||
+						selectedOptions['Option'] === v.title.trim())
+				)
 					return true
 				if (
 					v.title &&
@@ -289,7 +266,7 @@ export default function CartVariantModal({
 
 	if (!shouldRender || !item) return null
 
-	// Trích xuất an toàn URL hình ảnh
+	// Safely extract image URL
 	const getItemImageUrl = (image: any): string => {
 		if (!image) return '/fallback-image.png'
 		if (typeof image === 'string') return image
@@ -333,7 +310,7 @@ export default function CartVariantModal({
 		typeof activeVariant?.stock === 'number' ? activeVariant.stock : undefined
 	const isOutOfStock = stockCount !== undefined && stockCount <= 0
 
-	// Kiểm tra xem phân loại mới chọn có trùng với phân loại hiện tại của dòng này không
+	// Check if newly selected variant is identical to current item variant
 	const isSameAsCurrent = Boolean(
 		activeVariant &&
 			(activeVariant._key === item.variantId ||
@@ -342,7 +319,7 @@ export default function CartVariantModal({
 			quantity === item.quantity,
 	)
 
-	// Kiểm tra xem phân loại mới chọn có đã tồn tại ở 1 dòng khác trong giỏ hàng không
+	// Check if newly selected variant already exists in another cart line item
 	const targetCartItemId =
 		item.productId && activeVariant
 			? `${item.productId}_${activeVariant._key || activeVariant.sku}`
@@ -390,29 +367,10 @@ export default function CartVariantModal({
 
 		handleClose()
 
-		Swal.fire({
-			toast: true,
-			position: 'top-end',
-			showConfirmButton: false,
+		showSimpleToast({
+			title: 'Variant updated',
+			subtitle: activeVariant.title || 'New variant',
 			timer: 3000,
-			customClass: {
-				popup:
-					'!p-3 !rounded-2xl !border !border-gray-200/90 !shadow-xl !bg-white !w-auto !min-w-[260px]',
-				container: 'mt-20 md:mt-24 z-[999]',
-			},
-			html: `
-				<div class="flex items-center gap-2.5 p-1 font-sans text-left">
-					<div class="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-						<svg class="h-4 w-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke-width="2.5">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-						</svg>
-					</div>
-					<div>
-						<p class="text-xs font-semibold text-gray-900">Đã cập nhật phân loại</p>
-						<p class="text-[11px] text-gray-500">${activeVariant.title || 'Biến thể mới'}</p>
-					</div>
-				</div>
-			`,
 		})
 	}
 
@@ -453,14 +411,14 @@ export default function CartVariantModal({
 							<FiRefreshCw className="text-sm" />
 						</span>
 						<h3 className="text-sm font-bold text-gray-900">
-							Thay đổi phân loại sản phẩm
+							Change Product Variant
 						</h3>
 					</div>
 					<button
 						type="button"
 						onClick={handleClose}
 						className="size-11 flex items-center justify-center rounded-full text-gray-600 hover:text-gray-900 hover:bg-black/5 transition-colors cursor-pointer"
-						aria-label="Đóng cửa sổ"
+						aria-label="Close modal"
 					>
 						<FiX className="text-xl" />
 					</button>
@@ -495,11 +453,11 @@ export default function CartVariantModal({
 
 							<div className="flex items-baseline gap-2 mt-1.5">
 								<span className="text-base font-extrabold text-primary">
-									{formatVND(displayPrice)}
+									{formatPrice(displayPrice)}
 								</span>
 								{hasDiscount && (
 									<span className="text-xs text-gray-600 line-through">
-										{formatVND(displayCompareAtPrice as number)}
+										{formatPrice(displayCompareAtPrice as number)}
 									</span>
 								)}
 							</div>
@@ -507,7 +465,7 @@ export default function CartVariantModal({
 							<div className="flex items-center gap-2 mt-1">
 								{activeVariant?.title && (
 									<span className="inline-flex items-center text-[11px] font-medium text-gray-600 bg-white px-2 py-0.5 rounded border border-stroke/30">
-										Đang chọn:{' '}
+										Selected:{' '}
 										<strong className="ml-1 text-gray-900">
 											{activeVariant.title}
 										</strong>
@@ -516,15 +474,15 @@ export default function CartVariantModal({
 
 								{isOutOfStock ? (
 									<span className="text-[11px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">
-										Hết hàng
+										Out of stock
 									</span>
 								) : typeof stockCount === 'number' && stockCount <= 5 ? (
 									<span className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
-										Chỉ còn {stockCount} sản phẩm
+										Only {stockCount} items left
 									</span>
 								) : (
 									<span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-										Còn hàng
+										In stock
 									</span>
 								)}
 							</div>
@@ -536,7 +494,7 @@ export default function CartVariantModal({
 						<div className="py-8 flex flex-col items-center justify-center gap-2 text-gray-400">
 							<FiLoader className="text-2xl animate-spin text-primary" />
 							<span className="text-xs font-medium">
-								Đang nạp các phân loại hàng...
+								Loading product options...
 							</span>
 						</div>
 					)}
@@ -546,7 +504,6 @@ export default function CartVariantModal({
 						<div className="space-y-4">
 							{availableOptions.map((group) => {
 								const isColorGroup =
-									group.name.toLowerCase().includes('màu') ||
 									group.name.toLowerCase().includes('color')
 
 								return (
@@ -556,7 +513,7 @@ export default function CartVariantModal({
 												{group.name}:
 											</span>
 											<span className="text-xs font-semibold text-primary">
-												{selectedOptions[group.name] || 'Chưa chọn'}
+												{selectedOptions[group.name] || 'Select'}
 											</span>
 										</div>
 
@@ -623,10 +580,10 @@ export default function CartVariantModal({
 							<FiInfo className="text-base shrink-0 mt-0.5" />
 							<div>
 								<p className="font-semibold">
-									Sản phẩm này hiện tại chỉ có 1 tùy chọn duy nhất.
+									This item is available in a single variant only.
 								</p>
 								<p className="text-amber-700 mt-0.5">
-									Bạn có thể điều chỉnh số lượng hoặc kiểm tra lại thông tin.
+									You can adjust the quantity or verify item specifications.
 								</p>
 							</div>
 						</div>
@@ -636,12 +593,12 @@ export default function CartVariantModal({
 					<div className="flex items-center justify-between pt-2 border-t border-stroke/20">
 						<div>
 							<span className="text-xs font-bold text-gray-800">
-								Số lượng:
+								Quantity:
 							</span>
 							<p className="text-[11px] text-gray-500">
-								Tổng tạm tính:{' '}
+								Estimated Subtotal:{' '}
 								<strong className="text-primary font-bold">
-									{formatVND(displayPrice * quantity)}
+									{formatPrice(displayPrice * quantity)}
 								</strong>
 							</p>
 						</div>
@@ -651,7 +608,7 @@ export default function CartVariantModal({
 								type="button"
 								onClick={() => setQuantity((q) => Math.max(1, q - 1))}
 								className="size-11 flex items-center justify-center text-sm font-bold text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
-								aria-label="Giảm số lượng"
+								aria-label="Decrease quantity"
 							>
 								<FiMinus className="text-sm" />
 							</button>
@@ -662,7 +619,7 @@ export default function CartVariantModal({
 								type="button"
 								onClick={() => setQuantity((q) => q + 1)}
 								className="size-11 flex items-center justify-center text-sm font-bold text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
-								aria-label="Tăng số lượng"
+								aria-label="Increase quantity"
 							>
 								<FiPlus className="text-sm" />
 							</button>
@@ -675,13 +632,12 @@ export default function CartVariantModal({
 							<FiAlertCircle className="text-sm shrink-0 mt-0.5 text-blue-600" />
 							<div>
 								<p className="font-semibold">
-									Phân loại này đã có sẵn trong giỏ ({existingOtherItem.quantity}{' '}
-									sản phẩm).
+									This variant is already in your cart ({existingOtherItem.quantity}{' '}
+									units).
 								</p>
 								<p className="text-blue-700 mt-0.5">
-									Khi xác nhận, số lượng sẽ được tự động gộp thành{' '}
-									<strong>{existingOtherItem.quantity + quantity}</strong> sản
-									phẩm.
+									Upon confirmation, quantities will automatically merge to{' '}
+									<strong>{existingOtherItem.quantity + quantity}</strong> units.
 								</p>
 							</div>
 						</div>
@@ -695,7 +651,7 @@ export default function CartVariantModal({
 						onClick={handleClose}
 						className="flex-1 py-2.5 px-4 rounded-xl border border-stroke/40 bg-white font-semibold text-xs text-gray-700 hover:bg-gray-100 transition-all shadow-2xs cursor-pointer"
 					>
-						Hủy bỏ
+						Cancel
 					</button>
 
 					<button
@@ -712,13 +668,13 @@ export default function CartVariantModal({
 						)}
 					>
 						{isOutOfStock ? (
-							'Phân loại đã hết hàng'
+							'Variant is Out of Stock'
 						) : isSameAsCurrent ? (
-							'Đang chọn phân loại này'
+							'Current Selection'
 						) : (
 							<>
 								<FiCheck className="text-sm" />
-								<span>Xác nhận thay đổi</span>
+								<span>Confirm Changes</span>
 							</>
 						)}
 					</button>

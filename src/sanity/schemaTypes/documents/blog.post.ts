@@ -1,37 +1,73 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
-import { EditIcon, ImageIcon, DocumentTextIcon, CogIcon, SearchIcon, LinkIcon } from '@sanity/icons'
+import { EditIcon, ImageIcon } from '@sanity/icons'
 
 export default defineType({
 	name: 'blog.post',
-	title: 'Blog Post',
+	title: 'Articles',
 	type: 'document',
 	icon: EditIcon,
+
+	// 1. Strategic 3-Tab Architecture
 	groups: [
-		{ name: 'content', title: '1. Content & Story', icon: DocumentTextIcon, default: true },
-		{ name: 'settings', title: '2. Post Settings', icon: CogIcon },
-		{ name: 'seo', title: '3. SEO & Metadata', icon: SearchIcon },
-		{ name: 'related', title: '4. Related & Commerce', icon: LinkIcon },
+		{ name: 'content', title: 'Content', default: true },
+		{ name: 'publishing', title: 'Publishing' },
+		{ name: 'seo', title: 'SEO & Metadata' },
 	],
+
+	// 2. Single-column collapsible fieldsets
+	fieldsets: [
+		{
+			name: 'publishingMeta',
+			title: 'Publishing Schedule & Authorship',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'layoutExperience',
+			title: 'Reading Experience & Layout Overrides',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'crossSellCommerce',
+			title: 'Curated Articles & E-Commerce Showcase',
+			options: { collapsible: true, collapsed: false },
+		},
+	],
+
 	fields: [
-		// ================= GROUP 1: CONTENT =================
+		/* ==================== TAB 1: CONTENT ==================== */
 		defineField({
 			name: 'title',
 			title: 'Article Headline',
 			type: 'string',
+			placeholder: 'e.g. Navigating Global Sustainable Supply Chains in 2026',
 			validation: (Rule) => Rule.required(),
 			group: 'content',
 		}),
 		defineField({
 			name: 'excerpt',
-			title: 'Short Excerpt / Summary',
-			description: 'Brief overview (2–3 sentences) used for article preview cards, hero features, RSS feeds, and SEO fallback.',
+			title: 'Executive Summary / Excerpt',
+			description:
+				'Brief overview (2–3 sentences) used for article preview cards, hero features, RSS feeds, and SEO fallback.',
 			type: 'text',
 			rows: 3,
+			placeholder:
+				'e.g. An in-depth analysis of eco-conscious manufacturing practices and international distribution trends.',
+			group: 'content',
+		}),
+		defineField({
+			name: 'keyTakeaways',
+			title: 'Key Takeaways / TL;DR (Executive Summary Bullets)',
+			description:
+				'3–5 concise, high-value bullet points shown in a prominent TL;DR box at the top of the article. Crucial for skimming and Google AI Overviews.',
+			type: 'array',
+			of: [{ type: 'string' }],
 			group: 'content',
 		}),
 		defineField({
 			name: 'content',
 			title: 'Article Body (Rich Content Builder)',
+			description:
+				'Compose narrative with inline media, product showcases, interactive galleries, and callouts.',
 			type: 'array',
 			of: [
 				{ type: 'block' },
@@ -48,8 +84,10 @@ export default defineType({
 						defineField({
 							name: 'alt',
 							title: 'Alt Text (SEO & Accessibility)',
-							description: 'Concise description of the image for screen readers & Google Images SEO.',
+							description:
+								'Concise description of the image for screen readers & Google Images SEO.',
 							type: 'string',
+							placeholder: 'e.g. Factory precision equipment assembly line',
 							validation: (Rule) => Rule.required(),
 						}),
 						defineField({
@@ -81,19 +119,20 @@ export default defineType({
 				{ type: 'image-gallery' },
 				{ type: 'cta-banner' },
 				{ type: 'custom-html' },
-				{ type: 'affiliateLink' },
 			],
 			group: 'content',
 		}),
 
-		// ================= GROUP 2: SETTINGS & PUBLISHING =================
+		/* ==================== TAB 2: PUBLISHING ==================== */
 		defineField({
 			name: 'isFeatured',
 			title: 'Pin as Featured Article (Hero Spotlight)',
-			description: 'Displays this article in the Magazine Hero banner at the top of the blog.',
+			description:
+				'Spotlights this article in the Magazine Hero banner at the top of the blog index.',
 			type: 'boolean',
 			initialValue: false,
-			group: 'settings',
+			group: 'publishing',
+			fieldset: 'publishingMeta',
 		}),
 		defineField({
 			name: 'publishDate',
@@ -101,41 +140,128 @@ export default defineType({
 			type: 'date',
 			initialValue: () => new Date().toISOString().split('T')[0],
 			validation: (Rule) => Rule.required(),
-			group: 'settings',
+			group: 'publishing',
+			fieldset: 'publishingMeta',
 		}),
 		defineField({
 			name: 'lastUpdatedDate',
 			title: 'Last Modified Date (Google Freshness Ranking)',
-			description: 'Update when article content is refreshed or expanded.',
+			description:
+				'Update when article content is refreshed or significantly expanded.',
 			type: 'date',
-			group: 'settings',
+			group: 'publishing',
+			fieldset: 'publishingMeta',
 		}),
 		defineField({
 			name: 'categories',
-			title: 'Categories',
+			title: 'Primary Categories',
+			description:
+				'Select one or more topics for indexing and related article filtering.',
 			type: 'array',
 			of: [{ type: 'reference', to: [{ type: 'blog.category' }] }],
 			validation: (Rule) => Rule.min(1).required(),
-			group: 'settings',
+			group: 'publishing',
+			fieldset: 'publishingMeta',
 		}),
 		defineField({
 			name: 'tags',
-			title: 'Article Tags / Keywords',
+			title: 'Article Keywords & Tags',
+			description:
+				'Tags used for internal search discovery and metadata keywords.',
 			type: 'array',
 			of: [{ type: 'string' }],
 			options: { layout: 'tags' },
-			group: 'settings',
+			group: 'publishing',
+			fieldset: 'publishingMeta',
 		}),
 		defineField({
 			name: 'author',
-			title: 'Author',
+			title: 'Article Author (Byline)',
+			description:
+				'Attributed author profile for E-E-A-T credentials and author bio box.',
 			type: 'reference',
 			to: [{ type: 'person' }],
-			group: 'settings',
+			group: 'publishing',
+			fieldset: 'publishingMeta',
 		}),
 		defineField({
+			name: 'reviewedBy',
+			title: 'Expert / Technical Reviewer (E-E-A-T)',
+			description:
+				'Certified specialist or expert who fact-checked this article for accuracy.',
+			type: 'reference',
+			to: [{ type: 'person' }],
+			group: 'publishing',
+			fieldset: 'publishingMeta',
+		}),
+		defineField({
+			name: 'factCheckedDate',
+			title: 'Fact-Checked / Verification Date',
+			description:
+				'Date this article was formally verified by the technical reviewer.',
+			type: 'date',
+			group: 'publishing',
+			fieldset: 'publishingMeta',
+		}),
+		defineField({
+			name: 'ftcDisclosure',
+			title: 'FTC Compliance & Sponsorship Disclosure',
+			description:
+				'Mandatory by US law (16 CFR Part 255) when the article includes affiliate links or sponsored mentions.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Use Global Blog Default', value: 'default' },
+					{
+						title: 'Affiliate Disclosure (Commission notice)',
+						value: 'affiliate',
+					},
+					{
+						title: 'Sponsored Article (Paid partnership notice)',
+						value: 'sponsored',
+					},
+					{ title: 'No Disclosure Needed (Pure Editorial)', value: 'none' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'default',
+			validation: (Rule) =>
+				Rule.custom((value, context) => {
+					if (value === 'none') {
+						const doc = context.document as
+							{ content?: Array<{ _type: string }> } | undefined
+						const hasCommercialBlock = doc?.content?.some((block) =>
+							[
+								'product-embed',
+								'comparison-table',
+								'cta-banner',
+								'affiliateLink',
+							].includes(block._type),
+						)
+						if (hasCommercialBlock) {
+							return 'US FTC Notice: This article includes commercial blocks (Product Embed, Comparison Table, or CTA Banner). Setting disclosure to "None" may violate US FTC guidelines.'
+						}
+					}
+					return true
+				}).warning(),
+			group: 'publishing',
+			fieldset: 'publishingMeta',
+		}),
+		defineField({
+			name: 'customFtcDisclosure',
+			title: 'Custom FTC Disclosure Statement (Optional Override)',
+			description:
+				'Override the standard FTC disclosure text for this specific article.',
+			type: 'text',
+			rows: 2,
+			hidden: ({ parent }) => parent?.ftcDisclosure === 'none',
+			group: 'publishing',
+			fieldset: 'publishingMeta',
+		}),
+
+		defineField({
 			name: 'tableOfContents',
-			title: 'Table of Contents (TOC) Override',
+			title: 'Table of Contents (TOC) Position',
 			type: 'string',
 			options: {
 				list: [
@@ -147,59 +273,80 @@ export default defineType({
 				],
 			},
 			initialValue: 'default',
-			group: 'settings',
+			group: 'publishing',
+			fieldset: 'layoutExperience',
 		}),
 		defineField({
 			name: 'sidebarLayout',
-			title: 'Desktop Sidebar Layout Override',
-			description: 'Optionally override the global desktop sidebar layout for this specific article.',
+			title: 'Desktop Sidebar Layout',
+			description:
+				'Optionally override the global desktop sidebar layout for this specific article.',
 			type: 'string',
 			options: {
 				list: [
 					{ title: 'Use Global Blog Default', value: 'default' },
-					{ title: 'None / Bottom (Single Centered Column, Related Articles at Bottom)', value: 'none' },
-					{ title: 'Right Sidebar (2 Columns: Main Content + Sticky Right Sidebar)', value: 'right' },
-					{ title: 'Left Sidebar (2 Columns: Sticky Left Sidebar + Main Content)', value: 'left' },
+					{
+						title:
+							'None / Bottom (Single Centered Column, Related Articles at Bottom)',
+						value: 'none',
+					},
+					{
+						title:
+							'Right Sidebar (2 Columns: Main Content + Sticky Right Sidebar)',
+						value: 'right',
+					},
+					{
+						title:
+							'Left Sidebar (2 Columns: Sticky Left Sidebar + Main Content)',
+						value: 'left',
+					},
 				],
 			},
 			initialValue: 'default',
-			group: 'settings',
+			group: 'publishing',
+			fieldset: 'layoutExperience',
 		}),
 		defineField({
 			name: 'allowComments',
-			title: 'Allow Reader Comments & Discussion',
-			description: 'Enable or disable the comments section for this specific article.',
+			title: 'Allow Reader Discussion & Comments',
+			description: 'Toggle reader comments section for this specific article.',
 			type: 'boolean',
 			initialValue: true,
-			group: 'settings',
+			group: 'publishing',
+			fieldset: 'layoutExperience',
 		}),
 
-		// ================= GROUP 3: SEO & METADATA =================
-		defineField({
-			name: 'metadata',
-			title: 'SEO & Social Share Metadata',
-			type: 'metadata',
-			group: 'seo',
-		}),
-
-		// ================= GROUP 4: RELATED & COMMERCE =================
 		defineField({
 			name: 'relatedProducts',
-			title: 'Featured / Related Products (E-Commerce Conversion)',
-			description: 'Pick products referenced in this article to display an interactive product showcase at the bottom.',
+			title: 'Featured Products in Article (E-Commerce Showcase)',
+			description:
+				'Pick products referenced in this article to display an interactive product showcase at the bottom.',
 			type: 'array',
 			of: [{ type: 'reference', to: [{ type: 'product' }] }],
-			group: 'related',
+			group: 'publishing',
+			fieldset: 'crossSellCommerce',
 		}),
 		defineField({
 			name: 'relatedPosts',
 			title: 'Curated Related Articles',
-			description: 'Manually pick related articles (if empty, articles with the same category will be shown automatically).',
+			description:
+				'Manually select related articles (if empty, articles with the same category will be shown automatically).',
 			type: 'array',
 			of: [{ type: 'reference', to: [{ type: 'blog.post' }] }],
-			group: 'related',
+			group: 'publishing',
+			fieldset: 'crossSellCommerce',
+		}),
+
+		/* ==================== TAB 3: SEO & METADATA ==================== */
+		defineField({
+			name: 'metadata',
+			title: 'Search Engine Optimization (SEO)',
+			type: 'metadata',
+			group: 'seo',
 		}),
 	],
+
+	// 3. Document list view preview
 	preview: {
 		select: {
 			title: 'title',
@@ -208,7 +355,9 @@ export default defineType({
 			media: 'metadata.image',
 		},
 		prepare: ({ title, subtitle, isFeatured, media }) => ({
-			title: isFeatured ? `⭐ [Featured] ${title || 'Untitled'}` : title || 'Untitled Post',
+			title: isFeatured
+				? `[Featured] ${title || 'Untitled'}`
+				: title || 'Untitled Post',
 			subtitle: subtitle ? `Published: ${subtitle}` : 'Draft',
 			media,
 		}),

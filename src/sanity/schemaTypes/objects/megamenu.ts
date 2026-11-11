@@ -56,7 +56,7 @@ export default defineType({
 			items: 'items',
 		},
 		prepare: ({ link, items }) => ({
-			title: link.label || link.internal?.title,
+			title: link?.label || link?.internal?.title || 'Untitled Mega Menu',
 			subtitle: count(items),
 		}),
 	},

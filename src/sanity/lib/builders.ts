@@ -7,4 +7,9 @@ export const group = (
 	S: StructureBuilder,
 	title: string,
 	items: Parameters<ListBuilder['items']>[0],
-) => S.listItem().title(title).child(S.list().title(title).items(items))
+	id?: string,
+) => {
+	const item = S.listItem().title(title)
+	if (id) item.id(id)
+	return item.child(S.list().title(title).items(items))
+}

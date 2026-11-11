@@ -3,7 +3,10 @@ import { VscListUnordered } from 'react-icons/vsc'
 
 export default defineType({
 	name: 'product.option',
-	title: 'Product Option',
+	title: 'Product Option [DEPRECATED]',
+	deprecated: {
+		reason: 'Multi-tier product options are deprecated in favor of lean single-product lead generation.',
+	},
 	icon: VscListUnordered,
 	type: 'object',
 	fields: [

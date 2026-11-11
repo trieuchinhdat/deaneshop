@@ -9,15 +9,12 @@ import {
 	VscFile,
 	VscPackage,
 } from 'react-icons/vsc'
-import { formatVND } from '@/lib/utils'
 import type { SearchModule } from '@/sanity/types'
 import Img from '@/ui/img'
-import ResponsiveImage from '@/ui/responsiveImage'
+import ProductCard, { type Product } from '@/ui/modules/product/product-card'
+import QuickViewModal from '@/ui/modules/product/quick-view-modal'
 import { useSearchStore } from './store'
 
-const ITEMS_PER_PAGE = 8
-
-// 👇 THÊM SCOPE VÀO PROPS
 export default function SearchResults({
 	query,
 	scope = 'all',
@@ -25,88 +22,104 @@ export default function SearchResults({
 	query: string
 	scope?: SearchModule['scope']
 }) {
-	// 👇 LẤY HÀM SEARCH TỪ STORE (Đảm bảo bạn đã update store như bước trước)
-	const { results, search, loading } = useSearchStore()
+	const {
+		products,
+		blogs,
+		pages,
+		totals,
+		pageSize,
+		search,
+		clearResults,
+		loading,
+		error,
+	} = useSearchStore()
+	const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
 
-	// 1. STATE LƯU TRANG HIỆN TẠI CHO TỪNG NHÓM
+	// Server pagination state for each group
 	const [productPage, setProductPage] = useState(1)
 	const [blogPage, setBlogPage] = useState(1)
 	const [pagePage, setPagePage] = useState(1)
 
-	// 👇 LOGIC QUAN TRỌNG: TỰ ĐỘNG GỌI SEARCH KHI CÓ QUERY
-	useEffect(() => {
-		if (query) {
-			search({ query, scope })
-		}
-	}, [query, scope, search])
-
-	// 2. RESET TRANG VỀ 1 KHI KẾT QUẢ TÌM KIẾM THAY ĐỔI
+	// Reset pages to 1 whenever query or scope changes
 	useEffect(() => {
 		setProductPage(1)
 		setBlogPage(1)
 		setPagePage(1)
-	}, [results])
+	}, [query, scope])
 
-	if (!results.length) return null
+	// Trigger search or clear results when query, scope, or pages change
+	useEffect(() => {
+		if (!query || !query.trim()) {
+			clearResults()
+			return
+		}
+		search({
+			query,
+			scope,
+			productPage,
+			blogPage,
+			pagePage,
+		})
+	}, [query, scope, productPage, blogPage, pagePage, search, clearResults])
 
-	// 3. PHÂN LOẠI DỮ LIỆU
-	const products = results.filter((item: any) => item._type === 'product')
-	const blogs = results.filter((item: any) => item._type === 'blog.post')
-	const pages = results.filter(
-		(item: any) => !['product', 'blog.post'].includes(item._type),
-	)
-
-	// 4. HÀM CẮT DỮ LIỆU THEO TRANG (PAGINATE DATA)
-	const getPaginatedItems = (items: any[], page: number) => {
-		const startIndex = (page - 1) * ITEMS_PER_PAGE
-		return items.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+	if (error) {
+		return (
+			<div
+				role="alert"
+				className="rounded-lg border border-red-200 bg-red-50 px-4 py-6 text-center text-sm text-red-700"
+			>
+				{error}
+			</div>
+		)
 	}
 
-	if (!results.length) {
-		// Nếu đang loading thì component cha đã lo hiển thị Spinner rồi, ở đây return null cũng được
-		// Nhưng nếu loading = false mà ko có kết quả thì phải báo
+	const totalResults = products.length + blogs.length + pages.length
+	if (!totalResults) {
 		if (loading) return null
 
 		return (
 			<div className="py-10 text-center text-gray-500">
-				Không tìm thấy kết quả nào cho "{query}"
+				No results found for &quot;{query}&quot;
 			</div>
 		)
 	}
 
 	return (
 		<div className="space-y-10">
-			{/* KHỐI 1: SẢN PHẨM */}
+			{/* SECTION 1: PRODUCTS */}
 			{products.length > 0 && (
 				<section>
 					<h3 className="mb-4 flex items-center gap-2 border-b pb-2 text-xl font-bold">
-						<VscPackage /> Product ({products.length})
+						<VscPackage /> Product ({totals.products})
 					</h3>
 
 					<div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-4">
-						{/* Render dữ liệu đã cắt theo trang */}
-						{getPaginatedItems(products, productPage).map((result: any) => (
-							<ProductCard key={result._id} product={result} />
+						{products.map((result: any) => (
+							<ProductCard
+								key={result._id}
+								product={result}
+								onOpenQuickView={(p) => setQuickViewProduct(p)}
+							/>
 						))}
 					</div>
 
-					{/* Controls Phân trang Product */}
 					<PaginationControls
-						totalItems={products.length}
+						totalItems={totals.products}
+						pageSize={pageSize}
 						currentPage={productPage}
 						onPageChange={setProductPage}
 					/>
 				</section>
 			)}
 
-			{/* KHỐI 2: BLOG */}
+			{/* SECTION 2: BLOG */}
 			{blogs.length > 0 && (
 				<section>
 					<h3 className="mb-4 flex items-center gap-2 border-b pb-2 text-xl font-bold">
-						<VscBook /> Blog ({blogs.length})
+						<VscBook /> Blog ({totals.blogs})
 					</h3>
 					<div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-4">
-						{getPaginatedItems(blogs, blogPage).map((result: any) => (
+						{blogs.map((result: any) => (
 							<Link
 								key={result._id || result.slug}
 								href={result.slug}
@@ -138,23 +151,23 @@ export default function SearchResults({
 						))}
 					</div>
 
-					{/* Controls Phân trang Blog */}
 					<PaginationControls
-						totalItems={blogs.length}
+						totalItems={totals.blogs}
+						pageSize={pageSize}
 						currentPage={blogPage}
 						onPageChange={setBlogPage}
 					/>
 				</section>
 			)}
 
-			{/* KHỐI 3: PAGES */}
+			{/* SECTION 3: PAGES */}
 			{pages.length > 0 && (
 				<section>
 					<h3 className="mb-4 flex items-center gap-2 border-b pb-2 text-xl font-bold">
-						<VscFile /> Page ({pages.length})
+						<VscFile /> Page ({totals.pages})
 					</h3>
 					<ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-						{getPaginatedItems(pages, pagePage).map((result: any) => (
+						{pages.map((result: any) => (
 							<li key={result._id || result.slug}>
 								<Link
 									href={result.slug}
@@ -171,36 +184,44 @@ export default function SearchResults({
 						))}
 					</ul>
 
-					{/* Controls Phân trang Pages */}
 					<PaginationControls
-						totalItems={pages.length}
+						totalItems={totals.pages}
+						pageSize={pageSize}
 						currentPage={pagePage}
 						onPageChange={setPagePage}
 					/>
 				</section>
 			)}
+
+			{/* Reusable Quick View Modal */}
+			<QuickViewModal
+				isOpen={Boolean(quickViewProduct)}
+				product={quickViewProduct}
+				onClose={() => setQuickViewProduct(null)}
+			/>
 		</div>
 	)
 }
 
-// 5. COMPONENT ĐIỀU KHIỂN PHÂN TRANG (Tách ra để tái sử dụng)
 function PaginationControls({
 	totalItems,
+	pageSize,
 	currentPage,
 	onPageChange,
 }: {
 	totalItems: number
+	pageSize: number
 	currentPage: number
 	onPageChange: (page: number) => void
 }) {
-	const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
+	const totalPages = Math.ceil(totalItems / Math.max(1, pageSize))
 
-	// Nếu chỉ có 1 trang thì không hiện nút phân trang
 	if (totalPages <= 1) return null
 
 	return (
 		<div className="mt-6 flex items-center justify-center gap-4">
 			<button
+				type="button"
 				onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
 				disabled={currentPage === 1}
 				className="flex min-h-[44px] items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 cursor-pointer"
@@ -214,6 +235,7 @@ function PaginationControls({
 			</span>
 
 			<button
+				type="button"
 				onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
 				disabled={currentPage === totalPages}
 				className="flex min-h-[44px] items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 cursor-pointer"
@@ -222,108 +244,5 @@ function PaginationControls({
 				Next <VscChevronRight className="text-base" />
 			</button>
 		</div>
-	)
-}
-
-const formatSold = (sold?: number) => {
-	if (typeof sold !== 'number' || sold <= 0) return null
-	if (sold >= 1000) {
-		const formatted = (sold / 1000).toFixed(1).replace(/\.0$/, '')
-		return `${formatted}k+ sold`
-	}
-	return `${sold} sold`
-}
-
-function ProductCard({ product }: { product: any }) {
-	const totalReviews = product.reviews?.length ?? 0
-	const averageRating =
-		totalReviews > 0
-			? product.reviews.reduce(
-					(sum: number, r: any) => sum + (r.rating || 0),
-					0,
-				) / totalReviews
-			: 0
-
-	const soldText = formatSold(product.sold)
-	const hasRating = totalReviews > 0
-	const hasSold = Boolean(soldText)
-
-	return (
-		<Link href={product.slug} className="block h-full">
-			<div className="group flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:shadow-md">
-				{/* Image */}
-				<div className="relative aspect-square overflow-hidden">
-					<ResponsiveImage
-						className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-						image={product.images?.[0]}
-						desktop={{ width: 600 }}
-						mobile={{ width: 300 }}
-					/>
-					{product.compareAtPrice &&
-						product.compareAtPrice > product.price &&
-						product.price != 0 && (
-							<span className="absolute top-2 left-2 rounded bg-red-600 px-2 py-1 text-[10px] font-semibold text-white lg:text-xs">
-								-
-								{Math.round(
-									((product.compareAtPrice - product.price) /
-										product.compareAtPrice) *
-										100,
-								)}
-								%
-							</span>
-						)}
-				</div>
-
-				{/* Content */}
-				<div className="flex flex-1 flex-col justify-between p-3">
-					<div className="space-y-1">
-						<h3 className="line-clamp-2 text-xs font-semibold text-gray-900 lg:text-sm">
-							{product.title}
-						</h3>
-
-						{(hasRating || hasSold) && (
-							<div className="flex flex-wrap items-center justify-center gap-1 text-[11px] lg:text-xs">
-								{hasRating && (
-									<>
-										<span className="font-semibold text-gray-800">
-											{averageRating.toFixed(1)}
-										</span>
-										<span className="text-amber-500">★</span>
-										<span className="text-gray-600">({totalReviews})</span>
-									</>
-								)}
-
-								{hasRating && hasSold && (
-									<span className="text-gray-400">|</span>
-								)}
-
-								{hasSold && (
-									<span className="text-gray-600 font-medium">{soldText}.</span>
-								)}
-							</div>
-						)}
-					</div>
-
-					<div className="mt-2 hidden">
-						{product.compareAtPrice &&
-						product.compareAtPrice > product.price &&
-						product.price != 0 ? (
-							<div className="flex flex-wrap items-baseline gap-2">
-								<span className="text-sm font-bold text-red-600 lg:text-base">
-									{formatVND(product.price)}
-								</span>
-								<span className="text-[10px] text-gray-600 line-through lg:text-xs">
-									{formatVND(product.compareAtPrice)}
-								</span>
-							</div>
-						) : (
-							<span className="text-sm font-semibold text-red-600 lg:text-base">
-								{product.price <= 0 ? 'Liên hệ' : formatVND(product.price)}
-							</span>
-						)}
-					</div>
-				</div>
-			</div>
-		</Link>
 	)
 }

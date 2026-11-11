@@ -5,17 +5,39 @@ import { Box, Button, Card, Flex, Grid, Stack, Text } from '@sanity/ui'
 import React, { useCallback, useState } from 'react'
 import { FiCheck, FiZap } from 'react-icons/fi'
 
+/**
+ * WCAG 2.1 AA Relative Luminance & Contrast Calculator
+ */
+function getContrastColor(hexColor?: string, dark = '#111827', light = '#ffffff'): string {
+	if (!hexColor) return light
+	const cleanHex = hexColor.replace('#', '').trim()
+	if (cleanHex.length !== 3 && cleanHex.length !== 6) return light
+
+	let r = 0,
+		g = 0,
+		b = 0
+	if (cleanHex.length === 3) {
+		r = parseInt(cleanHex[0] + cleanHex[0], 16)
+		g = parseInt(cleanHex[1] + cleanHex[1], 16)
+		b = parseInt(cleanHex[2] + cleanHex[2], 16)
+	} else {
+		r = parseInt(cleanHex.substring(0, 2), 16)
+		g = parseInt(cleanHex.substring(2, 4), 16)
+		b = parseInt(cleanHex.substring(4, 6), 16)
+	}
+
+	const yiq = (r * 299 + g * 587 + b * 114) / 1000
+	return yiq >= 150 ? dark : light
+}
+
 export const THEME_PRESETS_DATA: Record<
 	string,
 	{
 		title: string
 		description: string
 		primaryColor: string
-		onPrimaryColor: string
 		secondaryColor: string
-		onSecondaryColor: string
 		ctaColor: string
-		onCtaColor: string
 		backgroundColor: string
 		surfaceColor: string
 		textColor: string
@@ -31,132 +53,141 @@ export const THEME_PRESETS_DATA: Record<
 		shadowStyle: string
 		fontHeading: string
 		fontBody: string
+		enableMotion?: boolean
+		buttonHoverEffect?: string
+		bannerHoverEffect?: string
+		motionPhysics?: string
 	}
 > = {
 	eco: {
-		title: 'Eco Fresh',
-		description: '',
-		primaryColor: '#059669',
-		onPrimaryColor: '#ffffff',
-		secondaryColor: '#10b981',
-		onSecondaryColor: '#ffffff',
-		ctaColor: '#ea580c',
-		onCtaColor: '#ffffff',
+		title: 'Sustainable Living',
+		description: 'Deep Forest Moss & Sage on Warm Linen, inspired by Patagonia & Allbirds',
+		primaryColor: '#1b4332',
+		secondaryColor: '#2d6a4f',
+		ctaColor: '#c2410c',
+		backgroundColor: '#FAF8F5',
+		surfaceColor: '#ffffff',
+		textColor: '#1c1917',
+		textMutedColor: '#78716c',
+		noteBackground: '#f5f5f4',
+		noteTextColor: '#44403c',
+		successColor: '#15803d',
+		warningColor: '#b45309',
+		destructiveColor: '#b91c1c',
+		borderColor: '#e7e5e4',
+		ringColor: '#1b4332',
+		borderRadius: 'rounded',
+		shadowStyle: 'subtle',
+		fontHeading: 'Outfit',
+		fontBody: 'Plus Jakarta Sans',
+		enableMotion: true,
+		buttonHoverEffect: 'scale-subtle',
+		bannerHoverEffect: 'zoom',
+		motionPhysics: 'smooth',
+	},
+	clean: {
+		title: 'Contemporary DTC',
+		description: 'High-contrast Charcoal & Stark White, inspired by Apple & Gymshark',
+		primaryColor: '#18181b',
+		secondaryColor: '#27272a',
+		ctaColor: '#0f172a',
 		backgroundColor: '#ffffff',
 		surfaceColor: '#f9fafb',
 		textColor: '#111827',
 		textMutedColor: '#6b7280',
 		noteBackground: '#f3f4f6',
 		noteTextColor: '#374151',
-		successColor: '#10b981',
-		warningColor: '#f59e0b',
+		successColor: '#15803d',
+		warningColor: '#b45309',
 		destructiveColor: '#ef4444',
 		borderColor: '#e5e7eb',
-		ringColor: '#059669',
-		borderRadius: 'md',
+		ringColor: '#18181b',
+		borderRadius: 'subtle',
 		shadowStyle: 'subtle',
-		fontHeading: 'Outfit',
-		fontBody: 'Plus Jakarta Sans',
+		fontHeading: 'Geist',
+		fontBody: 'Inter',
+		enableMotion: true,
+		buttonHoverEffect: 'spring-bounce',
+		bannerHoverEffect: 'zoom',
+		motionPhysics: 'snappy',
 	},
 	luxury: {
-		title: 'Luxury',
-		description: '',
-		primaryColor: '#18181b',
-		onPrimaryColor: '#ffffff',
-		secondaryColor: '#27272a',
-		onSecondaryColor: '#ffffff',
-		ctaColor: '#d97706',
-		onCtaColor: '#ffffff',
-		backgroundColor: '#fafafa',
+		title: 'Editorial Atelier',
+		description: 'Deep Espresso & Warm Bronze on Alabaster Bone, inspired by Aesop & The Row',
+		primaryColor: '#1c1917',
+		secondaryColor: '#292524',
+		ctaColor: '#b45309',
+		backgroundColor: '#FAF9F6',
 		surfaceColor: '#ffffff',
-		textColor: '#09090b',
-		textMutedColor: '#71717a',
-		noteBackground: '#f4f4f5',
-		noteTextColor: '#27272a',
-		successColor: '#10b981',
-		warningColor: '#f59e0b',
-		destructiveColor: '#ef4444',
-		borderColor: '#e4e4e7',
-		ringColor: '#18181b',
-		borderRadius: 'none',
+		textColor: '#1c1917',
+		textMutedColor: '#78716c',
+		noteBackground: '#f5f5f4',
+		noteTextColor: '#292524',
+		successColor: '#15803d',
+		warningColor: '#b45309',
+		destructiveColor: '#b91c1c',
+		borderColor: '#e7e5e4',
+		ringColor: '#1c1917',
+		borderRadius: 'sharp',
 		shadowStyle: 'subtle',
-		fontHeading: 'Playfair Display',
+		fontHeading: 'Instrument Serif',
 		fontBody: 'Plus Jakarta Sans',
+		enableMotion: true,
+		buttonHoverEffect: 'lift',
+		bannerHoverEffect: 'zoom-and-lift',
+		motionPhysics: 'gentle',
 	},
-	ocean: {
-		title: 'Ocean Breeze',
-		description: '',
-		primaryColor: '#0284c7',
-		onPrimaryColor: '#ffffff',
-		secondaryColor: '#0ea5e9',
-		onSecondaryColor: '#ffffff',
-		ctaColor: '#f43f5e',
-		onCtaColor: '#ffffff',
-		backgroundColor: '#f0f9ff',
+	nordic: {
+		title: 'Nordic Minimalist',
+		description: 'Muted Slate & Nordic Pine on Cool Stone, inspired by HAY & Arket',
+		primaryColor: '#334155',
+		secondaryColor: '#475569',
+		ctaColor: '#2C3E35',
+		backgroundColor: '#F8FAFC',
 		surfaceColor: '#ffffff',
-		textColor: '#0c4a6e',
+		textColor: '#0f172a',
 		textMutedColor: '#64748b',
-		noteBackground: '#e0f2fe',
-		noteTextColor: '#0369a1',
-		successColor: '#059669',
-		warningColor: '#eab308',
-		destructiveColor: '#e11d48',
-		borderColor: '#bae6fd',
-		ringColor: '#0284c7',
-		borderRadius: 'lg',
-		shadowStyle: 'elevated',
-		fontHeading: 'Montserrat',
-		fontBody: 'Inter',
+		noteBackground: '#f1f5f9',
+		noteTextColor: '#334155',
+		successColor: '#15803d',
+		warningColor: '#b45309',
+		destructiveColor: '#dc2626',
+		borderColor: '#e2e8f0',
+		ringColor: '#334155',
+		borderRadius: 'subtle',
+		shadowStyle: 'subtle',
+		fontHeading: 'DM Sans',
+		fontBody: 'Manrope',
+		enableMotion: true,
+		buttonHoverEffect: 'scale-subtle',
+		bannerHoverEffect: 'zoom',
+		motionPhysics: 'smooth',
 	},
 	warm: {
-		title: 'Warm Earth',
-		description: '',
+		title: 'Warm Earth & Ceramic',
+		description: 'Rich Umber & Terracotta on Travertine Linen, inspired by Parachute & Cultiver',
 		primaryColor: '#78350f',
-		onPrimaryColor: '#ffffff',
 		secondaryColor: '#92400e',
-		onSecondaryColor: '#ffffff',
-		ctaColor: '#c2410c',
-		onCtaColor: '#ffffff',
-		backgroundColor: '#fefce8',
+		ctaColor: '#b91c1c',
+		backgroundColor: '#F7F4EF',
 		surfaceColor: '#ffffff',
-		textColor: '#451a03',
+		textColor: '#292524',
 		textMutedColor: '#78716c',
-		noteBackground: '#fef3c7',
-		noteTextColor: '#92400e',
+		noteBackground: '#f5f2eb',
+		noteTextColor: '#78350f',
 		successColor: '#15803d',
-		warningColor: '#d97706',
+		warningColor: '#b45309',
 		destructiveColor: '#b91c1c',
-		borderColor: '#fde68a',
+		borderColor: '#e7e5e4',
 		ringColor: '#78350f',
-		borderRadius: 'md',
+		borderRadius: 'subtle',
 		shadowStyle: 'subtle',
 		fontHeading: 'Lora',
-		fontBody: 'Nunito Sans',
-	},
-	violet: {
-		title: 'Vibrant Purple',
-		description: '',
-		primaryColor: '#7c3aed',
-		onPrimaryColor: '#ffffff',
-		secondaryColor: '#9333ea',
-		onSecondaryColor: '#ffffff',
-		ctaColor: '#db2777',
-		onCtaColor: '#ffffff',
-		backgroundColor: '#faf5ff',
-		surfaceColor: '#ffffff',
-		textColor: '#3b0764',
-		textMutedColor: '#6b7280',
-		noteBackground: '#f3e8ff',
-		noteTextColor: '#6b21a8',
-		successColor: '#10b981',
-		warningColor: '#f59e0b',
-		destructiveColor: '#f43f5e',
-		borderColor: '#e9d5ff',
-		ringColor: '#7c3aed',
-		borderRadius: 'full',
-		shadowStyle: 'elevated',
-		fontHeading: 'Space Grotesk',
-		fontBody: 'Be Vietnam Pro',
+		fontBody: 'Plus Jakarta Sans',
+		enableMotion: true,
+		buttonHoverEffect: 'lift',
+		bannerHoverEffect: 'zoom',
+		motionPhysics: 'smooth',
 	},
 }
 
@@ -175,17 +206,22 @@ export default function ThemePresetInput(props: ObjectInputProps) {
 			const p = THEME_PRESETS_DATA[presetKey]
 			if (!p) return
 
+			// Automated accessible contrast values
+			const onPrimary = getContrastColor(p.primaryColor)
+			const onSecondary = getContrastColor(p.secondaryColor)
+			const onCta = getContrastColor(p.ctaColor)
+
 			// Dispatch batch patches to populate all fields atomically
 			onChange(
 				set({
 					...(value || {}),
 					preset: presetKey,
 					primaryColor: p.primaryColor,
-					onPrimaryColor: p.onPrimaryColor,
+					onPrimaryColor: onPrimary,
 					secondaryColor: p.secondaryColor,
-					onSecondaryColor: p.onSecondaryColor,
+					onSecondaryColor: onSecondary,
 					ctaColor: p.ctaColor,
-					onCtaColor: p.onCtaColor,
+					onCtaColor: onCta,
 					backgroundColor: p.backgroundColor,
 					surfaceColor: p.surfaceColor,
 					textColor: p.textColor,
@@ -201,6 +237,10 @@ export default function ThemePresetInput(props: ObjectInputProps) {
 					shadowStyle: p.shadowStyle,
 					fontHeading: p.fontHeading,
 					fontBody: p.fontBody,
+					enableMotion: p.enableMotion ?? true,
+					buttonHoverEffect: p.buttonHoverEffect ?? 'scale-subtle',
+					bannerHoverEffect: p.bannerHoverEffect ?? 'zoom',
+					motionPhysics: p.motionPhysics ?? 'smooth',
 				}),
 			)
 
@@ -217,7 +257,10 @@ export default function ThemePresetInput(props: ObjectInputProps) {
 					<Flex align="center" justify="space-between">
 						<Stack space={1}>
 							<Text weight="bold" size={1}>
-								Auto Color Palette Generator
+								Global DTC Design Presets
+							</Text>
+							<Text size={0} muted>
+								1-Click curated design systems with automated WCAG AA contrast & typography harmony
 							</Text>
 						</Stack>
 					</Flex>
@@ -237,17 +280,20 @@ export default function ThemePresetInput(props: ObjectInputProps) {
 									style={{
 										cursor: 'pointer',
 										transition: 'all 0.15s ease',
-										borderColor: isSelected ? '#059669' : undefined,
+										borderColor: isSelected ? '#1b4332' : undefined,
+										display: 'flex',
+										flexDirection: 'column',
+										height: '100%',
 									}}
 									onClick={() => applyPreset(key)}
 								>
-									<Stack space={2}>
+									<Stack space={2} style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
 										<Flex align="center" justify="space-between">
 											<Text weight="bold" size={1}>
 												{p.title}
 											</Text>
 											{isSelected && (
-												<Text size={1} style={{ color: '#059669' }}>
+												<Text size={1} style={{ color: '#1b4332' }}>
 													<FiCheck />
 												</Text>
 											)}
@@ -307,7 +353,7 @@ export default function ThemePresetInput(props: ObjectInputProps) {
 											/>
 										</Flex>
 
-										<Text size={0} muted>
+										<Text size={0} muted style={{ flexGrow: 1, minHeight: '32px' }}>
 											{p.description}
 										</Text>
 

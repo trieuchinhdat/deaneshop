@@ -63,7 +63,7 @@ function AnnouncementItemCard({ item }: { item: AnnouncementItemData }) {
 	const bannerHref = getBannerHref(item)
 	const isExternal = item.linkBannerType === 'external'
 
-	// A. IMAGE VARIANT (Đồng bộ chiều cao chuẩn với Topbar, tràn viền không padding)
+	// A. IMAGE VARIANT (Synchronized height with Topbar, edge-to-edge without padding)
 	if (item.variant === 'image' && item.image?.asset) {
 		const imgElement = (
 			<div
@@ -96,16 +96,16 @@ function AnnouncementItemCard({ item }: { item: AnnouncementItemData }) {
 		return imgElement
 	}
 
-	// B. TEXT VARIANT (Đồng bộ chiều cao chuẩn h-[38px] md:h-[42px], căn giữa)
+	// B. TEXT VARIANT (Standard height h-[38px] md:h-[42px], centered)
 	const textContent = (
 		<div
-			className="flex h-[38px] md:h-[42px] flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-center text-xs md:text-sm font-medium leading-tight px-14"
+			className="flex h-[38px] md:h-[42px] items-center justify-center gap-x-2.5 gap-y-1 text-center text-xs md:text-[13px] font-medium leading-tight px-12 sm:px-16 max-w-4xl mx-auto"
 			style={{ color: item.textColor || 'inherit' }}
 		>
 			{/* Badge */}
 			{item.badgeText && (
 				<span
-					className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-xs"
+					className="inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-xs"
 					style={{
 						backgroundColor: item.badgeBgColor || 'var(--color-primary, #059669)',
 						color: item.badgeTextColor || '#ffffff',
@@ -116,7 +116,7 @@ function AnnouncementItemCard({ item }: { item: AnnouncementItemData }) {
 			)}
 
 			{/* Main Text Message */}
-			<span className="truncate-2-lines inline-block">{item.content || 'Special Announcement'}</span>
+			<span className="truncate inline-block">{item.content || 'Special Announcement'}</span>
 		</div>
 	)
 
@@ -158,7 +158,7 @@ export default function Announcement({
 		try {
 			if (typeof window !== 'undefined' && allowDismiss && activeItems.length > 0) {
 				const itemKey = activeItems.map((i) => i._id || i._key || '').sort().join('_')
-				const isDismissed = sessionStorage.getItem(`ecocros_topbar_dismissed_${itemKey}`)
+				const isDismissed = sessionStorage.getItem(`deanflow_topbar_dismissed_${itemKey}`)
 				if (isDismissed === 'true') {
 					setDismissed(true)
 				}
@@ -173,7 +173,7 @@ export default function Announcement({
 		try {
 			if (typeof window !== 'undefined') {
 				const itemKey = activeItems.map((i) => i._id || i._key || '').sort().join('_')
-				sessionStorage.setItem(`ecocros_topbar_dismissed_${itemKey}`, 'true')
+				sessionStorage.setItem(`deanflow_topbar_dismissed_${itemKey}`, 'true')
 			}
 		} catch {
 			// Ignore
@@ -229,7 +229,7 @@ export default function Announcement({
 				color: currentItem.textColor || 'inherit',
 			}}
 		>
-			{/* Container chính: Đảm bảo toàn bộ nội dung và nút điều hướng nằm gọn bên trong khung container-max */}
+			{/* Main container bounded inside container-max */}
 			<div className="container-max relative h-full flex items-center justify-center">
 				{/* Active Announcement Slide Content */}
 				<div className="w-full h-full flex items-center justify-center text-center transition-all duration-500 ease-in-out">
@@ -239,42 +239,42 @@ export default function Announcement({
 					/>
 				</div>
 
-				{/* Previous Arrow Button (Nằm bên trong container chính, nổi lên trên z-40) */}
+				{/* Previous Arrow Button */}
 				{hasMultiple && (
 					<button
 						type="button"
 						onClick={prevSlide}
 						aria-label="Previous announcement"
-						className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 flex size-8 md:size-7 items-center justify-center rounded-full bg-black/60 text-white shadow-md backdrop-blur-xs transition-all hover:bg-black/80 hover:scale-110 focus:outline-hidden cursor-pointer"
+						className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-40 flex size-6 md:size-6.5 items-center justify-center rounded-full bg-black/15 hover:bg-black/30 dark:bg-white/15 dark:hover:bg-white/30 text-current shadow-xs backdrop-blur-xs transition-all hover:scale-110 active:scale-95 focus:outline-hidden cursor-pointer"
 					>
-						<IoChevronBack className="h-4 w-4" />
+						<IoChevronBack className="h-3.5 w-3.5" />
 					</button>
 				)}
 
-				{/* Next Arrow Button (Nằm bên trong container chính, nổi lên trên z-40) */}
+				{/* Next Arrow Button */}
 				{hasMultiple && (
 					<button
 						type="button"
 						onClick={nextSlide}
 						aria-label="Next announcement"
 						className={cn(
-							'absolute top-1/2 -translate-y-1/2 z-40 flex size-8 md:size-7 items-center justify-center rounded-full bg-black/60 text-white shadow-md backdrop-blur-xs transition-all hover:bg-black/80 hover:scale-110 focus:outline-hidden cursor-pointer',
-							allowDismiss ? 'right-10 md:right-12' : 'right-2 md:right-4'
+							'absolute top-1/2 -translate-y-1/2 z-40 flex size-6 md:size-6.5 items-center justify-center rounded-full bg-black/15 hover:bg-black/30 dark:bg-white/15 dark:hover:bg-white/30 text-current shadow-xs backdrop-blur-xs transition-all hover:scale-110 active:scale-95 focus:outline-hidden cursor-pointer',
+							allowDismiss ? 'right-9 md:right-11' : 'right-2 md:right-3'
 						)}
 					>
-						<IoChevronForward className="h-4 w-4" />
+						<IoChevronForward className="h-3.5 w-3.5" />
 					</button>
 				)}
 
-				{/* Dismiss / Close Button (Nằm bên trong container chính, nổi lên trên z-40) */}
+				{/* Dismiss / Close Button */}
 				{allowDismiss && (
 					<button
 						type="button"
 						onClick={handleDismiss}
 						aria-label="Dismiss announcement"
-						className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-40 flex size-8 md:size-7 items-center justify-center rounded-full bg-black/60 text-white shadow-md backdrop-blur-xs transition-all hover:bg-black/80 hover:scale-110 focus:outline-hidden cursor-pointer"
+						className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-40 flex size-6 md:size-6.5 items-center justify-center rounded-full bg-black/15 hover:bg-black/30 dark:bg-white/15 dark:hover:bg-white/30 text-current shadow-xs backdrop-blur-xs transition-all hover:scale-110 active:scale-95 focus:outline-hidden cursor-pointer"
 					>
-						<IoClose className="h-4 w-4" />
+						<IoClose className="h-3.5 w-3.5" />
 					</button>
 				)}
 			</div>

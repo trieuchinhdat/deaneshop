@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="100%" height="100%">
+  <rect width="320" height="180" rx="10" fill="#0f172a"/>
+  <rect x="1" y="1" width="318" height="178" rx="9" fill="none" stroke="#334155" stroke-width="1.5"/>
+
+  <!-- Background Webpage Simulation -->
+  <rect x="24" y="20" width="80" height="8" rx="4" fill="#334155"/>
+  <rect x="190" y="20" width="30" height="6" rx="3" fill="#1e293b"/>
+  <rect x="230" y="20" width="30" height="6" rx="3" fill="#1e293b"/>
+  <rect x="270" y="18" width="26" height="10" rx="4" fill="#3b82f6" fill-opacity="0.3"/>
+
+  <!-- Banner mock -->
+  <rect x="24" y="38" width="272" height="64" rx="8" fill="#1e293b" stroke="#334155"/>
+  <rect x="40" y="52" width="110" height="10" rx="3" fill="#334155"/>
+  <rect x="40" y="68" width="80" height="6" rx="3" fill="#1e293b"/>
+  <rect x="40" y="80" width="45" height="12" rx="4" fill="#334155"/>
+  <rect x="200" y="46" width="80" height="48" rx="6" fill="#0f172a"/>
+
+  <!-- FLOATING LIVE SOCIAL PROOF TOAST (Bottom Left) -->
+  <g transform="translate(24, 110)">
+    <rect x="0" y="0" width="176" height="52" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="1.5" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.5))"/>
+    
+    <!-- Product Thumbnail -->
+    <rect x="8" y="8" width="36" height="36" rx="6" fill="#0f172a" stroke="#334155"/>
+    <circle cx="26" cy="24" r="8" fill="#3b82f6" fill-opacity="0.3"/>
+    <path d="M21 27 L25 21 L29 25 L32 20" stroke="#60a5fa" stroke-width="1.5" fill="none"/>
+
+    <!-- Buyer details -->
+    <rect x="52" y="10" width="62" height="6" rx="3" fill="#f8fafc"/>
+    <rect x="52" y="20" width="85" height="5" rx="2" fill="#94a3b8"/>
+    
+    <!-- Time & Verified Badge -->
+    <circle cx="56" cy="36" r="3" fill="#10b981"/>
+    <rect x="62" y="34" width="38" height="4" rx="2" fill="#64748b"/>
+    <rect x="122" y="32" width="44" height="12" rx="6" fill="#10b981" fill-opacity="0.2"/>
+    <rect x="130" y="36" width="28" height="4" rx="2" fill="#34d399"/>
+  </g>
+
+  <!-- Secondary Counter Toast (Bottom Right) -->
+  <g transform="translate(216, 126)">
+    <rect x="0" y="0" width="80" height="36" rx="6" fill="#1e293b" stroke="#334155"/>
+    <circle cx="16" cy="18" r="6" fill="#3b82f6" fill-opacity="0.2"/>
+    <circle cx="16" cy="18" r="3" fill="#3b82f6"/>
+    <rect x="28" y="12" width="44" height="5" rx="2" fill="#f8fafc"/>
+    <rect x="28" y="20" width="36" height="4" rx="2" fill="#64748b"/>
+  </g>
+</svg>

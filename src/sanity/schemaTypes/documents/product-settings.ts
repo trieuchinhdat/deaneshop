@@ -1,83 +1,641 @@
 import { defineField, defineType } from 'sanity'
+import { FiShoppingBag } from 'react-icons/fi'
 
 export default defineType({
 	name: 'product-settings',
 	title: 'Product Page Settings',
 	type: 'document',
+	icon: FiShoppingBag,
+
+	// 1. Structured Multi-Tab Architecture for Non-Technical Merchants
 	groups: [
-		{ name: 'promotional', title: 'Promotional Settings', default: true },
-		{ name: 'socialProof', title: 'Trust & Social Proof' },
-		{ name: 'conversion', title: 'Conversion & Inventory' },
+		{ name: 'layout_media', title: 'Layout & Media', default: true },
+		{ name: 'information', title: 'Product Info' },
+		{ name: 'pricing', title: 'Pricing & Tiers' },
+		{ name: 'variants', title: 'Variants & Options' },
+		{ name: 'actions', title: 'Purchase & Funnel' },
+		{ name: 'trust_social', title: 'Trust & Reviews' },
+		{ name: 'shipping', title: 'Shipping & Logistics' },
+		{ name: 'promotional', title: 'Promotions & Banners' },
 	],
+
+	// 2. Clear Collapsible Fieldsets
 	fieldsets: [
 		{
-			name: 'addToCartGroup',
-			title: 'Cấu hình Nút "Thêm vào giỏ"',
+			name: 'galleryGroup',
+			title: 'Gallery & Media Presentation',
 			options: { collapsible: true, collapsed: false },
 		},
 		{
-			name: 'buyNowGroup',
-			title: 'Cấu hình Nút "Mua ngay"',
+			name: 'infoDisplayGroup',
+			title: 'Product Metadata & Header Badges',
 			options: { collapsible: true, collapsed: false },
 		},
 		{
-			name: 'contactGroup',
-			title: 'Cấu hình Nút "Liên hệ tư vấn"',
+			name: 'pricingDisplayGroup',
+			title: 'Price Display & Volume Discounts',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'variantDisplayGroup',
+			title: 'Variant Selector & Stock Status',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'ctaFunnelGroup',
+			title: 'Primary Conversion CTAs & Funnel Labels',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'directInquiryGroup',
+			title: 'Direct Specialist Inquiry & Chat Channels',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'cartStickyGroup',
+			title: 'Sticky Purchase Bar & Urgency Alerts',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'legacyCartGroup',
+			title: 'Direct Cart & Instant Buy Buttons',
+			options: { collapsible: true, collapsed: true },
+		},
+		{
+			name: 'trustBadgesGroup',
+			title: 'Trust Badges & Export Guarantees',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'reviewsEngineGroup',
+			title: 'Customer Reviews Engine & Ratings',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'shippingEstimatorGroup',
+			title: 'Production & Transit Schedule Estimator',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'disclaimerGroup',
+			title: 'Landed Cost & Global Terms Disclaimers',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'globalOffersGroup',
+			title: 'Store-Wide Default Offers & Deal Terms',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'bannersGroup',
+			title: 'Tag-Targeted Promotional Banners',
 			options: { collapsible: true, collapsed: false },
 		},
 	],
+
 	fields: [
-		// ================= 1. PROMOTIONAL SETTINGS =================
+		/* ==================== TAB 1: LAYOUT & MEDIA ==================== */
+		defineField({
+			name: 'galleryLayout',
+			title: 'Gallery Layout Style',
+			description: 'Choose how product images and media are presented across desktop screens.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Carousel with Bottom Thumbnails (Standard E-Commerce)', value: 'carousel_bottom' },
+					{ title: 'Carousel with Vertical Left Thumbnails (Luxury / Space-Saver)', value: 'carousel_left' },
+					{ title: '2-Column Editorial Grid (Fashion & High-Detail Showcase)', value: 'grid_2col' },
+					{ title: 'Single Stack (Modern Minimalist)', value: 'single_stack' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'carousel_bottom',
+			group: 'layout_media',
+			fieldset: 'galleryGroup',
+		}),
+		defineField({
+			name: 'imageAspectRatio',
+			title: 'Product Image Aspect Ratio',
+			description: 'Sets the frame proportion for product gallery media to ensure visual harmony.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Square (1:1) — E-Commerce Standard', value: '1:1' },
+					{ title: 'Portrait (4:5) — Fashion, Apparel & Tall Items', value: '4:5' },
+					{ title: 'Landscape (4:3) — Equipment & Wide Products', value: '4:3' },
+				],
+				layout: 'radio',
+			},
+			initialValue: '1:1',
+			group: 'layout_media',
+			fieldset: 'galleryGroup',
+		}),
+		defineField({
+			name: 'mediaPosition',
+			title: 'Gallery Desktop Position',
+			description: 'Position of the gallery relative to product details on wide screens.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Left (Standard E-Commerce Convention)', value: 'left' },
+					{ title: 'Right (Alternative Layout)', value: 'right' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'left',
+			group: 'layout_media',
+			fieldset: 'galleryGroup',
+		}),
+		defineField({
+			name: 'enableImageLightbox',
+			title: 'Enable Fullscreen Zoom & Lightbox',
+			description: 'Allows buyers to click product photos to view high-resolution zoom views.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'layout_media',
+			fieldset: 'galleryGroup',
+		}),
+
+		/* ==================== TAB 2: PRODUCT INFO & BADGES ==================== */
+		defineField({
+			name: 'enableCategoryDisplay',
+			title: 'Show Product Category Pill',
+			description: 'Displays clickable category navigation pill above the product title.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'information',
+			fieldset: 'infoDisplayGroup',
+		}),
+		defineField({
+			name: 'enableSkuDisplay',
+			title: 'Show Product SKU Identifier',
+			description: 'Displays current variant or base product SKU for catalog referencing.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'information',
+			fieldset: 'infoDisplayGroup',
+		}),
+		defineField({
+			name: 'enableSoldCount',
+			title: 'Show Verified Units Delivered / Sold Badge',
+			description: 'Displays cumulative volume sold for social validation (e.g. Delivered: 1,200+ units).',
+			type: 'boolean',
+			initialValue: true,
+			group: 'information',
+			fieldset: 'infoDisplayGroup',
+		}),
+		defineField({
+			name: 'enableStockBadge',
+			title: 'Show Low Stock Urgency Alert',
+			description: 'Displays a high-visibility factory allocation urgency badge when inventory is low.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'information',
+			fieldset: 'infoDisplayGroup',
+		}),
+		defineField({
+			name: 'lowStockThreshold',
+			title: 'Low Stock Alert Threshold',
+			description: 'Trigger inventory alert when available stock is at or below this count.',
+			type: 'number',
+			initialValue: 5,
+			placeholder: '5',
+			validation: (Rule) => Rule.min(0).integer(),
+			group: 'information',
+			fieldset: 'infoDisplayGroup',
+			hidden: ({ parent }) => parent?.enableStockBadge === false,
+		}),
+		defineField({
+			name: 'enableSocialShare',
+			title: 'Show Share Product Action',
+			description: 'Enables native mobile Web Share and 1-click clipboard link copying for US/UK buyers.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'information',
+			fieldset: 'infoDisplayGroup',
+		}),
+
+		/* ==================== TAB 3: PRICING & VOLUME TIERS ==================== */
+		defineField({
+			name: 'showDiscountBadge',
+			title: 'Show Strike-Through Price & Discount Badge',
+			description: 'Highlights percentage savings when compare-at price is higher than selling price.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'pricing',
+			fieldset: 'pricingDisplayGroup',
+		}),
+		defineField({
+			name: 'showPriceTiers',
+			title: 'Show Volume Tiered Pricing Matrix Table',
+			description: 'Renders interactive wholesale volume tier table if tiered pricing is configured on product.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'pricing',
+			fieldset: 'pricingDisplayGroup',
+		}),
+		defineField({
+			name: 'priceDisplayUnit',
+			title: 'Default Commercial Terms Suffix',
+			description: 'Clarifies trade incoterm or basis beside unit price (e.g. "/ unit (FOB Vietnam Port)").',
+			type: 'string',
+			placeholder: 'FOB Vietnam Port',
+			initialValue: 'FOB Vietnam Port',
+			group: 'pricing',
+			fieldset: 'pricingDisplayGroup',
+		}),
+
+		/* ==================== TAB 4: VARIANTS & OPTIONS ==================== */
+		defineField({
+			name: 'variantSelectorStyle',
+			title: 'Variant Selector Display Style',
+			description: 'Controls whether options (size, color, finish) are presented as interactive pills or dropdowns.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Interactive Pills & Image Swatches (Recommended for ≤ 6 options)', value: 'pills' },
+					{ title: 'Compact Dropdown Selectors (Recommended for long lists)', value: 'dropdown' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'pills',
+			group: 'variants',
+			fieldset: 'variantDisplayGroup',
+		}),
+		defineField({
+			name: 'showOutOfStockVariants',
+			title: 'Out of Stock Variant Behavior',
+			description: 'Determine how unavailable option combinations appear to customers.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Show Disabled with Strike-Through Line (Keeps buyer aware of all choices)', value: 'strike_through' },
+					{ title: 'Hide Unavailable Combinations', value: 'hidden' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'strike_through',
+			group: 'variants',
+			fieldset: 'variantDisplayGroup',
+		}),
+
+		/* ==================== TAB 5: PURCHASE & CONVERSION ACTIONS ==================== */
+		defineField({
+			name: 'enableQuantitySelector',
+			title: 'Show Quantity Stepper Selector',
+			description: 'Allows buyers to adjust desired unit quantity directly on the product hero card.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'actions',
+			fieldset: 'ctaFunnelGroup',
+		}),
+		defineField({
+			name: 'rfqCtaLabel',
+			title: 'Primary RFQ / Quotation Button Label',
+			description: 'Label on the primary B2B quotation action button.',
+			type: 'string',
+			placeholder: 'e.g. Request Official Quotation (RFQ)',
+			initialValue: 'Request Official Quotation (RFQ)',
+			group: 'actions',
+			fieldset: 'ctaFunnelGroup',
+		}),
+		defineField({
+			name: 'quoteListCtaLabel',
+			title: 'Multi-Item Quote List Button Label',
+			description: 'Label on the secondary action button to add item to multi-product quote list.',
+			type: 'string',
+			placeholder: 'e.g. + Add to Quote List',
+			initialValue: '+ Add to Quote List',
+			group: 'actions',
+			fieldset: 'ctaFunnelGroup',
+		}),
+		defineField({
+			name: 'enableSampleButton',
+			title: 'Show "Order Evaluation Sample" Button',
+			description: 'Offers buyers a quick 1-click sample request CTA.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'actions',
+			fieldset: 'ctaFunnelGroup',
+		}),
+		defineField({
+			name: 'sampleOrderCtaLabel',
+			title: 'Sample Order Button Label',
+			description: 'Label on the sample inquiry action button.',
+			type: 'string',
+			placeholder: 'e.g. Order Evaluation Sample',
+			initialValue: 'Order Evaluation Sample',
+			group: 'actions',
+			fieldset: 'ctaFunnelGroup',
+			hidden: ({ parent }) => parent?.enableSampleButton === false,
+		}),
+		defineField({
+			name: 'orderRequestCtaLabel',
+			title: 'Order Request Button Label',
+			description: 'Used when product conversion mode is "Order Request / Direct Reserve".',
+			type: 'string',
+			placeholder: 'e.g. Reserve Order (No Upfront Payment)',
+			initialValue: 'Reserve Order (No Upfront Payment)',
+			group: 'actions',
+			fieldset: 'ctaFunnelGroup',
+		}),
+		defineField({
+			name: 'consultationCtaLabel',
+			title: 'Consultation Button Label',
+			description: 'Used when product conversion mode is "Consultation & Demo Booking".',
+			type: 'string',
+			placeholder: 'e.g. Schedule Specialist Consultation',
+			initialValue: 'Schedule Specialist Consultation',
+			group: 'actions',
+			fieldset: 'ctaFunnelGroup',
+		}),
+
+		// Direct Specialist Inquiry & WhatsApp
+		defineField({
+			name: 'enableWhatsAppQuickChat',
+			title: 'Show Instant WhatsApp Inquiry Button',
+			description: 'Displays a high-converting direct WhatsApp contact button beside primary actions.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'actions',
+			fieldset: 'directInquiryGroup',
+		}),
+		defineField({
+			name: 'whatsAppNumber',
+			title: 'Business WhatsApp Phone Number',
+			description: 'Include international dial code (e.g. +1234567890 or +84901234567).',
+			type: 'string',
+			placeholder: '+84901234567',
+			initialValue: '+84901234567',
+			group: 'actions',
+			fieldset: 'directInquiryGroup',
+			hidden: ({ parent }) => parent?.enableWhatsAppQuickChat === false,
+		}),
+		defineField({
+			name: 'enableContactButton',
+			title: 'Enable Specialist Direct Contact Link',
+			description: 'Displays a dedicated consultation link or direct inquiry email action.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'actions',
+			fieldset: 'directInquiryGroup',
+		}),
+		defineField({
+			name: 'contactButtonText',
+			title: 'Specialist Contact Button Label',
+			type: 'string',
+			initialValue: 'Talk to Export Specialist (WhatsApp / Direct Email)',
+			placeholder: 'e.g. Talk to Export Specialist (WhatsApp / Direct Email)',
+			group: 'actions',
+			fieldset: 'directInquiryGroup',
+			hidden: ({ parent }) => parent?.enableContactButton === false,
+		}),
+		defineField({
+			name: 'contactButtonLink',
+			title: 'Specialist Contact Destination URL',
+			description: 'Destination URL (e.g. mailto:sales@deanflow.com, https://wa.me/..., or /contact).',
+			type: 'string',
+			initialValue: 'mailto:sales@deanflow.com',
+			placeholder: 'mailto:sales@deanflow.com or /contact',
+			group: 'actions',
+			fieldset: 'directInquiryGroup',
+			hidden: ({ parent }) => parent?.enableContactButton === false,
+		}),
+
+		// Sticky Purchase Bar
+		defineField({
+			name: 'enableStickyAddToCart',
+			title: 'Enable Sticky Bottom Purchase & Inquiry Bar',
+			description: 'Floating bottom bar when scrolling past primary CTAs to boost conversion.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'actions',
+			fieldset: 'cartStickyGroup',
+		}),
+		defineField({
+			name: 'stickyBarDevice',
+			title: 'Sticky Bar Target Devices',
+			description: 'Specify which screen sizes show the floating purchase bar.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Both Mobile & Desktop Screens (Maximum Conversion)', value: 'both' },
+					{ title: 'Mobile Screens Only (Keep Desktop Clean)', value: 'mobile_only' },
+					{ title: 'Desktop Screens Only', value: 'desktop_only' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'both',
+			group: 'actions',
+			fieldset: 'cartStickyGroup',
+			hidden: ({ parent }) => parent?.enableStickyAddToCart === false,
+		}),
+
+		// Legacy Direct Cart & Instant Buy
+		defineField({
+			name: 'enableAddToCartButton',
+			title: 'Enable Traditional "Add to Cart" Button',
+			description: 'Adds item directly to shopping bag with instant checkout redirect.',
+			type: 'boolean',
+			initialValue: false,
+			group: 'actions',
+			fieldset: 'legacyCartGroup',
+		}),
+		defineField({
+			name: 'addToCartButtonText',
+			title: 'Add to Cart Button Label',
+			type: 'string',
+			initialValue: 'Add to Cart',
+			placeholder: 'e.g. Add to Cart',
+			group: 'actions',
+			fieldset: 'legacyCartGroup',
+			hidden: ({ parent }) => parent?.enableAddToCartButton === false,
+		}),
+		defineField({
+			name: 'enableBuyNowButton',
+			title: 'Enable Direct "Buy Now" Instant Checkout Button',
+			description: 'Skips cart and navigates straight to checkout.',
+			type: 'boolean',
+			initialValue: false,
+			group: 'actions',
+			fieldset: 'legacyCartGroup',
+		}),
+		defineField({
+			name: 'buyNowButtonText',
+			title: 'Buy Now Button Label',
+			type: 'string',
+			initialValue: 'Buy Now',
+			placeholder: 'e.g. Buy Now',
+			group: 'actions',
+			fieldset: 'legacyCartGroup',
+			hidden: ({ parent }) => parent?.enableBuyNowButton === false,
+		}),
+
+		/* ==================== TAB 6: TRUST BADGES & REVIEWS ==================== */
+		defineField({
+			name: 'trustBadges',
+			title: 'Global Trust Badges & Export Guarantees',
+			description: 'Assurance seals rendered on product pages (e.g. Insured International Freight, Quality Certified).',
+			type: 'array',
+			group: 'trust_social',
+			fieldset: 'trustBadgesGroup',
+			of: [
+				{
+					type: 'object',
+					name: 'badge',
+					title: 'Badge',
+					fields: [
+						defineField({
+							name: 'title',
+							title: 'Headline',
+							type: 'string',
+							placeholder: 'e.g. Worldwide Insured Shipping',
+							validation: (Rule) => Rule.required(),
+						}),
+						defineField({
+							name: 'subtitle',
+							title: 'Short Description',
+							type: 'string',
+							placeholder: 'e.g. Full door-to-door insurance coverage',
+						}),
+						defineField({
+							name: 'icon',
+							title: 'Badge Icon',
+							description: 'Recommended: 64 × 64 px transparent PNG or SVG.',
+							type: 'image',
+							options: { hotspot: true },
+						}),
+					],
+					preview: {
+						select: {
+							title: 'title',
+							subtitle: 'subtitle',
+							media: 'icon',
+						},
+					},
+				},
+			],
+		}),
+		defineField({
+			name: 'enableReviews',
+			title: 'Enable Product Reviews & Testimonials Section',
+			description: 'Displays the customer feedback ratings, filter pills, and review submission modal.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'trust_social',
+			fieldset: 'reviewsEngineGroup',
+		}),
+		defineField({
+			name: 'enableReviewStars',
+			title: 'Show Rating Stars & Reviews Count at Hero',
+			description: 'Displays star rating score and review count anchor link right under product title.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'trust_social',
+			fieldset: 'reviewsEngineGroup',
+			hidden: ({ parent }) => parent?.enableReviews === false,
+		}),
+		defineField({
+			name: 'defaultReviewSort',
+			title: 'Default Customer Reviews Sort Order',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Newest First', value: 'newest' },
+					{ title: 'Highest Rating First', value: 'highest' },
+					{ title: 'Lowest Rating First', value: 'lowest' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'newest',
+			group: 'trust_social',
+			fieldset: 'reviewsEngineGroup',
+			hidden: ({ parent }) => parent?.enableReviews === false,
+		}),
+
+		/* ==================== TAB 7: SHIPPING & LOGISTICS ==================== */
+		defineField({
+			name: 'enableShippingEstimator',
+			title: 'Show Production & Transit Schedule Widget',
+			description: 'Renders the interactive schedule calculator with ocean freight & air express options.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'shipping',
+			fieldset: 'shippingEstimatorGroup',
+		}),
+		defineField({
+			name: 'defaultOriginPort',
+			title: 'Default Origin Port Label',
+			description: 'Factory origin reference displayed in the shipping calculator.',
+			type: 'string',
+			placeholder: 'Origin: Vietnam Port (FOB)',
+			initialValue: 'Origin: Vietnam Port (FOB)',
+			group: 'shipping',
+			fieldset: 'shippingEstimatorGroup',
+			hidden: ({ parent }) => parent?.enableShippingEstimator === false,
+		}),
+		defineField({
+			name: 'globalLandedCostNotice',
+			title: 'Universal Landed Cost & Shipping Notice',
+			description: 'Store-wide disclaimer displayed across product inquiry and quotation modals.',
+			type: 'text',
+			rows: 2,
+			initialValue:
+				'International door-to-door freight, insurance, and export customs clearance are calculated and confirmed by your assigned export specialist prior to invoice issuance.',
+			group: 'shipping',
+			fieldset: 'disclaimerGroup',
+		}),
+
+		/* ==================== TAB 8: PROMOTIONS & BANNERS ==================== */
 		defineField({
 			name: 'defaultPromotions',
-			title: 'Khuyến mãi mặc định (Toàn shop)',
-			description:
-				'Khối khuyến mãi mặc định hiển thị trên các sản phẩm sử dụng cài đặt khuyến mãi chung.',
+			title: 'Global Default Promotional Offers',
+			description: 'Promotional perks displayed on products set to use default promotions.',
 			type: 'object',
 			group: 'promotional',
+			fieldset: 'globalOffersGroup',
 			fields: [
 				defineField({
 					name: 'title',
-					title: 'Tiêu đề khối',
+					title: 'Headline',
 					type: 'string',
-					initialValue: 'Khuyến mãi',
+					initialValue: 'Promotions & Commercial Perks',
 				}),
 				defineField({
 					name: 'subtitle',
-					title: 'Phụ đề / Ghi chú',
+					title: 'Subtitle / Terms Note',
 					type: 'string',
-					initialValue: 'Giá và khuyến mãi có thể kết thúc sớm hơn dự kiến',
+					initialValue: 'Prices and terms are subject to final proforma agreement',
 				}),
 				defineField({
 					name: 'items',
-					title: 'Danh sách mục khuyến mãi',
+					title: 'Promotional Items',
 					type: 'array',
 					of: [
 						{
 							type: 'object',
 							name: 'promotionItem',
-							title: 'Mục khuyến mãi',
+							title: 'Promotion Item',
 							fields: [
 								defineField({
 									name: 'text',
-									title: 'Nội dung khuyến mãi',
+									title: 'Offer Text',
 									type: 'string',
 									validation: (Rule) => Rule.required(),
 								}),
 								defineField({
 									name: 'linkText',
-									title:
-										'Chữ liên kết đính kèm (Ví dụ: "(Xem chi tiết tại đây)")',
+									title: 'Link Text',
 									type: 'string',
 								}),
 								defineField({
 									name: 'linkUrl',
-									title: 'Đường dẫn liên kết (Link URL)',
+									title: 'Link URL',
 									type: 'string',
 								}),
 								defineField({
 									name: 'highlight',
-									title: 'Nổi bật (In đậm chữ)',
+									title: 'Emphasize Offer (Bold)',
 									type: 'boolean',
 									initialValue: false,
 								}),
@@ -95,69 +653,67 @@ export default defineType({
 		}),
 		defineField({
 			name: 'defaultSpecialConditions',
-			title: 'Lưu ý / Điều kiện mua hàng mặc định',
-			description:
-				'Danh sách các điều kiện mua hàng mặc định khi sử dụng Giá Đặc Biệt (Ví dụ: "Không áp dụng với khuyến mãi khác", "1 số điện thoại chỉ mua được 3 sản phẩm")',
+			title: 'Default Deal Terms & Conditions',
+			description: 'Terms applied across Special Deal / Scarcity campaigns.',
 			type: 'array',
 			group: 'promotional',
+			fieldset: 'globalOffersGroup',
 			of: [{ type: 'string' }],
 			initialValue: [
-				'Không áp dụng với khuyến mãi khác',
-				'1 số điện thoại chỉ mua được 3 sản phẩm',
+				'Not combinable with volume contractor discounts',
+				'Allocation limited to available export quota',
 			],
 		}),
 		defineField({
 			name: 'promoBanners',
-			title: 'Banner khuyến mãi theo Tag sản phẩm',
-			description:
-				'Danh sách Banner hiển thị bên dưới Trust Badges. Tự động đối chiếu Tag của sản phẩm để hiển thị banner tương ứng.',
+			title: 'Tag-Matched Promotional Banners',
+			description: 'Dynamic banner graphics matched against product tags (e.g. "export", "b2b", or "*" for all).',
 			type: 'array',
 			group: 'promotional',
+			fieldset: 'bannersGroup',
 			of: [
 				{
 					type: 'object',
 					name: 'tagBanner',
-					title: 'Banner theo Tag',
+					title: 'Tag Banner',
 					fields: [
 						defineField({
 							name: 'title',
-							title: 'Tên Banner (Ghi chú Admin)',
+							title: 'Banner Label (Internal Note)',
 							type: 'string',
+							placeholder: 'e.g. Spring B2B Export Campaign',
 						}),
 						defineField({
 							name: 'tag',
-							title: 'Tag sản phẩm áp dụng',
-							description:
-								'Nhập Tag sản phẩm muốn khớp (Ví dụ: "khuyen-mai", "nano-bac"). Để trống hoặc nhập "*" để áp dụng cho mọi sản phẩm.',
+							title: 'Target Product Tag',
+							description: 'Product tag to match (e.g. "promo", "export"). Leave empty or enter "*" for all.',
 							type: 'string',
+							placeholder: 'export',
 						}),
 						defineField({
 							name: 'image',
-							title: 'Hình ảnh Banner (Desktop)',
-							description:
-								'Kích thước khuyên dùng: Tỉ lệ 3:1 hoặc 16:9 (ví dụ: 1200x400px), định dạng WebP/JPG, dung lượng < 500KB.',
+							title: 'Desktop Banner Graphic',
+							description: 'Recommended: 16:9 or 3:1 ratio (e.g. 1200 × 400 px), WebP/JPG < 500 KB.',
 							type: 'image',
 							options: { hotspot: true },
 							validation: (Rule) => Rule.required(),
 						}),
 						defineField({
 							name: 'mobileImage',
-							title: 'Hình ảnh Banner (Mobile - Tùy chọn)',
-							description:
-								'Kích thước khuyên dùng cho Mobile: Tỉ lệ 1:1 hoặc 4:3 (ví dụ: 600x600px), dung lượng < 300KB.',
+							title: 'Mobile Banner Graphic (Optional)',
+							description: 'Recommended: 1:1 or 4:3 ratio (e.g. 600 × 600 px), < 300 KB.',
 							type: 'image',
 							options: { hotspot: true },
 						}),
 						defineField({
 							name: 'link',
-							title: 'Đường dẫn liên kết (Tùy chọn)',
-							description:
-								'Chọn trang hoặc nhập link đích khi click vào Banner. Để trống nếu chỉ hiển thị hình ảnh.',
+							title: 'Destination Link (Optional)',
+							description: 'Target page URL when clicked. Leave empty for static display.',
 							type: 'link',
 						}),
 						defineField({
 							name: 'isActive',
-							title: 'Kích hoạt Banner',
+							title: 'Enable Banner',
 							type: 'boolean',
 							initialValue: true,
 						}),
@@ -171,8 +727,8 @@ export default defineType({
 						},
 						prepare({ title, tag, media, isActive }) {
 							return {
-								title: title || 'Banner khuyến mãi',
-								subtitle: `${isActive !== false ? '🟢 Đang bật' : '🔴 Đã tắt'} | Tag: ${tag || 'Tất cả (*)'}`,
+								title: title || 'Promo Banner',
+								subtitle: `${isActive !== false ? '🟢 Active' : '⚪ Disabled'} • Tag: ${tag || 'All (*)'}`,
 								media,
 							}
 						},
@@ -180,206 +736,11 @@ export default defineType({
 				},
 			],
 		}),
-
-		// ================= 2. TRUST & SOCIAL PROOF =================
-		defineField({
-			name: 'trustBadges',
-			title: 'Trust Badges & Store Commitments',
-			description:
-				'Danh sách các cam kết của cửa hàng hiển thị tại trang sản phẩm (Ví dụ: Miễn phí vận chuyển, Bảo hành, Đổi trả)',
-			type: 'array',
-			group: 'socialProof',
-			of: [
-				{
-					type: 'object',
-					name: 'badge',
-					title: 'Badge',
-					fields: [
-						defineField({
-							name: 'title',
-							title: 'Tiêu đề',
-							type: 'string',
-							validation: (Rule) => Rule.required(),
-						}),
-						defineField({
-							name: 'subtitle',
-							title: 'Mô tả ngắn',
-							type: 'string',
-						}),
-						defineField({
-							name: 'icon',
-							title: 'Hình ảnh / Biểu tượng',
-							description:
-								'Biểu tượng cam kết. Kích thước khuyên dùng: Vuông 1:1 (ví dụ 64x64px), PNG/SVG trong suốt, dung lượng < 50KB.',
-							type: 'image',
-							options: { hotspot: true },
-						}),
-					],
-					preview: {
-						select: {
-							title: 'title',
-							subtitle: 'subtitle',
-							media: 'icon',
-						},
-					},
-				},
-			],
-		}),
-		defineField({
-			name: 'enableReviewStars',
-			title: 'Hiển thị Số sao & Lượt đánh giá',
-			description:
-				'Hiển thị điểm số sao trung bình và số lượt đánh giá bên dưới tên sản phẩm',
-			type: 'boolean',
-			initialValue: true,
-			group: 'socialProof',
-		}),
-		defineField({
-			name: 'enableSoldCount',
-			title: 'Hiển thị Lượt đã bán',
-			description:
-				'Hiển thị số lượng sản phẩm đã bán (Ví dụ: Đã bán 120) bên dưới tên sản phẩm',
-			type: 'boolean',
-			initialValue: true,
-			group: 'socialProof',
-		}),
-		defineField({
-			name: 'enableReviews',
-			title: 'Bật đánh giá sản phẩm',
-			description:
-				'Hiển thị phần đánh giá và cho phép khách hàng viết nhận xét trên trang sản phẩm',
-			type: 'boolean',
-			initialValue: true,
-			group: 'socialProof',
-		}),
-		defineField({
-			name: 'defaultReviewSort',
-			title: 'Thứ tự sắp xếp đánh giá mặc định',
-			type: 'string',
-			options: {
-				list: [
-					{ title: 'Mới nhất', value: 'newest' },
-					{ title: 'Đánh giá cao nhất', value: 'highest' },
-					{ title: 'Đánh giá thấp nhất', value: 'lowest' },
-				],
-				layout: 'radio',
-			},
-			initialValue: 'newest',
-			group: 'socialProof',
-		}),
-
-		// ================= 3. CONVERSION & INVENTORY =================
-		defineField({
-			name: 'enableCategoryDisplay',
-			title: 'Hiển thị Danh mục sản phẩm (Category)',
-			description: 'Hiển thị dòng Danh mục (CATEGORY: ...) trên trang sản phẩm',
-			type: 'boolean',
-			initialValue: true,
-			group: 'conversion',
-		}),
-
-		// Fieldset: Add To Cart
-		defineField({
-			name: 'enableAddToCartButton',
-			title: 'Bật nút "Thêm vào giỏ"',
-			description: 'Hiển thị nút Thêm vào giỏ hàng trên trang sản phẩm',
-			type: 'boolean',
-			initialValue: true,
-			group: 'conversion',
-			fieldset: 'addToCartGroup',
-		}),
-		defineField({
-			name: 'addToCartButtonText',
-			title: 'Nhãn nút "Thêm vào giỏ"',
-			description:
-				'Ghi chú chữ hiển thị trên nút Thêm vào giỏ hàng (Mặc định: Thêm vào giỏ)',
-			type: 'string',
-			initialValue: 'Thêm vào giỏ',
-			group: 'conversion',
-			fieldset: 'addToCartGroup',
-			hidden: ({ parent }) => parent?.enableAddToCartButton === false,
-		}),
-
-		// Fieldset: Buy Now
-		defineField({
-			name: 'enableBuyNowButton',
-			title: 'Bật nút "Mua ngay"',
-			description: 'Hiển thị nút mua ngay để chuyển thẳng đến trang thanh toán',
-			type: 'boolean',
-			initialValue: true,
-			group: 'conversion',
-			fieldset: 'buyNowGroup',
-		}),
-		defineField({
-			name: 'buyNowButtonText',
-			title: 'Nhãn nút "Mua ngay"',
-			description:
-				'Ghi chú chữ hiển thị trên nút Mua ngay (Mặc định: Mua ngay)',
-			type: 'string',
-			initialValue: 'Mua ngay',
-			group: 'conversion',
-			fieldset: 'buyNowGroup',
-			hidden: ({ parent }) => parent?.enableBuyNowButton === false,
-		}),
-
-		// Fieldset: Contact Button
-		defineField({
-			name: 'enableContactButton',
-			title: 'Bật nút "Liên hệ tư vấn / Báo giá"',
-			description:
-				'Hiển thị nút Liên hệ ở một dòng riêng bên dưới các nút mua hàng chính',
-			type: 'boolean',
-			initialValue: true,
-			group: 'conversion',
-			fieldset: 'contactGroup',
-		}),
-		defineField({
-			name: 'contactButtonText',
-			title: 'Nhãn nút Liên hệ',
-			description:
-				'Ghi chú chữ hiển thị trên nút Liên hệ (Mặc định: 📞 Liên hệ tư vấn ngay)',
-			type: 'string',
-			initialValue: '📞 Liên hệ tư vấn ngay',
-			group: 'conversion',
-			fieldset: 'contactGroup',
-			hidden: ({ parent }) => parent?.enableContactButton === false,
-		}),
-		defineField({
-			name: 'contactButtonLink',
-			title: 'Đường dẫn nút Liên hệ (URL hoặc SĐT/Zalo)',
-			description:
-				'Nhập liên kết trang liên hệ (vd: /pages/lien-he), link Zalo (https://zalo.me/...) hoặc cú pháp gọi SĐT (tel:0901234567)',
-			type: 'string',
-			initialValue: 'https://zalo.me',
-			group: 'conversion',
-			fieldset: 'contactGroup',
-			hidden: ({ parent }) => parent?.enableContactButton === false,
-		}),
-
-		// General Conversion Settings
-		defineField({
-			name: 'enableStickyAddToCart',
-			title: 'Bật thanh Add to Cart cố định (Sticky Cart)',
-			description:
-				'Tự động hiển thị thanh mua hàng ở chân trang khi cuộn qua nút mua hàng chính',
-			type: 'boolean',
-			initialValue: true,
-			group: 'conversion',
-		}),
-		defineField({
-			name: 'lowStockThreshold',
-			title: 'Ngưỡng cảnh báo hàng sắp hết',
-			description:
-				'Hiển thị cảnh báo khi số lượng tồn kho của biến thể sản phẩm nhỏ hơn hoặc bằng số này',
-			type: 'number',
-			initialValue: 5,
-			validation: (Rule) => Rule.min(0),
-			group: 'conversion',
-		}),
 	],
 	preview: {
 		prepare: () => ({
 			title: 'Product Page Settings',
+			subtitle: 'Global Commerce, CTAs, Gallery Layout & Trust Guarantees',
 		}),
 	},
 })

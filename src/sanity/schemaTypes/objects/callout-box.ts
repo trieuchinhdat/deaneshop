@@ -1,5 +1,6 @@
 import { defineField, defineType } from 'sanity'
 import { InfoOutlineIcon } from '@sanity/icons'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'callout-box',
@@ -13,11 +14,11 @@ export default defineType({
 			type: 'string',
 			options: {
 				list: [
-					{ title: '💡 Tip (Green/Positive)', value: 'tip' },
-					{ title: 'ℹ️ Information (Blue/Neutral)', value: 'info' },
-					{ title: '⚠️ Warning (Amber/Notice)', value: 'warning' },
-					{ title: '🛑 Danger / Caution (Red/Critical)', value: 'danger' },
-					{ title: '💬 Quote / Editorial Highlight', value: 'quote' },
+					{ title: 'Tip (Green / Positive)', value: 'tip' },
+					{ title: 'Information (Blue / Neutral)', value: 'info' },
+					{ title: 'Warning (Amber / Notice)', value: 'warning' },
+					{ title: 'Danger / Caution (Red / Critical)', value: 'danger' },
+					{ title: 'Quote / Editorial Highlight', value: 'quote' },
 				],
 				layout: 'radio',
 			},
@@ -43,14 +44,15 @@ export default defineType({
 			validation: (Rule) => Rule.required(),
 		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'callout-box',
+		icon: InfoOutlineIcon,
+		titleFields: ['title'],
 		select: {
-			title: 'title',
-			type: 'type',
+			tone: 'type',
 		},
-		prepare: ({ title, type }) => ({
-			title: title || 'Callout Box',
-			subtitle: `Tone: ${type || 'info'}`,
-		}),
-	},
+		metadata: (doc) => [
+			doc.tone ? `Tone: ${doc.tone}` : null,
+		],
+	}),
 })

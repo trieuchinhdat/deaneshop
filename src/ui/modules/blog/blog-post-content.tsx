@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+import Link from 'next/link'
 import { PortableText } from 'next-sanity'
 import { ROUTES } from '@/lib/env'
 import { cn } from '@/lib/utils'
@@ -35,7 +37,9 @@ import RelatedPosts from './related-posts'
 import RelatedProducts from './related-products'
 import Schema from './schema'
 import SocialShare from './social-share'
-import CommentsSection from './comments/comments-section'
+import FTCDisclosure from './ftc-disclosure'
+import KeyTakeaways from './key-takeaways'
+import BlogCommentsWrapper, { CommentsSkeleton } from './comments/blog-comments-wrapper'
 
 export default function BlogPostContentComponent({
 	post,
@@ -47,7 +51,7 @@ export default function BlogPostContentComponent({
 	post: BLOG_POST_QUERY_RESULT & any
 	productSettings?: any
 	blogSettings?: any
-} & BlogPostContent) {
+} & Partial<BlogPostContent>) {
 	if (!post) return null
 
 	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://example.com'
@@ -121,10 +125,10 @@ export default function BlogPostContentComponent({
 			<ReadingProgress />
 
 			<article {...moduleAttributes(props)} className="section">
-				<div className="relative rounded-3xl bg-white py-6 lg:py-10 dark:bg-zinc-950">
+				<div className="relative rounded-2xl sm:rounded-3xl bg-white py-5 sm:py-8 lg:py-10 dark:bg-zinc-950">
 					{/* Header */}
 					<header className="relative border-b border-zinc-100 pb-6 text-center lg:pb-10 dark:border-zinc-900">
-						<div className="relative mx-auto max-w-4xl space-y-4 px-4">
+						<div className="relative mx-auto max-w-4xl space-y-4 px-3.5 sm:px-6">
 							{/* Categories */}
 							{post.categories && post.categories.length > 0 && (
 								<div className="flex justify-center">
@@ -137,7 +141,7 @@ export default function BlogPostContentComponent({
 							)}
 
 							{/* Headline */}
-							<h1 className="text-3xl leading-tight font-extrabold tracking-tight text-balance text-zinc-950 sm:text-4xl lg:text-5xl dark:text-zinc-50">
+							<h1 className="text-2xl sm:text-4xl lg:text-5xl leading-tight font-extrabold tracking-tight text-balance text-zinc-950 dark:text-zinc-50 break-words">
 								{title}
 							</h1>
 
@@ -148,13 +152,32 @@ export default function BlogPostContentComponent({
 								</p>
 							)}
 
-							{/* Meta line */}
-							<div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pt-2 text-xs font-medium text-zinc-600 sm:text-sm dark:text-zinc-300">
-								<Byline author={post.author as unknown as Person} />
-								<span>•</span>
-								<DateComponent date={post.publishDate} />
-								<span>•</span>
-								<ReadTime value={post.readTime || 3} />
+							{/* US FTC Compliance Disclosure (Above the Fold) */}
+							<FTCDisclosure
+								disclosureType={post.ftcDisclosure}
+								customText={post.customFtcDisclosure}
+								blogSettings={blogSettings}
+								className="mx-auto max-w-2xl text-left"
+							/>
+
+							{/* Meta line - bullet points bound via CSS to prevent orphan wrapping */}
+							<div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 pt-2 text-xs font-medium text-zinc-600 sm:text-sm dark:text-zinc-300">
+								<span className="inline-flex items-center">
+									<Byline author={post.author as unknown as Person} />
+								</span>
+								{post.reviewedBy && (
+									<span className="inline-flex items-center gap-1.5 before:content-['•'] before:mr-1.5 before:text-zinc-400">
+										<span className="font-semibold text-emerald-700 dark:text-emerald-400">
+											Fact-checked by {post.reviewedBy.name}
+										</span>
+									</span>
+								)}
+								<span className="inline-flex items-center before:content-['•'] before:mr-1.5 before:text-zinc-400">
+									<DateComponent date={post.publishDate} />
+								</span>
+								<span className="inline-flex items-center before:content-['•'] before:mr-1.5 before:text-zinc-400">
+									<ReadTime value={post.readTime || 3} />
+								</span>
 							</div>
 
 							{/* Top Social Share */}
@@ -165,6 +188,11 @@ export default function BlogPostContentComponent({
 									description={description}
 								/>
 							</div>
+
+							{/* Key Takeaways / TL;DR Box (Skimming & AI Overviews) */}
+							{post.keyTakeaways && post.keyTakeaways.length > 0 && (
+								<KeyTakeaways takeaways={post.keyTakeaways} className="text-left" />
+							)}
 						</div>
 					</header>
 
@@ -180,7 +208,7 @@ export default function BlogPostContentComponent({
 					{/* Article Body + Optional Desktop Sidebar Grid */}
 					<section
 						className={cn(
-							'px-4 pt-8 sm:px-6 lg:px-8',
+							'px-3.5 pt-6 sm:px-6 sm:pt-8 lg:px-8',
 							hasActiveSidebar
 								? 'items-start lg:grid lg:grid-cols-12 lg:gap-10 xl:gap-12'
 								: 'mx-auto max-w-4xl',
@@ -216,6 +244,33 @@ export default function BlogPostContentComponent({
 										h4: (node) => <AnchoredHeading as="h4" {...node} />,
 										h5: (node) => <AnchoredHeading as="h5" {...node} />,
 										h6: (node) => <AnchoredHeading as="h6" {...node} />,
+									},
+									marks: {
+										link: ({ value, children }) => {
+											const href = value?.href || ''
+											const isInternal =
+												href.startsWith('/') || href.startsWith('#')
+											if (isInternal) {
+												return (
+													<Link
+														href={href}
+														className="font-medium text-blue-600 underline underline-offset-4 transition-colors hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+													>
+														{children}
+													</Link>
+												)
+											}
+											return (
+												<a
+													href={href}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="font-medium text-blue-600 underline underline-offset-4 transition-colors hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+												>
+													{children}
+												</a>
+											)
+										},
 									},
 									types: {
 										image: Image,
@@ -254,7 +309,7 @@ export default function BlogPostContentComponent({
 					</section>
 
 					{/* Post Footer Elements */}
-					<footer className="mx-auto space-y-8 px-4 pt-10 sm:px-6 lg:px-8">
+					<footer className="mx-auto space-y-8 px-3.5 pt-8 sm:px-6 sm:pt-10 lg:px-8">
 						{/* Tags */}
 						{post.tags && post.tags.length > 0 && (
 							<div className="flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-6 dark:border-zinc-800">
@@ -274,8 +329,8 @@ export default function BlogPostContentComponent({
 
 						{/* Bottom Social Share */}
 						<div className="flex flex-wrap items-center justify-between gap-4 border-y border-zinc-200/80 py-4 dark:border-zinc-800">
-							<span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-								Did you enjoy this article? Share it!
+							<span className="text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+								Share this technical analysis:
 							</span>
 							<SocialShare
 								url={fullUrl}
@@ -287,15 +342,18 @@ export default function BlogPostContentComponent({
 						{/* Author E-E-A-T Bio Box */}
 						{post.author && <AuthorBox author={post.author} />}
 
-						{/* Comments & Discussion Thread Engine (UI/UX Pro Max) */}
-						<CommentsSection
-							postId={post._id}
-							comments={post.comments || []}
-							enableComments={blogSettings?.enableComments !== false}
-							allowComments={post.allowComments !== false}
-							title={blogSettings?.commentSectionTitle}
-							subtitle={blogSettings?.commentSectionSubtitle}
-						/>
+						{/* Comments & Discussion Thread Engine (Cloudflare D1 via Suspense) */}
+						<Suspense fallback={<CommentsSkeleton />}>
+							<BlogCommentsWrapper
+								postId={post._id}
+								postTitle={title}
+								postSlug={currentSlug}
+								enableComments={blogSettings?.enableComments !== false}
+								allowComments={post.allowComments !== false}
+								title={blogSettings?.commentSectionTitle}
+								subtitle={blogSettings?.commentSectionSubtitle}
+							/>
+						</Suspense>
 
 						{/* Related Products Showcase (reusing official ProductCard UI) */}
 						{enableRelatedProducts &&

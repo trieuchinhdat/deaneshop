@@ -57,7 +57,7 @@ export default defineType({
 		}),
 		defineField({
 			name: 'products',
-			title: 'List product',
+			title: 'Products in Collection',
 			type: 'array',
 			group: 'content',
 			validation: (Rule) => Rule.unique(),

@@ -4,8 +4,8 @@ import ProductListClient from '@/ui/modules/product/product-list-client'
 import ResponsiveImage from '@/ui/responsiveImage'
 import { moduleAttributes } from '..'
 
-type Props = CollectionContentModuleType & {
-	_key: string
+type Props = Partial<CollectionContentModuleType> & {
+	_key?: string
 	collection?: {
 		_id: string
 		title?: string
@@ -81,7 +81,7 @@ export default function CollectionContent({
 				) : (
 					<div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-16 text-center">
 						<p className="text-base text-gray-500">
-							Chưa có sản phẩm nào trong bộ sưu tập này.
+							No products found in this collection.
 						</p>
 					</div>
 				)}

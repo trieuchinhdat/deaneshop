@@ -1,22 +1,23 @@
-# AI AGENT CODING GUIDELINES & ARCHITECTURE (ECOCROS / DEANCORE)
+# AI AGENT CODING GUIDELINES & ARCHITECTURE (DEANFLOW / DEANCORE)
 
 ## 1. Stack & Runtime Rules
 
-- **Framework**: Next.js 16.1.1 (App Router), React 19.2.3 (React Compiler enabled).
+- **Framework**: Next.js 16.4.6 (App Router), React/React DOM 19.3.1 (React Compiler enabled). Node.js >=22.12; use npm and package-lock.json for security overrides.
 - **Language**: TypeScript 5.9 strict mode. Always use types generated from Sanity (`sanity typegen`).
 - **Styling**: Tailwind CSS v4.
 - **State Management**: Zustand v5 with `persist` middleware for local storage.
-- **CMS**: Sanity CMS v5 with GROQ queries & Live Content API.
+- **CMS**: Sanity CMS v6 with GROQ queries & Live Content API.
 
 ## 2. Dynamic Block Builder Architecture
 
 - **Global Module Resolver**: ALL pages (Home, Product Detail, Blog, Static Pages) resolve dynamic Sanity blocks through `src/ui/modules/index.tsx` (`ModulesResolver`).
 - **Creating a New Module**:
-  1. Define schema in `src/sanity/schemaTypes/modules/<module-name>.ts`.
-  2. Register schema in `src/sanity/schemaTypes/index.ts`.
-  3. Include in GROQ fragment queries in `src/sanity/lib/queries.ts`.
-  4. Create UI component in `src/ui/modules/<module-name>/`.
-  5. Register the `_type` mapping in `src/ui/modules/index.tsx`.
+  1. Add friendly name to `MODULE_FRIENDLY_NAMES` in `src/sanity/lib/module-preview-config.ts`.
+  2. Define schema in `src/sanity/schemaTypes/modules/<module-name>.ts` using `defineModulePreview()`. Never write manual `preview.prepare`.
+  3. Register schema in `src/sanity/schemaTypes/index.ts` & `src/sanity/schemaTypes/fragments/modules.ts`.
+  4. Include in GROQ fragment queries in `src/sanity/lib/queries.ts`.
+  5. Create UI component in `src/ui/modules/<module-name>/`.
+  6. Register the `_type` mapping in `src/ui/modules/index.tsx`.
 
 ## 3. Strict Coding Conventions
 

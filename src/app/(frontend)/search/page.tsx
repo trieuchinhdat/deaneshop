@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { getPage, getProductSettings } from '@/sanity/lib/queries'
+import { getGlobalModules, getPage, getProductSettings } from '@/sanity/lib/queries'
 import Loading from '@/ui/loading'
 import ModulesResolver from '@/ui/modules'
 import Breadcrumbs from '@/ui/modules/breadcrumbs'
@@ -11,8 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
 	const { title, description, noIndex } = page?.metadata ?? {}
 
 	return {
-		title: title || 'Tìm kiếm sản phẩm',
-		description: description || 'Tìm kiếm tất cả sản phẩm trong cửa hàng',
+		title: title || 'Product Search',
+		description: description || 'Search all products and resources across the store',
 		robots: {
 			index: noIndex ? false : undefined,
 		},
@@ -20,54 +20,79 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SearchPage() {
-	const [page, productSettings] = await Promise.all([
+	const [page, productSettings, globalModules] = await Promise.all([
 		getPage(['search']),
 		getProductSettings(),
+		getGlobalModules('search'),
 	])
 
 	const currentPage = {
 		_type: 'page',
-		title: page?.metadata?.title || page?.title || 'Tìm kiếm',
+		title: page?.metadata?.title || page?.title || 'Search',
 		...page,
 	}
 
-	// Lấy module search-module từ Sanity page nếu có
 	const searchModuleData = page?.modules?.find(
 		(m: any) => m?._type === 'search-module',
 	) as any
 
-	// Lấy breadcrumbs module cấu hình từ Sanity nếu có
 	const sanityBreadcrumbs = page?.modules?.find(
 		(m: any) => m?._type === 'breadcrumbs',
 	) as any
 
-	// Loại bỏ search-module và breadcrumbs khỏi các modules còn lại để tránh render lặp
-	const otherModules = page?.modules?.filter(
+	const isSearchHidden = Boolean(
+		searchModuleData?.hidden || searchModuleData?.attributes?.hidden,
+	)
+	const isBreadcrumbsHidden = Boolean(
+		sanityBreadcrumbs?.hidden || sanityBreadcrumbs?.attributes?.hidden,
+	)
+
+	// Filter out search-module and breadcrumbs from custom modules to prevent duplicates
+	const customModules = (page?.modules || []).filter(
 		(m: any) => m?._type !== 'search-module' && m?._type !== 'breadcrumbs',
 	)
 
+	const topModules = [...(globalModules?.before || [])]
+	const bottomModules = [
+		...customModules,
+		...(globalModules?.after || []),
+	]
+
 	return (
 		<main className="min-h-screen">
-			{/* Breadcrumbs Navigation */}
-			<Breadcrumbs
-				_type="breadcrumbs"
-				crumbs={sanityBreadcrumbs?.crumbs}
-				currentPage={currentPage}
-			/>
-
-			<Suspense fallback={<Loading>Đang tải trang tìm kiếm...</Loading>}>
-				<SearchModule
-					_type="search-module"
-					intro={searchModuleData?.intro || []}
-					scope={searchModuleData?.scope || 'all'}
+			{/* 1. Breadcrumbs Navigation */}
+			{!isBreadcrumbsHidden && (
+				<Breadcrumbs
+					_type="breadcrumbs"
+					crumbs={sanityBreadcrumbs?.crumbs}
+					currentPage={currentPage}
 				/>
-			</Suspense>
+			)}
 
-			{/* Render các Global Modules hoặc Modules bổ sung từ Sanity nếu có */}
-			{otherModules && otherModules.length > 0 && (
+			{/* 2. Top Global Modules */}
+			{topModules.length > 0 && (
+				<ModulesResolver
+					modules={topModules}
+					productSettings={productSettings}
+				/>
+			)}
+
+			{/* 3. Core Search Module */}
+			{!isSearchHidden && (
+				<Suspense fallback={<Loading>Loading search...</Loading>}>
+					<SearchModule
+						_type="search-module"
+						intro={searchModuleData?.intro || []}
+						scope={searchModuleData?.scope || 'all'}
+					/>
+				</Suspense>
+			)}
+
+			{/* 4. Bottom Modules (Recommendations, Trust logos, FAQs) */}
+			{bottomModules.length > 0 && (
 				<div className="mt-8">
 					<ModulesResolver
-						page={{ ...(page as any), modules: otherModules as any }}
+						modules={bottomModules}
 						productSettings={productSettings}
 					/>
 				</div>
@@ -75,4 +100,3 @@ export default async function SearchPage() {
 		</main>
 	)
 }
-

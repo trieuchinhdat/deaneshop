@@ -10,28 +10,28 @@ export default function TOC({ headings }: { headings: any }) {
 	const [visible, setVisible] = useState(false)
 	const [open, setOpen] = useState(false)
 
-	// 1. Lấy chiều cao Header tự động
+	// 1. Measure header height dynamically
 	const headerHeight = useHeaderHeight()
-	// 2. Chiều cao của thanh TOC Bar (h-12 = 48px)
+	// 2. TOC Bar height (h-12 = 48px)
 	const TOC_HEIGHT = 48
-	// 3. Khoảng thở thêm (padding top) để tiêu đề không sát mép
+	// 3. Scroll offset padding
 	const SCROLL_OFFSET = 20
 
 	const itemRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
 
-	// Tìm Heading đang active để hiển thị label
+	// Find active heading to display current section label
 	const activeHeading = headings.find(
 		(h: any) =>
 			slug(h.text, { removeLeadingNumberAndHyphen: true }) === activeId,
 	)
-	const displayLabel = activeHeading ? activeHeading.text : 'Mục lục bài viết'
+	const displayLabel = activeHeading ? activeHeading.text : 'Table of Contents'
 
 	/* -----------------------------
 	 * 1️⃣ VISIBILITY LOGIC
 	 * ----------------------------- */
 	useEffect(() => {
 		const onScroll = () => {
-			// Hiện TOC khi scroll qua 100px
+			// Show TOC bar when scrolled past 100px
 			setVisible(window.scrollY > 100)
 		}
 		onScroll()
@@ -56,7 +56,7 @@ export default function TOC({ headings }: { headings: any }) {
 				}
 			},
 			{
-				// Offset: Active khi heading cách đỉnh màn hình khoảng 100px
+				// Offset: Active when heading is ~100px from viewport top
 				rootMargin: '-100px 0px -70% 0px',
 			},
 		)
@@ -89,16 +89,14 @@ export default function TOC({ headings }: { headings: any }) {
 		e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
 		id: string,
 	) => {
-		e.preventDefault() // Chặn hành vi mặc định
+		e.preventDefault()
 
 		const element = document.getElementById(id)
 		if (element) {
-			// Lấy vị trí tuyệt đối của element
 			const elementPosition =
 				element.getBoundingClientRect().top + window.scrollY
 
-			// Tính toán vị trí scroll cuối cùng:
-			// Vị trí Element - Chiều cao Header - Chiều cao TOC - Khoảng thở
+			// Calculate target scroll position taking header and TOC bar into account
 			const offsetPosition =
 				elementPosition - headerHeight - TOC_HEIGHT - SCROLL_OFFSET
 
@@ -107,7 +105,7 @@ export default function TOC({ headings }: { headings: any }) {
 				behavior: 'smooth',
 			})
 
-			// Cập nhật URL hash thủ công
+			// Update URL hash
 			window.history.pushState(null, '', `#${id}`)
 			setOpen(false)
 		}
@@ -118,51 +116,52 @@ export default function TOC({ headings }: { headings: any }) {
 	return (
 		<>
 			<div
-				// Dynamic Top: Luôn nằm ngay dưới Header
+				// Dynamic Top: Anchored below site header
 				style={{ top: headerHeight }}
 				className={cn(
 					// Base Styles
-					'fixed inset-x-0 z-40 w-full border-b border-gray-200 bg-[#fdfdfd] text-gray-900',
+					'fixed inset-x-0 z-40 w-full border-b border-zinc-200 bg-white/95 text-zinc-900 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/95 dark:text-zinc-100',
 					'transition-all duration-300 ease-in-out',
 
-					// Logic Ẩn/Hiện
+					// Visibility
 					visible
-						? 'visible translate-y-0 opacity-100' // Hiện
-						: 'pointer-events-none invisible -translate-y-2 opacity-0', // Ẩn
+						? 'visible translate-y-0 opacity-100'
+						: 'pointer-events-none invisible -translate-y-2 opacity-0',
 				)}
 			>
 				{/* Main Content Container */}
 				<div className="mx-auto max-w-screen-lg px-4 md:px-8">
-					{/* --- TOGGLE BAR (h-12 = 48px khớp với TOC_HEIGHT) --- */}
+					{/* --- TOGGLE BAR (h-12 = 48px) --- */}
 					<div className="flex h-12 items-center justify-between">
-						{/* Khu vực Click mở menu */}
+						{/* Menu Toggle Click Area */}
 						<div
 							className="flex flex-1 cursor-pointer items-center gap-4 overflow-hidden py-2"
 							onClick={() => setOpen((v) => !v)}
 						>
-							{/* Label: BROWSE */}
-							<span className="hidden shrink-0 text-[11px] font-bold tracking-wider text-gray-500 uppercase sm:block">
-								Browse
+							{/* Label: CONTENTS */}
+							<span className="hidden shrink-0 text-[11px] font-bold tracking-wider text-zinc-500 uppercase sm:block dark:text-zinc-400">
+								Contents
 							</span>
 
 							{/* Divider */}
-							<span className="hidden h-4 w-[1px] bg-gray-300 sm:block"></span>
+							<span className="hidden h-4 w-[1px] bg-zinc-200 sm:block dark:bg-zinc-800"></span>
 
 							{/* Active Title */}
-							<span className="text-primary truncate text-sm font-medium md:text-base">
+							<span className="truncate text-sm font-semibold text-zinc-900 md:text-base dark:text-zinc-100">
 								{displayLabel}
 							</span>
 						</div>
 
-						{/* Nút Chevron */}
+						{/* Chevron Toggle Button */}
 						<button
 							onClick={() => setOpen((v) => !v)}
 							className={cn(
-								'ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors',
+								'ml-2 flex size-9 shrink-0 items-center justify-center rounded-full transition-colors cursor-pointer',
 								open
-									? 'bg-black text-white' // Active: Đen
-									: 'hover:bg-gray-200', // Inactive: Xám nhẹ
+									? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
+									: 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800',
 							)}
+							aria-label={open ? 'Close Table of Contents' : 'Open Table of Contents'}
 						>
 							{open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
 						</button>
@@ -172,16 +171,15 @@ export default function TOC({ headings }: { headings: any }) {
 				{/* --- DROPDOWN LIST --- */}
 				<div
 					className={cn(
-						'overflow-hidden bg-white transition-[max-height] duration-300 ease-in-out',
+						'overflow-hidden bg-white dark:bg-zinc-950 transition-[max-height] duration-300 ease-in-out',
 						open
-							? 'max-h-[60vh] border-t border-gray-100 shadow-xl'
+							? 'max-h-[60vh] border-t border-zinc-100 dark:border-zinc-800 shadow-xl'
 							: 'max-h-0',
 					)}
 				>
 					<div className="mx-auto max-w-screen-lg px-4 py-4 md:px-8">
 						<ul className="custom-scrollbar max-h-[50vh] space-y-1 overflow-y-auto pr-2">
 							{headings.map((h: any, i: any) => {
-								// Tính ID chuẩn
 								const computedId = slug(h.text, {
 									removeLeadingNumberAndHyphen: true,
 								})
@@ -199,13 +197,12 @@ export default function TOC({ headings }: { headings: any }) {
 												if (el) itemRefs.current[computedId] = el
 											}}
 											href={`#${computedId}`}
-											// Gọi hàm scroll thủ công
 											onClick={(e) => handleScrollTo(e, computedId)}
 											className={cn(
-												'min-h-[40px] flex items-center rounded-lg px-3.5 py-2 text-sm transition-all',
+												'min-h-[44px] flex items-center rounded-lg px-3.5 py-2 text-sm transition-all',
 												isActive
-													? 'bg-gray-100 font-bold text-black'
-													: 'text-gray-700 hover:bg-gray-50 hover:text-black',
+													? 'bg-zinc-100 font-bold text-zinc-950 dark:bg-zinc-800 dark:text-zinc-50'
+													: 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-100',
 											)}
 										>
 											{h.text}
@@ -221,9 +218,8 @@ export default function TOC({ headings }: { headings: any }) {
 			{/* --- BACKDROP --- */}
 			{open && visible && (
 				<div
-					className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm transition-opacity"
+					className="fixed inset-0 z-30 bg-black/30 backdrop-blur-xs transition-opacity"
 					onClick={() => setOpen(false)}
-					// Backdrop bắt đầu SAU TOC (Header + TOC Height)
 					style={{
 						top: `calc(${headerHeight}px + ${TOC_HEIGHT}px)`,
 					}}

@@ -1,5 +1,6 @@
 import { defineField, defineType } from 'sanity'
 import { LaunchIcon } from '@sanity/icons'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'cta-banner',
@@ -52,15 +53,17 @@ export default defineType({
 			initialValue: 'dark',
 		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'cta-banner',
+		icon: LaunchIcon,
+		titleFields: ['title', 'badge'],
 		select: {
-			title: 'title',
-			subtitle: 'buttonText',
-			badge: 'badge',
+			btnText: 'buttonText',
+			style: 'style',
 		},
-		prepare: ({ title, subtitle, badge }) => ({
-			title: badge ? `[${badge}] ${title}` : title || 'CTA Banner',
-			subtitle: `Button: "${subtitle || 'Click here'}"`,
-		}),
-	},
+		metadata: (doc) => [
+			doc.btnText ? `CTA: "${doc.btnText}"` : null,
+			doc.style ? `Style: ${doc.style}` : null,
+		],
+	}),
 })

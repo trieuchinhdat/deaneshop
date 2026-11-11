@@ -9,27 +9,27 @@ export default defineType({
 	fields: [
 		defineField({
 			name: 'title',
-			title: 'Tên Script',
-			description: 'VD: Google Analytics 4, FB Pixel, Tawk.to',
+			title: 'Script Name',
+			description: 'E.g. Google Analytics 4, Meta Pixel, Hotjar, Tawk.to',
 			type: 'string',
 			validation: (Rule) => Rule.required(),
 		}),
 		defineField({
 			name: 'isActive',
-			title: 'Kích hoạt',
+			title: 'Active',
 			type: 'boolean',
 			initialValue: true,
 		}),
 		defineField({
 			name: 'location',
-			title: 'Vị trí (Logic)',
+			title: 'Placement (DOM)',
 			description:
-				'Phân loại để quản lý (Next.js Script tự động tối ưu vị trí thực tế)',
+				'Categorization for injection (Next.js Script automatically optimizes real placement)',
 			type: 'string',
 			options: {
 				list: [
-					{ title: 'Head (Đầu trang)', value: 'head' },
-					{ title: 'Body (Cuối trang)', value: 'body' },
+					{ title: 'Head (Top of document)', value: 'head' },
+					{ title: 'Body (End of body)', value: 'body' },
 				],
 				layout: 'radio',
 			},
@@ -37,21 +37,21 @@ export default defineType({
 		}),
 		defineField({
 			name: 'strategy',
-			title: 'Chiến lược tải (Loading Strategy)',
-			description: 'Quyết định khi nào script được tải để tối ưu tốc độ web.',
+			title: 'Loading Strategy',
+			description: 'Controls script loading timing to protect page performance and Core Web Vitals.',
 			type: 'string',
 			options: {
 				list: [
 					{
-						title: 'afterInteractive (Khuyên dùng - GA4, Pixel)',
+						title: 'afterInteractive (Recommended - GA4, Pixel)',
 						value: 'afterInteractive',
 					},
 					{
-						title: 'lazyOnload (Tải chậm - Chat, Support, Social)',
+						title: 'lazyOnload (Deferred - Live Chat, Social widgets)',
 						value: 'lazyOnload',
 					},
 					{
-						title: 'beforeInteractive (Tải ngay - Hạn chế dùng)',
+						title: 'beforeInteractive (Critical - Use sparingly)',
 						value: 'beforeInteractive',
 					},
 				],
@@ -60,18 +60,18 @@ export default defineType({
 		}),
 		defineField({
 			name: 'scriptType',
-			title: 'Loại Script',
+			title: 'Script Type',
 			type: 'string',
 			options: {
 				list: [
-					{ title: 'External URL (Link file .js)', value: 'url' },
-					{ title: 'Inline Code (Viết code trực tiếp)', value: 'inline' },
+					{ title: 'External URL (.js file link)', value: 'url' },
+					{ title: 'Inline Code (Direct JavaScript)', value: 'inline' },
 				],
 				layout: 'radio',
 			},
 			initialValue: 'url',
 		}),
-		// --- CÁC FIELD CẤU HÌNH CHI TIẾT ---
+		// --- SCRIPT SOURCE DETAILS ---
 		defineField({
 			name: 'src',
 			title: 'Script Source (URL)',
@@ -81,17 +81,17 @@ export default defineType({
 		}),
 		defineField({
 			name: 'code',
-			title: 'Mã Inline',
-			description: 'Chỉ dán nội dung JS nằm GIỮA thẻ <script>.',
+			title: 'Inline Script Code',
+			description: 'Paste pure JavaScript code without <script> tags.',
 			type: 'text',
 			rows: 6,
 			hidden: ({ parent }) => parent?.scriptType !== 'inline',
 		}),
-		// --- FIELD ATTRIBUTES (QUAN TRỌNG) ---
+		// --- SCRIPT ATTRIBUTES ---
 		defineField({
 			name: 'attributes',
-			title: 'Thuộc tính mở rộng (Attributes)',
-			description: 'Thêm các thuộc tính như: data-domain, id, data-id...',
+			title: 'Custom Attributes',
+			description: 'Add extra HTML attributes (e.g. data-domain, id, data-cf-beacon)...',
 			type: 'array',
 			of: [
 				{
@@ -99,14 +99,14 @@ export default defineType({
 					fields: [
 						defineField({
 							name: 'key',
-							title: 'Tên (Key)',
+							title: 'Attribute Key',
 							placeholder: 'data-id',
 							type: 'string',
 							validation: (Rule) => Rule.required(),
 						}),
 						defineField({
 							name: 'value',
-							title: 'Giá trị (Value)',
+							title: 'Attribute Value',
 							placeholder: '123456',
 							type: 'string',
 						}),
@@ -123,7 +123,7 @@ export default defineType({
 				},
 			],
 			options: {
-				modal: { type: 'popover' }, // Hiển thị popup nhỏ cho gọn
+				modal: { type: 'popover' },
 			},
 		}),
 	],
@@ -136,7 +136,7 @@ export default defineType({
 		prepare({ title, active, type }) {
 			return {
 				title: title,
-				subtitle: `${active ? '🟢 Bật' : '⚪ Tắt'} - ${type === 'url' ? 'URL' : 'Inline'}`,
+				subtitle: `${active ? 'Active' : 'Disabled'} - ${type === 'url' ? 'URL' : 'Inline'}`,
 				media: CodeIcon,
 			}
 		},

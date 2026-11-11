@@ -1,5 +1,6 @@
 import { defineField, defineType } from 'sanity'
 import { HelpCircleIcon } from '@sanity/icons'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'faq-accordion',
@@ -51,14 +52,15 @@ export default defineType({
 			validation: (Rule) => Rule.min(1).required(),
 		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'faq-accordion',
+		icon: HelpCircleIcon,
+		titleFields: ['title'],
 		select: {
-			title: 'title',
 			items: 'items',
 		},
-		prepare: ({ title, items }) => ({
-			title: title || 'FAQ Accordion',
-			subtitle: `${items?.length || 0} Questions (Auto FAQ Schema)`,
-		}),
-	},
+		metadata: (doc) => [
+			doc.items?.length ? `${doc.items.length} questions` : null,
+		],
+	}),
 })

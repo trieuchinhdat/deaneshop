@@ -11,7 +11,6 @@ import type { Cta } from '@/sanity/types'
 import CTAListHeader from '@/ui/cta-list-header'
 import Logo from '@/ui/logo'
 import Announcement from './announcement'
-import CategoryDropdown from './category-dropdown'
 import MobileNav from './mobile-nav'
 import MobileToggle from './mobile-toggle'
 import Wrapper from './wrapper'
@@ -49,22 +48,33 @@ export default function HeaderClient({
 		setIsSearchOpen(false)
 	}, [pathname])
 
+	// Global event listener to open cart drawer from anywhere (e.g. Volume Pricing, PDP)
+	useEffect(() => {
+		const handleOpenCart = () => setIsCartOpen(true)
+		window.addEventListener('cart:open', handleOpenCart)
+		return () => window.removeEventListener('cart:open', handleOpenCart)
+	}, [])
+
 	// Layout Config Settings
 	const desktopLayout =
 		stegaClean(headerSettings?.desktopLayout) ||
 		(stegaClean(headerSettings?.layout) === 'center' ? 'layout02' : 'layout01')
+	const desktopMenuAlign = stegaClean(headerSettings?.desktopMenuAlign) || 'center'
 	const desktopSearchVariant = stegaClean(headerSettings?.desktopSearchVariant) || 'input'
 
 	const mobileLayout = stegaClean(headerSettings?.mobileLayout) || 'layout01'
 	const mobileLogoAlign = stegaClean(headerSettings?.mobileLogoAlign) || 'center'
-	const mobileSearchDisplay = stegaClean(headerSettings?.mobileSearchDisplay) || 'bar'
+	const mobileSearchDisplay = stegaClean(headerSettings?.mobileSearchDisplay) || 'icon'
 
 	// Dynamic Padding & Logo Heights
 	const headerPaddingDesktop = headerSettings?.headerPaddingDesktop || 'default'
 	const headerPaddingMobile = headerSettings?.headerPaddingMobile || 'default'
-	const logoHeightDesktop = headerSettings?.logoHeightDesktop ?? 48
-	const logoHeightMobile = headerSettings?.logoHeightMobile ?? 36
+	const logoHeightDesktop = headerSettings?.logoHeightDesktop ?? 40
+	const logoHeightMobile = headerSettings?.logoHeightMobile ?? 32
 	const enableScrolledEffect = headerSettings?.enableScrolledEffect ?? true
+	const transparentOnHome = headerSettings?.transparentOnHome ?? false
+	const headerThemeStyle = headerSettings?.headerThemeStyle || 'default'
+	const topbarSticky = headerSettings?.topbarSticky ?? false
 
 	// Clean Color Scheme Overrides from Sanity Stega encoding
 	const cleanHeaderBg = headerSettings?.headerBackground
@@ -76,14 +86,13 @@ export default function HeaderClient({
 
 	const showTopBar = headerSettings?.showTopBar ?? true
 
-	// Category Menu Settings for Layout 02
-	const showCategoryMenu = headerSettings?.showCategoryMenu ?? true
-	const categoryButtonLabel = headerSettings?.categoryButtonLabel || 'Danh mục sản phẩm'
-	const categoryButtonIcon = headerSettings?.categoryButtonIcon || 'grid'
-	const categoryButtonStyle = headerSettings?.categoryButtonStyle || 'action-secondary'
-	const showDesktopRow2Navigation = headerSettings?.showDesktopRow2Navigation ?? true
-	const categoryMenuItems = headerSettings?.categoryMenu?.items
-
+	// Utility Toggles & Action Controls
+	const showSearch = headerSettings?.showSearch ?? true
+	const showCart = headerSettings?.showCart ?? true
+	const showAccount = headerSettings?.showAccount ?? false
+	const cartIconType = headerSettings?.cartIconType || 'rfq'
+	const highlightCta = headerSettings?.highlightCta
+	const mobileDrawerFooterLinks = headerSettings?.mobileDrawerFooterLinks
 	const ctas = (headerSettings?.ctas || []) as Cta[]
 
 	const handleOpenCart = () => {
@@ -102,9 +111,9 @@ export default function HeaderClient({
 	const desktopPaddingClass =
 		headerPaddingDesktop === 'compact'
 			? 'md:py-2.5'
-			: headerPaddingDesktop === 'comfortable'
-				? 'md:py-4'
-				: 'md:py-3'
+			: headerPaddingDesktop === 'spacious'
+				? 'md:py-5'
+				: 'md:py-3.5'
 
 	const mobilePaddingClass =
 		headerPaddingMobile === 'compact'
@@ -113,51 +122,65 @@ export default function HeaderClient({
 				? 'py-3.5'
 				: 'py-2.5'
 
+	const row2AlignClass =
+		desktopMenuAlign === 'left'
+			? 'justify-start'
+			: desktopMenuAlign === 'right'
+				? 'justify-end'
+				: 'justify-center'
+
 	return (
 		<>
-			{/* Top Bar Announcement */}
-			{showTopBar && (
-				<Announcement
-					key="topbar-announcement"
-					announcements={headerSettings?.announcements}
-					allowDismiss={headerSettings?.allowDismiss ?? true}
-					autoPlayInterval={headerSettings?.autoPlayInterval ?? 4}
-				/>
-			)}
-
-			{/* Main Header Bar */}
+			{/* Main Header Bar (wraps Topbar Announcement inside landmark for accurate height calculation) */}
 			<Wrapper
 				behavior={headerSettings?.behavior || 'sticky'}
 				styleVariant={headerSettings?.style || 'solid'}
+				headerThemeStyle={headerThemeStyle}
 				headerBackground={cleanHeaderBg}
 				headerText={cleanHeaderText}
 				enableScrolledEffect={enableScrolledEffect}
+				transparentOnHome={transparentOnHome}
+				topbarSticky={topbarSticky}
+				topBar={
+					showTopBar ? (
+						<Announcement
+							key="topbar-announcement"
+							announcements={headerSettings?.announcements}
+							allowDismiss={headerSettings?.allowDismiss ?? true}
+							autoPlayInterval={headerSettings?.autoPlayInterval ?? 4}
+						/>
+					) : null
+				}
 				className="max-md:header-open:shadow-xl"
 			>
-
 				<div
 					className={cn(
-						'container-max relative flex flex-col gap-2.5 sm:gap-3 px-3 sm:px-4',
+						'container-max flex flex-col gap-2.5 sm:gap-3 max-sm:px-3',
 						mobilePaddingClass,
 						desktopPaddingClass
 					)}
 				>
 					{/* ================= DESKTOP HEADER ================= */}
 
-					{/* DESKTOP LAYOUT 01: 1 HÀNG (Logo - Menu - CTAs) */}
+					{/* DESKTOP LAYOUT 01: SINGLE ROW DTC STANDARD (Logo - Navigation - Utilities) */}
 					{desktopLayout === 'layout01' && (
-						<div className="hidden w-full items-center gap-x-6 md:grid md:grid-cols-[auto_1fr_auto]">
+						<div className="hidden w-full items-center gap-x-6 lg:gap-x-8 md:grid md:grid-cols-[auto_1fr_auto]">
 							<Logo
 								site={site}
 								logoHeightDesktop={logoHeightDesktop}
 								logoHeightMobile={logoHeightMobile}
-								className="max-w-[240px]"
+								className="max-w-[220px]"
 							/>
 
 							<div className="flex w-full items-center">{navigation}</div>
 
 							<CTAListHeader
 								ctas={ctas}
+								showSearch={showSearch}
+								showCart={showCart}
+								showAccount={showAccount}
+								cartIconType={cartIconType}
+								highlightCta={highlightCta}
 								onOpenCart={handleOpenCart}
 								onOpenSearch={handleOpenSearch}
 								mobileSearchDisplay={mobileSearchDisplay}
@@ -165,30 +188,19 @@ export default function HeaderClient({
 						</div>
 					)}
 
-					{/* DESKTOP LAYOUT 02: 2 HÀNG SUPERSTORE (Hàng 1: Logo + Nút Danh mục - Box Search - CTAs | Hàng 2: Menu) */}
+					{/* DESKTOP LAYOUT 02: TWO-TIER (Row 1: Logo - Search Box - Utilities | Row 2: Navigation) */}
 					{desktopLayout === 'layout02' && (
 						<div className="hidden w-full gap-3 md:flex md:flex-col">
-							{/* Hàng 1: Logo + Nút Danh mục (Trái) - Box Search (Giữa) - CTAs (Phải) */}
+							{/* Row 1: Logo (Left) - Search Box (Center) - Utilities (Right) */}
 							<div className="grid w-full grid-cols-[auto_1fr_auto] items-center gap-x-6 lg:gap-x-8 relative">
-								<div className="flex items-center gap-3 lg:gap-4">
-									<Logo
-										site={site}
-										logoHeightDesktop={logoHeightDesktop}
-										logoHeightMobile={logoHeightMobile}
-										className="max-w-[200px]"
-									/>
+								<Logo
+									site={site}
+									logoHeightDesktop={logoHeightDesktop}
+									logoHeightMobile={logoHeightMobile}
+									className="max-w-[200px]"
+								/>
 
-									{showCategoryMenu && categoryMenuItems && categoryMenuItems.length > 0 && (
-										<CategoryDropdown
-											items={categoryMenuItems}
-											label={categoryButtonLabel}
-											icon={categoryButtonIcon}
-											buttonStyle={categoryButtonStyle}
-										/>
-									)}
-								</div>
-
-								{/* Box Search Center - Always White Background for Layout 2 */}
+								{/* Box Search Center */}
 								<div className="mx-auto w-full max-w-lg">
 									{desktopSearchVariant === 'input' ? (
 										<form
@@ -210,13 +222,13 @@ export default function HeaderClient({
 												name="query"
 												value={desktopSearchQuery}
 												onChange={(e) => setDesktopSearchQuery(e.target.value)}
-												placeholder="Tìm kiếm sản phẩm, thương hiệu..."
+												placeholder="Search products, collections, brands..."
 												className="w-full rounded-full border border-stroke/20 bg-white text-gray-900 placeholder:text-gray-400 px-4 py-2 pr-10 text-sm focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all shadow-xs"
 											/>
 											<button
 												type="submit"
 												className="text-primary absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer p-1.5 hover:opacity-80 transition-opacity"
-												aria-label="Tìm kiếm"
+												aria-label="Search"
 											>
 												<IoIosSearch className="text-xl" />
 											</button>
@@ -229,37 +241,39 @@ export default function HeaderClient({
 										>
 											<IoIosSearch className="text-primary text-lg" />
 											<span className="grow truncate text-left text-gray-500">
-												Tìm kiếm sản phẩm, thương hiệu...
+												Search products, collections, brands...
 											</span>
 										</button>
 									)}
 								</div>
 
-
 								<CTAListHeader
 									ctas={ctas}
+									showSearch={showSearch}
+									showCart={showCart}
+									showAccount={showAccount}
+									cartIconType={cartIconType}
+									highlightCta={highlightCta}
 									onOpenCart={handleOpenCart}
 									onOpenSearch={handleOpenSearch}
 									mobileSearchDisplay={mobileSearchDisplay}
 								/>
 							</div>
 
-							{/* Hàng 2: Navigation Menu (Chỉ hiển thị khi showDesktopRow2Navigation bật) */}
-							{showDesktopRow2Navigation && (
-								<div className="border-stroke/15 flex w-full items-center justify-center border-t pt-2.5">
-									{navigation}
-								</div>
-							)}
+							{/* Row 2: Navigation Menu with dynamic alignment */}
+							<div className={cn('border-stroke/15 flex w-full items-center border-t pt-2.5', row2AlignClass)}>
+								{navigation}
+							</div>
 						</div>
 					)}
 
 					{/* ================= MOBILE HEADER ================= */}
 
-					{/* MOBILE LAYOUT 01 (Classic): [Menu Toggle] - [Logo (Left/Center)] - [Cart/CTAs] */}
+					{/* MOBILE LAYOUT 01: SINGLE ROW (Menu Toggle - Logo - Utilities) */}
 					{mobileLayout === 'layout01' && (
 						mobileLogoAlign === 'left' ? (
 							<div className="flex w-full items-center justify-between gap-2.5 md:hidden">
-								<div className="flex items-center gap-1.5 min-w-0">
+								<div className="flex items-center gap-2 min-w-0">
 									<MobileToggle
 										isOpen={isMobileNavOpen}
 										onToggle={handleToggleMobileNav}
@@ -268,12 +282,16 @@ export default function HeaderClient({
 										site={site}
 										logoHeightDesktop={logoHeightDesktop}
 										logoHeightMobile={logoHeightMobile}
-										className="max-w-[180px] text-left"
+										className="max-w-[170px] text-left"
 									/>
 								</div>
 
 								<CTAListHeader
 									ctas={ctas}
+									showSearch={showSearch}
+									showCart={showCart}
+									showAccount={showAccount}
+									cartIconType={cartIconType}
 									onOpenCart={handleOpenCart}
 									onOpenSearch={handleOpenSearch}
 									mobileSearchDisplay={mobileSearchDisplay}
@@ -293,13 +311,17 @@ export default function HeaderClient({
 										site={site}
 										logoHeightDesktop={logoHeightDesktop}
 										logoHeightMobile={logoHeightMobile}
-										className="max-w-[180px] justify-center mx-auto text-center"
+										className="max-w-[170px] justify-center mx-auto text-center"
 									/>
 								</div>
 
 								<div className="flex items-center justify-end">
 									<CTAListHeader
 										ctas={ctas}
+										showSearch={showSearch}
+										showCart={showCart}
+										showAccount={showAccount}
+										cartIconType={cartIconType}
 										onOpenCart={handleOpenCart}
 										onOpenSearch={handleOpenSearch}
 										mobileSearchDisplay={mobileSearchDisplay}
@@ -309,19 +331,23 @@ export default function HeaderClient({
 						)
 					)}
 
-					{/* MOBILE LAYOUT 02 (Thumb-friendly): [Logo (Left)] - [Cart/CTAs] - [Menu Toggle] */}
+					{/* MOBILE LAYOUT 02 (Thumb-friendly): [Logo] - [Utilities] - [Menu Toggle] */}
 					{mobileLayout === 'layout02' && (
 						<div className="flex w-full items-center justify-between gap-2.5 md:hidden">
 							<Logo
 								site={site}
 								logoHeightDesktop={logoHeightDesktop}
 								logoHeightMobile={logoHeightMobile}
-								className="max-w-[180px] text-left"
+								className="max-w-[170px] text-left"
 							/>
 
 							<div className="flex items-center gap-1.5">
 								<CTAListHeader
 									ctas={ctas}
+									showSearch={showSearch}
+									showCart={showCart}
+									showAccount={showAccount}
+									cartIconType={cartIconType}
 									onOpenCart={handleOpenCart}
 									onOpenSearch={handleOpenSearch}
 									mobileSearchDisplay={mobileSearchDisplay}
@@ -334,8 +360,8 @@ export default function HeaderClient({
 						</div>
 					)}
 
-					{/* MOBILE FULL-WIDTH SEARCH BAR (Hiển thị khi mobileSearchDisplay === 'bar') - Always White Background */}
-					{mobileSearchDisplay === 'bar' && (
+					{/* MOBILE FULL-WIDTH SEARCH BAR (Optional Row 2) */}
+					{mobileSearchDisplay === 'bar' && showSearch && (
 						<div className="w-full pt-1 pb-0.5 md:hidden">
 							<button
 								type="button"
@@ -344,7 +370,7 @@ export default function HeaderClient({
 							>
 								<IoIosSearch className="text-primary text-base opacity-90 shrink-0" />
 								<span className="grow truncate text-left text-gray-500">
-									Tìm kiếm sản phẩm, thương hiệu...
+									Search products, collections, brands...
 								</span>
 							</button>
 						</div>
@@ -352,12 +378,15 @@ export default function HeaderClient({
 				</div>
 			</Wrapper>
 
-			{/* Floating Mobile Navigation Drawer (Overlay, Full Height, Zero Layout Shift) */}
+			{/* Floating Mobile Navigation Drawer (Single Source of Truth with Custom Override) */}
 			<MobileNav
 				isOpen={isMobileNavOpen}
 				onClose={() => setIsMobileNavOpen(false)}
 				items={headerSettings?.mobileMenu?.items || headerSettings?.menu?.items}
-				ctas={ctas}
+				footerLinks={mobileDrawerFooterLinks}
+				highlightCta={highlightCta}
+				showAccount={showAccount}
+				onOpenSearch={showSearch ? handleOpenSearch : undefined}
 			/>
 
 			{/* Interactive Drawers & Modals (Loaded dynamically on-demand) */}

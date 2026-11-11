@@ -2,11 +2,21 @@ import type { Metadata } from 'next'
 import { groq } from 'next-sanity'
 import { notFound } from 'next/navigation'
 import { ROUTES } from '@/lib/env'
+import { enrichProductsWithD1Reviews } from '@/lib/reviews'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import { sanityFetchLive } from '@/sanity/lib/live'
-import { GLOBAL_MODULE_PATH_QUERY, MODULES_QUERY, getProductSettings } from '@/sanity/lib/queries'
+import { PRODUCT_CARD_FIELDS } from '@/sanity/lib/product-card-query'
+import {
+	getProductSettings,
+	GLOBAL_MODULE_PATH_QUERY,
+	MODULES_QUERY,
+} from '@/sanity/lib/queries'
 import ModulesResolver from '@/ui/modules'
+import Breadcrumbs from '@/ui/modules/breadcrumbs'
+import CollectionContent from '@/ui/modules/collection/collection-content'
+
+export const dynamic = 'force-dynamic'
 
 type Props = {
 	params: Promise<{ slug: string }>
@@ -21,7 +31,49 @@ export default async function CollectionPage({ params }: Props) {
 
 	if (!collection) notFound()
 
-	return <ModulesResolver collection={collection} productSettings={productSettings} />
+	const globalBefore = (collection as any).globalBefore || []
+	const customModules =
+		(collection as any).customModules || collection.modules || []
+	const globalAfter = (collection as any).globalAfter || []
+
+	const bottomModules = [
+		...customModules.filter(
+			(m: any) =>
+				m?._type !== 'collection-content' && m?._type !== 'breadcrumbs',
+		),
+		...globalAfter,
+	]
+
+	return (
+		<>
+			{/* 1. Breadcrumbs Navigation */}
+			<Breadcrumbs currentPage={collection} />
+
+			{/* 2. Top Global Modules (Urgency banners, sitewide notices) */}
+			{globalBefore.length > 0 && (
+				<ModulesResolver
+					modules={globalBefore}
+					collection={collection}
+					productSettings={productSettings}
+				/>
+			)}
+
+			{/* 3. Fixed Core Entity View: Collection Catalog & Filters */}
+			<CollectionContent
+				collection={collection}
+				productSettings={productSettings}
+			/>
+
+			{/* 4. Bottom CRO Modules (Lead capture, Testimonials, FAQ) */}
+			{bottomModules.length > 0 && (
+				<ModulesResolver
+					modules={bottomModules}
+					collection={collection}
+					productSettings={productSettings}
+				/>
+			)}
+		</>
+	)
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -80,103 +132,25 @@ async function getCollection(slug: string) {
 		return {
 			_id: 'all-collection',
 			_type: 'collection',
-			title: 'Tất cả sản phẩm',
+			title: 'All Products',
 			slug: 'all',
-			products: allProducts || [],
-			modules: [
-				{
-					_type: 'collection-content',
-					_key: 'all-collection-content',
-					showTitle: true,
-					showDescription: false,
-					enableFilter: true,
-					itemsPerPage: 12,
-					layout: 'grid',
-				},
-			],
+			products: await enrichProductsWithD1Reviews(allProducts || []),
 		}
 	}
 
-	if (!collection) return null
-
-	const globalBefore = collection.globalBefore || []
-	const customModules = collection.customModules || []
-	const globalAfter = collection.globalAfter || []
-
-	const hasBreadcrumbs = [...globalBefore, ...customModules, ...globalAfter].some(
-		(m: any) => m?._type === 'breadcrumbs',
-	)
-
-	const hasCollectionContent = [...globalBefore, ...customModules, ...globalAfter].some(
-		(m: any) => m?._type === 'collection-content',
-	)
-
-	let finalCustomModules = [...customModules]
-
-	if (!hasCollectionContent) {
-		finalCustomModules.unshift({
-			_type: 'collection-content',
-			_key: `${collection._id}-default-content`,
-			showTitle: true,
-			showDescription: true,
-			enableFilter: true,
-			itemsPerPage: 12,
-			layout: 'grid',
-		})
+	if (collection?.products) {
+		return {
+			...collection,
+			products: await enrichProductsWithD1Reviews(collection.products),
+		}
 	}
-
-	if (!hasBreadcrumbs) {
-		finalCustomModules.unshift({
-			_type: 'breadcrumbs',
-			_key: `${collection._id}-default-breadcrumbs`,
-		})
-	}
-
-	collection.modules = [...globalBefore, ...finalCustomModules, ...globalAfter]
 
 	return collection
 }
 
 const ALL_PRODUCTS_QUERY = groq`
 *[_type == "product"] | order(_createdAt desc) {
-	_id,
-	title,
-	price,
-	compareAtPrice,
-	tags,
-	sold,
-	stock,
-	hasVariants,
-	options[]{
-		name,
-		values
-	},
-	variants[]{
-		_key,
-		sku,
-		title,
-		price,
-		compareAtPrice,
-		stock,
-		options[]{
-			name,
-			value
-		},
-		image{
-			...,
-			asset->
-		}
-	},
-	"slug": metadata.slug.current,
-	images[]{
-		...,
-		asset->
-	},
-	"reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },
-	categories[]->{
-		title,
-		"slug": slug.current
-	}
+${PRODUCT_CARD_FIELDS}
 }
 `
 
@@ -193,45 +167,8 @@ const COLLECTION_QUERY = groq`
 	},
 
 	products[@-> != null]->{
-		_id,
-		title,
-		price,
-		compareAtPrice,
-		tags,
-		sold,
-		stock,
-		hasVariants,
-		options[]{
-			name,
-			values
-		},
-		variants[]{
-			_key,
-			sku,
-			title,
-			price,
-			compareAtPrice,
-			stock,
-			options[]{
-				name,
-				value
-			},
-			image{
-				...,
-				asset->
-			}
-		},
-		"slug": metadata.slug.current,
-		images[]{
-			...,
-			asset->
-		},
-		"reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },
-		categories[]->{
-			title,
-			"slug": slug.current
-		}
-	},
+${PRODUCT_CARD_FIELDS}
+},
 
 	'globalBefore': (
 		*[_type == 'global-module' && path == '*'].before[]{ ${MODULES_QUERY} }

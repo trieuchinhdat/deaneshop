@@ -1,0 +1,27 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "deanflow-engine",
+	"main": "./worker.ts",
+	"compatibility_date": "2026-11-10",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "deanflow-db",
+			"database_id": "00000000-0000-0000-0000-000000000000",
+			"migrations_dir": "migrations"
+		}
+	],
+	"triggers": {
+		"crons": ["* * * * *"]
+	},
+	"vars": {
+		"D1_ALLOW_MEMORY": "false",
+		"ALLOW_TRUSTED_CUSTOM_HTML": "false"
+	}
+}
+

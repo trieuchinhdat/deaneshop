@@ -24,13 +24,13 @@ export default function CTABanner({
 	const styles = {
 		dark: 'bg-zinc-950 text-white border-zinc-800',
 		light: 'bg-zinc-100 text-zinc-900 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-100 dark:border-zinc-800',
-		accent: 'bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 text-white border-zinc-700',
+		accent: 'bg-linear-to-r from-zinc-900 via-zinc-800 to-zinc-900 text-white border-zinc-700',
 	}[style] || 'bg-zinc-950 text-white border-zinc-800'
 
 	return (
 		<div
 			className={cn(
-				'my-10 relative overflow-hidden rounded-2xl border p-6 sm:p-8 text-center sm:text-left shadow-md',
+				'not-prose my-8 sm:my-10 relative overflow-hidden rounded-2xl border p-5 sm:p-8 text-center sm:text-left shadow-md',
 				styles,
 			)}
 		>

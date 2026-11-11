@@ -1,41 +1,55 @@
 @import 'tailwindcss';
 
-@theme {
-	/* 1. FONT VÀ SPACING */
-	--font-sans: var(--font-sans, 'Plus Jakarta Sans', sans-serif);
+@theme inline {
+	/* 1. Typography */
+	--font-sans: var(--font-body, 'Plus Jakarta Sans', sans-serif);
 	--font-heading: var(--font-heading, var(--font-sans));
 	--spacing-lh: 1lh;
 	--spacing-ch: 1ch;
 
-	/* 2. CẤU HÌNH MÀU SẮC ĐỘNG (Lấy từ biến CSS do ThemeProvider bơm vào) */
-
-	/* Background & Text toàn trang */
+	/* 2. Canvas & Typography */
 	--color-background: var(--bg-color, #ffffff);
-	--color-foreground: var(--text-color, #000000);
+	--color-foreground: var(--text-color, #111827);
 
-	/* Primary Color (Màu chủ đạo) */
-	--color-primary: var(--primary-color, #000000);
-	--color-primary-foreground: #ffffff;
-	/* Màu chữ trên nền primary */
+	/* 3. Primary Brand Action */
+	--color-primary: var(--primary-color, #1b4332);
+	--color-primary-foreground: var(--on-primary-color, #ffffff);
 
-	/* Header Colors */
-	--color-header: var(--header-bg, #ffffff);
-	--color-header-foreground: var(--header-text, #000000);
+	/* 4. Secondary Brand Highlight */
+	--color-secondary: var(--secondary-color, #2d6a4f);
+	--color-secondary-foreground: var(--on-secondary-color, #ffffff);
 
-	/* Footer Colors */
-	--color-footer: var(--footer-bg, #000000);
-	--color-footer-foreground: var(--footer-text, #ffffff);
+	/* 5. High-Conversion CTA (Add to Cart / Checkout) */
+	--color-cta: var(--cta-color, #c2410c);
+	--color-cta-foreground: var(--on-cta-color, #ffffff);
 
-	/* Muted Surface & Text Colors */
+	/* 6. Surfaces, Cards & Muted Areas */
+	--color-surface: var(--surface-color, #f9fafb);
+	--color-surface-foreground: var(--text-color, #111827);
 	--color-muted: var(--surface-color, #f3f4f6);
-	--color-muted-foreground: var(--text-muted-color, #4b5563);
+	--color-muted-foreground: var(--text-muted-color, #6b7280);
 
-	/* 3. CÁC MÀU TĨNH (Giữ nguyên hoặc dùng màu Neutral có sẵn của Tailwind) */
-	/* Dùng neutral-200 làm màu viền mặc định */
-	--color-stroke: var(--color-neutral-200);
+	/* 7. Borders, Focus Rings & Dividers */
+	--color-border: var(--border-color, #e5e7eb);
+	--color-stroke: var(--border-color, #e5e7eb);
+	--color-ring: var(--ring-color, var(--primary-color, #1b4332));
+
+	/* 8. Status & Feedback Signals (WCAG AA Checked) */
+	--color-success: var(--success-color, #15803d);
+	--color-warning: var(--warning-color, #b45309);
+	--color-destructive: var(--destructive-color, #b91c1c);
+
+	/* 9. Header & Footer Contextual Tokens */
+	--color-header: var(--header-bg, #ffffff);
+	--color-header-foreground: var(--header-text, #111827);
+	--color-footer: var(--footer-bg, #111827);
+	--color-footer-foreground: var(--footer-text, #f9fafb);
+
+	/* 10. Dynamic Shape & Radius Tokens */
+	--radius-theme: var(--theme-radius, 0.5rem);
+	--radius-button: var(--button-radius, var(--theme-radius, 0.5rem));
 
 	--swiper-navigation-size: 44px;
-
 }
 
 @custom-variant hover (&:hover);
@@ -44,10 +58,51 @@
 @variant header-not-open (body:has(#header-open:not(:checked)) &);
 
 @variant headings (& :is(h1, h2, h3, h4, h5, h6));
+@variant dark (&:where(.dark, .dark *));
+
+.dark {
+	--bg-color: #090d16;
+	--color-background: #090d16;
+	--text-color: #f8fafc;
+	--color-foreground: #f8fafc;
+	--surface-color: #131b2e;
+	--color-surface: #131b2e;
+	--text-muted-color: #94a3b8;
+	--color-muted: #1e293b;
+	--color-muted-foreground: #94a3b8;
+	--border-color: #1e293b;
+	--color-border: #1e293b;
+	--color-stroke: #1e293b;
+}
+
+:root {
+	--header-height: 64px;
+}
+
+/* Funnel Navigation & Header / Footer Display Control Rules */
+body:has([data-header-mode="hidden"]) #site-header {
+	display: none !important;
+}
+body:has([data-header-mode="hidden"]) {
+	--header-height: 0px !important;
+}
+
+body:has([data-header-mode="transparent"]) #site-header:not([data-scrolled="true"]) {
+	background-color: transparent !important;
+	border-color: transparent !important;
+	box-shadow: none !important;
+	position: absolute !important;
+	top: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
+}
+
+body:has([data-hide-footer="true"]) #site-footer {
+	display: none !important;
+}
 
 @layer base {
 	body {
-		/* Áp dụng màu nền và màu chữ từ biến đã cấu hình ở trên */
 		background-color: var(--color-background);
 		color: var(--color-foreground);
 		font-family: var(--font-sans);
@@ -141,8 +196,8 @@
 	white-space: nowrap;
 	text-decoration: none;
 	transition-property: color, background-color, border-color, box-shadow, transform, opacity;
-	transition-duration: 200ms;
-	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: var(--motion-duration, 200ms);
+	transition-timing-function: var(--motion-ease, cubic-bezier(0.4, 0, 0.2, 1));
 
 	/* Accessible Focus Visible Ring */
 	&:focus-visible {
@@ -252,26 +307,140 @@
 	}
 }
 
-/* Button Sizing Utilities */
+/* ==========================================================================
+   THEME DESIGN SYSTEM: MOTION & HOVER TOKENS (ZERO-JS CSS CORE)
+   ========================================================================== */
+
+/* Button Hover & Tap Token Modifiers */
+body[data-button-hover="scale-subtle"] .action-base:hover {
+	transform: scale(1.03);
+}
+body[data-button-hover="scale-subtle"] .action-base:active {
+	transform: scale(0.97);
+}
+
+body[data-button-hover="lift"] .action-base:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 18px -4px rgba(0, 0, 0, 0.16);
+}
+body[data-button-hover="lift"] .action-base:active {
+	transform: translateY(0) scale(0.98);
+}
+
+body[data-button-hover="spring-bounce"] .action-base {
+	transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+body[data-button-hover="spring-bounce"] .action-base:hover {
+	transform: scale(1.04);
+}
+body[data-button-hover="spring-bounce"] .action-base:active {
+	transform: scale(0.95);
+}
+
+body[data-button-hover="glow"] .action-base:hover {
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color, #059669) 35%, transparent), 0 6px 16px -2px color-mix(in srgb, var(--primary-color, #059669) 25%, transparent);
+	transform: scale(1.01);
+}
+
+body[data-button-hover="none"] .action-base:hover,
+body[data-motion-enabled="false"] .action-base:hover {
+	transform: none !important;
+}
+
+/* Banner & Media Card Hover Token Modifiers */
+.theme-banner {
+	overflow: hidden;
+	transition-property: transform, box-shadow;
+	transition-duration: var(--motion-duration, 300ms);
+	transition-timing-function: var(--motion-ease, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.theme-banner .theme-banner-img {
+	transition-property: transform, filter;
+	transition-duration: 500ms;
+	transition-timing-function: var(--motion-ease, cubic-bezier(0.16, 1, 0.3, 1));
+	will-change: transform;
+}
+
+body[data-banner-hover="zoom"] .theme-banner:hover .theme-banner-img {
+	transform: scale(1.05);
+}
+
+body[data-banner-hover="lift"] .theme-banner:hover {
+	transform: translateY(-6px);
+	box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+body[data-banner-hover="zoom-and-lift"] .theme-banner:hover {
+	transform: translateY(-6px);
+	box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+body[data-banner-hover="zoom-and-lift"] .theme-banner:hover .theme-banner-img {
+	transform: scale(1.05);
+}
+
+body[data-banner-hover="none"] .theme-banner:hover,
+body[data-banner-hover="none"] .theme-banner:hover .theme-banner-img,
+body[data-motion-enabled="false"] .theme-banner:hover,
+body[data-motion-enabled="false"] .theme-banner:hover .theme-banner-img {
+	transform: none !important;
+}
+
+/* Accessibility: Prefers Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+	.action-base,
+	.theme-banner,
+	.theme-banner .theme-banner-img {
+		transition: none !important;
+		transform: none !important;
+	}
+}
+
+/* Button Sizing Utilities - Mobile-first Ergonomic Scaling */
 @utility btn-sm {
-	padding: 0.375rem 0.875rem;
-	font-size: 0.875rem;
+	padding: 0.375rem 0.75rem;
+	font-size: 0.8125rem;
 	line-height: 1.25rem;
 	min-height: 36px;
 }
 
 @utility btn-md {
-	padding: 0.625rem 1.25rem;
-	font-size: 0.9375rem;
-	line-height: 1.375rem;
+	padding: 0.5rem 1rem;
+	font-size: 0.875rem;
+	line-height: 1.25rem;
 	min-height: 44px;
+
+	@media (width >= 48rem) {
+		padding: 0.625rem 1.25rem;
+		font-size: 0.9375rem;
+		line-height: 1.375rem;
+	}
 }
 
 @utility btn-lg {
-	padding: 0.875rem 1.75rem;
-	font-size: 1.0625rem;
-	line-height: 1.5rem;
-	min-height: 52px;
+	padding: 0.625rem 1.25rem;
+	font-size: 0.9375rem;
+	line-height: 1.375rem;
+	min-height: 46px;
+
+	@media (width >= 48rem) {
+		padding: 0.875rem 1.75rem;
+		font-size: 1.0625rem;
+		line-height: 1.5rem;
+		min-height: 52px;
+	}
+}
+
+@utility btn-icon {
+	width: 44px;
+	height: 44px;
+	min-width: 44px;
+	min-height: 44px;
+	padding: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
 }
 
 @utility input {
@@ -370,7 +539,7 @@
 		font-size: 0.875em;
 	}
 
-	& table {
+	& table:not([data-custom-table]):not(.not-prose table) {
 		min-width: 100%;
 		display: block;
 		overflow-x: auto;
@@ -386,6 +555,10 @@
 			@apply bg-foreground/5;
 		}
 	}
+}
+
+.not-prose {
+	/* Resets prose styles for embedded rich components */
 }
 
 @utility carousel {
@@ -510,6 +683,12 @@
 	animation: shake 1s infinite ease-in-out;
 }
 
+@media (prefers-reduced-motion: reduce) {
+	.animate-shake {
+		animation: none !important;
+	}
+}
+
 .section {
 	margin-inline: auto;
 	width: 100%;
@@ -612,67 +791,67 @@
 	border-radius: 12px;
 } */
 
-/* --- FIX LAYOUT SWIPER TRƯỚC KHI LOAD JS --- */
+/* --- PREVENT SWIPER LAYOUT SHIFT BEFORE JS INITIALIZATION --- */
 
-/* 1. Logic cho Mobile (Mặc định) */
+/* Media Slider SSR Stabilization */
 .carousel-banner-list .swiper:not(.swiper-initialized) .swiper-wrapper {
-	display: grid;
+	display: flex;
 	width: 100%;
-
-	/* Cột: Dùng biến --mobile-cols */
-	grid-template-columns: repeat(var(--mobile-cols, 1), 1fr);
-
-	/* Hàng: Chỉ cho phép đúng số lượng hàng quy định (--mobile-rows) */
-	grid-template-rows: repeat(var(--mobile-rows, 1), auto);
-
-	/* QUAN TRỌNG: Ép tất cả các hàng thừa (hàng thứ 2, 3...) về chiều cao 0 */
-	grid-auto-rows: 0;
-
-	/* Ẩn nội dung của các hàng thừa bị ép chiều cao */
 	overflow: hidden;
-
-	gap: var(--mobile-gap, 8px);
-	/* Khoảng cách mobile */
 }
-
-/* 2. Logic cho Desktop (min-width: 1024px khớp với breakpoint JS của bạn) */
-@media (min-width: 1024px) {
-	.carousel-banner-list .swiper:not(.swiper-initialized) .swiper-wrapper {
-		/* Cột: Dùng biến --desktop-cols */
-		grid-template-columns: repeat(var(--desktop-cols, 4), 1fr);
-
-		/* Hàng: Dùng biến --desktop-rows */
-		grid-template-rows: repeat(var(--desktop-rows, 1), auto);
-
-		gap: var(--desktop-gap, 16px);
-		/* Khoảng cách desktop */
-	}
-}
-
-/* 3. Đảm bảo item con không bị trồi ra ngoài khi hàng bị ép về 0px */
 .carousel-banner-list .swiper:not(.swiper-initialized) .swiper-slide {
+	flex-shrink: 0;
+	width: 100%;
 	height: auto;
-	overflow: hidden;
-	/* Cắt phần thừa nếu item cố tình hiển thị */
 }
 
-/* 1. Mobile: CỐ ĐỊNH 2 Cột - LINH HOẠT Hàng */
+/* Hero Slider Bullets & SSR Zero-CLS Stabilization */
+.hero-slider-container .swiper:not(.swiper-initialized) .swiper-wrapper {
+	display: flex;
+	width: 100%;
+	height: 100%;
+}
+.hero-slider-container .swiper:not(.swiper-initialized) .swiper-slide:not(:first-child) {
+	display: none;
+}
+.hero-slider-container .swiper-pagination {
+	bottom: 16px !important;
+	left: 50% !important;
+	transform: translateX(-50%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	z-index: 20;
+	width: auto !important;
+}
+.hero-slider-bullet {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 9999px;
+	background-color: rgba(255, 255, 255, 0.45);
+	cursor: pointer;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hero-slider-bullet:hover {
+	background-color: rgba(255, 255, 255, 0.8);
+}
+.hero-slider-bullet-active {
+	width: 24px;
+	background-color: #ffffff;
+	border-radius: 9999px;
+}
+
+/* Mobile: Fixed 2 Columns */
 .carousel-list-product .swiper:not(.swiper-initialized) .swiper-wrapper {
 	display: grid;
 	width: 100%;
-
-	/* CỐ ĐỊNH: 2 cột */
 	grid-template-columns: repeat(2, 1fr);
-
-	/* ĐỘNG: Số hàng lấy từ biến --mobile-rows (mặc định là 1) */
 	grid-template-rows: repeat(var(--mobile-rows, 1), auto);
-
-	/* Ẩn các hàng thừa */
 	grid-auto-rows: 0;
 	overflow: hidden;
-
 	gap: 8px;
-	/* Gap mobile cố định */
 }
 
 .carousel-list-product .swiper:not(.swiper-initialized) .swiper-slide {
@@ -680,21 +859,16 @@
 	overflow: hidden;
 }
 
-/* 2. Desktop: CỐ ĐỊNH 4 Cột - LINH HOẠT Hàng */
+/* Desktop: Fixed 4 Columns */
 @media (min-width: 1024px) {
 	.carousel-list-product .swiper:not(.swiper-initialized) .swiper-wrapper {
-		/* CỐ ĐỊNH: 4 cột */
 		grid-template-columns: repeat(4, 1fr);
-
-		/* ĐỘNG: Số hàng lấy từ biến --desktop-rows (mặc định là 1) */
 		grid-template-rows: repeat(var(--desktop-rows, 1), auto);
-
 		gap: 16px;
-		/* Gap desktop cố định */
 	}
 }
 
-/* Fix lỗi Thumb Swiper khi chưa load xong JS */
+/* Fix product thumbnail gallery swiper before JS init */
 .main-image-product-slide .thumb-swiper:not(.swiper-initialized) .swiper-wrapper {
 	display: flex;
 	gap: 8px;
@@ -702,9 +876,108 @@
 	width: 100%;
 }
 
-/* Từng item bên trong */
 .main-image-product-slide .thumb-swiper:not(.swiper-initialized) .swiper-slide {
 	width: calc((100% - 40px) / 6) !important;
 	flex-shrink: 0;
 	display: block;
+}
+
+/* ==========================================================================
+   PRINT STYLESHEET (A4 Commercial Quotation & Packing Slip Invoices)
+   ========================================================================== */
+@page {
+	size: A4 portrait;
+	margin: 10mm 12mm 10mm 12mm;
+}
+
+@media print {
+	html,
+	body {
+		background: #ffffff !important;
+		background-color: #ffffff !important;
+		color: #0f172a !important;
+		font-size: 11pt !important;
+		line-height: 1.35 !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		min-height: auto !important;
+		height: auto !important;
+		width: 100% !important;
+		overflow: visible !important;
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+
+	/* Hide all navigation, store headers, footers, and floating controls */
+	header,
+	footer,
+	nav,
+	aside,
+	[role="banner"],
+	[role="contentinfo"],
+	.no-print,
+	.print-hidden,
+	[data-print-hidden="true"],
+	#header-open,
+	#mobile-nav,
+	.chatbox-container,
+	.popup-modal-backdrop,
+	[data-radix-portal] {
+		display: none !important;
+	}
+
+	/* When printing an order modal in Admin Workspace */
+	body:has(#order-print-document) aside,
+	body:has(#order-print-document) header,
+	body:has(#order-print-document) main,
+	body:has(#order-print-document) .admin-toast,
+	body:has(#order-print-document) .admin-main-area,
+	body:has(#order-print-document) [data-admin-print-hide] {
+		display: none !important;
+	}
+
+	#order-print-document {
+		position: static !important;
+		inset: auto !important;
+		width: 100% !important;
+		max-width: 100% !important;
+		background: #ffffff !important;
+		padding: 0 !important;
+		margin: 0 !important;
+		box-shadow: none !important;
+		border: none !important;
+		border-radius: 0 !important;
+		overflow: visible !important;
+		display: block !important;
+	}
+
+	#order-print-document > div {
+		max-height: none !important;
+		max-width: 100% !important;
+		width: 100% !important;
+		box-shadow: none !important;
+		border: none !important;
+		border-radius: 0 !important;
+		overflow: visible !important;
+	}
+
+	/* Avoid page breaks inside table rows, blocks, and signatures */
+	tr,
+	td,
+	th {
+		break-inside: avoid !important;
+		page-break-inside: avoid !important;
+	}
+
+	.avoid-break,
+	.print-break-inside-avoid {
+		break-inside: avoid !important;
+		page-break-inside: avoid !important;
+	}
+
+	/* Ensure borders and backgrounds print with contrast */
+	* {
+		box-shadow: none !important;
+		text-shadow: none !important;
+	}
 }

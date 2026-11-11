@@ -60,18 +60,18 @@ export default function FlashSaleCountdown({
 	return (
 		<div className="flex flex-col items-end space-y-1.5 min-w-[170px]">
 			{/* Countdown Header & Boxes */}
-			<div className="flex items-center gap-1 text-xs text-white">
-				<span className="font-medium opacity-90 text-[12px] sm:text-[13px]">Kết thúc sau</span>
+			<div className="flex items-center gap-1.5 text-xs text-white">
+				<span className="font-medium opacity-90 text-[12px] sm:text-[13px]">Batch Closes In:</span>
 				<div className="flex items-center gap-1 font-bold text-white">
-					<span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-sm bg-red-950/80 text-xs">
+					<span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-sm bg-black/40 text-xs">
 						{timeLeft.hours}
 					</span>
 					<span className="text-xs font-bold text-white/90">:</span>
-					<span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-sm bg-red-950/80 text-xs">
+					<span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-sm bg-black/40 text-xs">
 						{timeLeft.minutes}
 					</span>
 					<span className="text-xs font-bold text-white/90">:</span>
-					<span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-sm bg-red-950/80 text-xs">
+					<span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-sm bg-black/40 text-xs">
 						{timeLeft.seconds}
 					</span>
 				</div>
@@ -79,14 +79,14 @@ export default function FlashSaleCountdown({
 
 			{/* Progress Bar Container */}
 			<div className="w-full max-w-[180px]">
-				<div className="relative h-2.5 w-full overflow-hidden rounded-full bg-white/30">
+				<div className="relative h-2.5 w-full overflow-hidden rounded-full bg-white/20">
 					<div
-						className="h-full rounded-full bg-gradient-to-r from-amber-300 to-amber-400 transition-all duration-500"
+						className="h-full rounded-full bg-linear-to-r from-emerald-400 to-emerald-300 transition-all duration-500"
 						style={{ width: `${percentage}%` }}
 					/>
 				</div>
 				<div className="mt-1 text-right text-[11px] sm:text-xs font-bold text-white">
-					Còn {remainingQuota}/{totalQuota} suất
+					Quota: {remainingQuota}/{totalQuota} units remaining
 				</div>
 			</div>
 		</div>

@@ -7,7 +7,7 @@ export default function BreadcrumbsComponent({
 	crumbs,
 	currentPage,
 	...props
-}: Breadcrumbs & { currentPage?: any }) {
+}: Partial<Breadcrumbs> & { currentPage?: any }) {
 	let effectiveCrumbs = crumbs
 
 	if (!effectiveCrumbs || effectiveCrumbs.length === 0) {
@@ -80,12 +80,13 @@ export default function BreadcrumbsComponent({
 
 	return (
 		<nav
-			className="border-b border-gray-100 bg-gray-50/50 py-2.5"
+			aria-label="Breadcrumbs"
+			className="border-b border-zinc-200/80 bg-zinc-50/70 dark:border-zinc-800 dark:bg-zinc-950 py-2.5"
 			{...moduleAttributes(props)}
 		>
 			<div className="section !py-0 text-xs lg:text-sm">
 				<ol
-					className="flex items-center gap-x-2 text-gray-500 overflow-hidden whitespace-nowrap min-w-0"
+					className="flex items-center gap-x-2 text-zinc-500 dark:text-zinc-400 overflow-x-auto whitespace-nowrap min-w-0 scrollbar-none"
 					itemScope
 					itemType="https://schema.org/BreadcrumbList"
 				>
@@ -103,7 +104,10 @@ export default function BreadcrumbsComponent({
 
 					{pageTitle && (
 						<Crumb position={(effectiveCrumbs?.length ?? 0) + 1} isLast>
-							<span className="font-medium text-gray-900 truncate">
+							<span
+								className="font-medium text-zinc-900 dark:text-zinc-100 truncate max-w-[150px] xs:max-w-[220px] sm:max-w-none"
+								aria-current="page"
+							>
 								{pageTitle}
 							</span>
 						</Crumb>
@@ -137,7 +141,7 @@ function Crumb({
 		<li
 			className={`inline-flex items-center min-w-0 ${
 				isLast ? 'flex-1' : 'shrink-0'
-			} truncate not-first:before:mr-2 not-first:before:content-["/"] not-first:before:text-gray-400 not-first:before:shrink-0`}
+			} truncate not-first:before:mr-2 not-first:before:content-["/"] not-first:before:text-zinc-300 dark:not-first:before:text-zinc-600 not-first:before:shrink-0`}
 			itemProp="itemListElement"
 			itemScope
 			itemType="https://schema.org/ListItem"
@@ -145,7 +149,7 @@ function Crumb({
 			{link ? (
 				<SanityLink
 					link={link as SanityLinkType}
-					className="hover:text-primary-600 transition-colors truncate"
+					className="hover:text-zinc-950 dark:hover:text-zinc-100 transition-colors truncate"
 					itemProp="item"
 				>
 					{Content}

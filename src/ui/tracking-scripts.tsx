@@ -1,5 +1,7 @@
 'use client'
 
+import { useConsentStore } from '@/store/use-consent-store'
+import { useEffect, useState } from 'react'
 import Script from 'next/script'
 
 type ScriptAttribute = {
@@ -29,6 +31,10 @@ export default function TrackingScripts({
 }: {
 	scripts: TrackingScriptItem[] | undefined | null
 }) {
+	const marketing = useConsentStore(s => s.marketing)
+	const [mounted, setMounted] = useState(false)
+	useEffect(() => setMounted(true), [])
+	if (!mounted || !marketing) return null
 	if (!scripts || scripts.length === 0) return null
 
 	const activeScripts = scripts.filter((s) => s.isActive === true)
@@ -36,13 +42,11 @@ export default function TrackingScripts({
 	return (
 		<>
 			{activeScripts.map((script) => {
-				// 1. Xử lý Attributes
+				// 1. Process Attributes
 				const extraAttributes =
 					script.attributes?.reduce(
 						(acc, curr) => {
-							// Chỉ lấy khi có key (và key không null)
 							if (curr.key) {
-								// Nếu value null thì lấy chuỗi rỗng
 								acc[curr.key] = curr.value || ''
 							}
 							return acc
@@ -50,27 +54,24 @@ export default function TrackingScripts({
 						{} as Record<string, string>,
 					) || {}
 
-				// 2. Xử lý Strategy
+				// 2. Process Strategy
 				let finalStrategy = script.strategy || 'afterInteractive'
 				if (script.location === 'body' && !script.strategy) {
 					finalStrategy = 'lazyOnload'
 				}
 
-				// Ép kiểu strategy
+				// Cast strategy type
 				const strategyProp = finalStrategy as
 					| 'afterInteractive'
 					| 'lazyOnload'
 					| 'beforeInteractive'
 
 				// CASE A: External URL
-				// 👇 FIX 2: Check kỹ script.src (phải có giá trị string)
 				if (script.scriptType === 'url' && script.src) {
 					return (
 						<Script
 							key={script._key}
 							id={`script-${script._key}`}
-							// 👇 QUAN TRỌNG: script.src có thể là null,
-							// nhưng <Script> chỉ nhận undefined. Ta dùng || undefined để convert.
 							src={script.src || undefined}
 							strategy={strategyProp}
 							{...(extraAttributes as any)}
@@ -79,14 +80,12 @@ export default function TrackingScripts({
 				}
 
 				// CASE B: Inline Code
-				// 👇 FIX 3: Check kỹ script.code
 				if (script.scriptType === 'inline' && script.code) {
 					return (
 						<Script
 							key={script._key}
 							id={`script-${script._key}`}
 							strategy={strategyProp}
-							// 👇 QUAN TRỌNG: convert null -> empty string
 							dangerouslySetInnerHTML={{ __html: script.code || '' }}
 							{...(extraAttributes as any)}
 						/>

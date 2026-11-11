@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="100%" height="100%">
+  <rect width="320" height="180" rx="10" fill="#0f172a"/>
+  <rect x="1" y="1" width="318" height="178" rx="9" fill="none" stroke="#334155" stroke-width="1.5"/>
+
+  <!-- Centered Search Module Box -->
+  <g transform="translate(36, 18)">
+    <!-- Main Search Input Bar -->
+    <rect x="0" y="0" width="248" height="32" rx="8" fill="#1e293b" stroke="#3b82f6" stroke-width="1.5"/>
+    
+    <!-- Magnifying Glass Icon -->
+    <circle cx="16" cy="16" r="6" stroke="#60a5fa" stroke-width="1.5" fill="none"/>
+    <line x1="20" y1="20" x2="25" y2="25" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round"/>
+
+    <!-- Placeholder text / search term -->
+    <rect x="34" y="13" width="70" height="6" rx="2" fill="#f8fafc"/>
+
+    <!-- ⌘K Shortcut Badge -->
+    <rect x="206" y="8" width="32" height="16" rx="4" fill="#0f172a" stroke="#475569"/>
+    <text x="222" y="19" fill="#94a3b8" font-size="8" font-family="monospace" text-anchor="middle">⌘K</text>
+  </g>
+
+  <!-- Instant Results Dropdown Container -->
+  <g transform="translate(36, 56)">
+    <rect x="0" y="0" width="248" height="106" rx="8" fill="#1e293b" stroke="#334155"/>
+
+    <!-- Section Heading -->
+    <rect x="14" y="10" width="46" height="4" rx="2" fill="#64748b"/>
+
+    <!-- Result Row 1 (Product) -->
+    <rect x="8" y="20" width="232" height="24" rx="5" fill="#0f172a" stroke="#3b82f6"/>
+    <rect x="14" y="24" width="16" height="16" rx="3" fill="#1e293b"/>
+    <rect x="36" y="26" width="75" height="5" rx="2" fill="#f8fafc"/>
+    <rect x="36" y="34" width="45" height="4" rx="2" fill="#64748b"/>
+    <rect x="190" y="27" width="40" height="10" rx="3" fill="#10b981" fill-opacity="0.2"/>
+    <rect x="198" y="30" width="24" height="4" rx="2" fill="#34d399"/>
+
+    <!-- Result Row 2 (Article) -->
+    <rect x="8" y="48" width="232" height="24" rx="5" fill="#1e293b"/>
+    <rect x="14" y="52" width="16" height="16" rx="3" fill="#0f172a"/>
+    <rect x="36" y="54" width="90" height="5" rx="2" fill="#e2e8f0"/>
+    <rect x="36" y="62" width="55" height="4" rx="2" fill="#64748b"/>
+    <rect x="190" y="55" width="40" height="10" rx="3" fill="#3b82f6" fill-opacity="0.2"/>
+    <rect x="198" y="58" width="24" height="4" rx="2" fill="#60a5fa"/>
+
+    <!-- Result Row 3 (Category) -->
+    <rect x="8" y="76" width="232" height="22" rx="5" fill="#1e293b"/>
+    <rect x="14" y="79" width="16" height="16" rx="3" fill="#0f172a"/>
+    <rect x="36" y="81" width="60" height="5" rx="2" fill="#cbd5e1"/>
+    <rect x="36" y="89" width="35" height="4" rx="2" fill="#64748b"/>
+  </g>
+</svg>

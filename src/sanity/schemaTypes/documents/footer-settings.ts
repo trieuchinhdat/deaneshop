@@ -6,249 +6,410 @@ export default defineType({
 	title: 'Footer Settings',
 	icon: VscLayout,
 	type: 'document',
+
+	// ================= LOGICAL MERCHANT-FRIENDLY GROUPS =================
 	groups: [
-		{ name: 'layout', title: 'Layout & Style', default: true },
-		{ name: 'usp', title: 'Feature & USP Bar' },
-		{ name: 'brand', title: 'Brand & Business' },
-		{ name: 'navigation', title: 'Navigation Menus' },
-		{ name: 'marketing', title: 'Newsletter & Trust Badges' },
+		{ name: 'content', title: 'Content & Brand', default: true },
+		{ name: 'layout', title: 'Layout & Structure' },
+		{ name: 'appearance', title: 'Appearance & Styling' },
+		{ name: 'conversion', title: 'Trust & Conversion' },
+		{ name: 'compliance', title: 'Legal & Payments' },
 	],
+
+	// ================= COLLAPSIBLE FIELDSETS =================
 	fieldsets: [
 		{
-			name: 'colorScheme',
-			title: 'Custom Color Scheme',
-			options: { columns: 2 },
-		},
-		{
-			name: 'backgroundImageSettings',
-			title: 'Background Image & Pattern Settings',
+			name: 'brandDetails',
+			title: 'Brand Profile & Tagline',
 			options: { collapsible: true, collapsed: false },
 		},
 		{
-			name: 'contactToggles',
-			title: 'Contact Information Visibility',
-			options: { columns: 3 },
+			name: 'contactDetails',
+			title: 'Contact Details Visibility (From Site Profile)',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'navigationStructure',
+			title: 'Navigation Columns & Mobile Browsing',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'layoutSettings',
+			title: 'Grid Architecture & Typography',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'colorSettings',
+			title: 'Color Palette & Theme Overrides',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'uspBarSettings',
+			title: 'Value Proposition & Reassurance Bar',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'newsletterSettings',
+			title: 'Newsletter Email Subscription Form',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'legalPolicies',
+			title: 'Legal Pages & Cookie Compliance',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'paymentTrust',
+			title: 'Payment Gateway Badges & Trust Seals',
+			options: { collapsible: true, collapsed: false },
 		},
 	],
+
 	fields: [
-		// ================= TAB 1: LAYOUT & STYLE =================
+		/* ====================================================================== */
+		/* TAB 1: CONTENT & BRAND                                                 */
+		/* ====================================================================== */
+		defineField({
+			name: 'showLogo',
+			title: 'Display Brand Logo',
+			description: 'Render the official brand logo configured in Site Profile.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'content',
+			fieldset: 'brandDetails',
+		}),
+		defineField({
+			name: 'brandDescription',
+			title: 'Brand Tagline / Elevator Pitch',
+			description:
+				'A short, memorable introductory summary about your brand mission, heritage, or core value.',
+			type: 'text',
+			rows: 3,
+			placeholder:
+				'Crafted for conscious living. We engineer high-performance lifestyle essentials built with timeless quality.',
+			group: 'content',
+			fieldset: 'brandDetails',
+		}),
+		defineField({
+			name: 'showSocialLinks',
+			title: 'Display Social Media Links',
+			description:
+				'Show official social media icon channels configured in Global Site Profile (site.ts).',
+			type: 'boolean',
+			initialValue: true,
+			group: 'content',
+			fieldset: 'brandDetails',
+		}),
+
+		defineField({
+			name: 'showContactInfo',
+			title: 'Display Customer Care & Business Details',
+			description:
+				'Single Source of Truth: Inherits verified support channels directly from Global Site Profile.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'content',
+			fieldset: 'contactDetails',
+		}),
+		defineField({
+			name: 'showEmail',
+			title: 'Show Support Email',
+			description: 'Display official customer support email address.',
+			type: 'boolean',
+			initialValue: true,
+			fieldset: 'contactDetails',
+			hidden: ({ parent }) => parent?.showContactInfo === false,
+			group: 'content',
+		}),
+		defineField({
+			name: 'showHotline',
+			title: 'Show Phone / Hotline',
+			description: 'Display customer service phone number with click-to-call link.',
+			type: 'boolean',
+			initialValue: true,
+			fieldset: 'contactDetails',
+			hidden: ({ parent }) => parent?.showContactInfo === false,
+			group: 'content',
+		}),
+		defineField({
+			name: 'showAddress',
+			title: 'Show Physical Address / Showroom',
+			description: 'Display headquarters, warehouse, or showroom physical location.',
+			type: 'boolean',
+			initialValue: true,
+			fieldset: 'contactDetails',
+			hidden: ({ parent }) => parent?.showContactInfo === false,
+			group: 'content',
+		}),
+		defineField({
+			name: 'showWorkingHours',
+			title: 'Show Operating Hours',
+			description: 'Display customer support response times and business hours.',
+			type: 'boolean',
+			initialValue: true,
+			fieldset: 'contactDetails',
+			hidden: ({ parent }) => parent?.showContactInfo === false,
+			group: 'content',
+		}),
+		defineField({
+			name: 'showTaxCode',
+			title: 'Show Tax ID / EIN / Business Registration',
+			description:
+				'Display legal business registration or VAT number (Recommended for B2B & European compliance).',
+			type: 'boolean',
+			initialValue: false,
+			fieldset: 'contactDetails',
+			hidden: ({ parent }) => parent?.showContactInfo === false,
+			group: 'content',
+		}),
+
+		defineField({
+			name: 'footerMenu',
+			title: 'Main Footer Navigation Document',
+			description:
+				'Select the Navigation document containing footer link columns (Recommended: 2 to 4 link groups).',
+			type: 'reference',
+			to: [{ type: 'navigation' }],
+			group: 'content',
+			fieldset: 'navigationStructure',
+		}),
+		defineField({
+			name: 'mobileAccordion',
+			title: 'Enable Collapsible Accordions on Mobile',
+			description:
+				'Automatically converts multi-column link lists into touch-friendly expandable accordions on mobile viewports.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'content',
+			fieldset: 'navigationStructure',
+		}),
+
+		/* ====================================================================== */
+		/* TAB 2: LAYOUT & STRUCTURE                                              */
+		/* ====================================================================== */
+		defineField({
+			name: 'desktopLayout',
+			title: 'Desktop Grid Layout',
+			description:
+				'Choose how brand information, navigation columns, and newsletter interact on desktop screens.',
+			type: 'string',
+			options: {
+				list: [
+					{
+						title: 'Standard Balanced (Brand Left, Nav Columns Center, Newsletter Right)',
+						value: 'standard',
+					},
+					{
+						title: 'Expanded Navigation (Brand Left, Wide 3-4 Column Nav, Newsletter Full Banner)',
+						value: 'expanded_nav',
+					},
+					{
+						title: 'Compact Clean (Brand Left, Consolidated Navigation, Bottom Bar)',
+						value: 'compact',
+					},
+				],
+				layout: 'radio',
+			},
+			initialValue: 'standard',
+			group: 'layout',
+			fieldset: 'layoutSettings',
+		}),
+		defineField({
+			name: 'spacing',
+			title: 'Vertical Spacing & Content Density',
+			description: 'Control the top and bottom whitespace of the footer sections.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Compact (py-6 md:py-8) — Sleek for catalogs and landing pages', value: 'compact' },
+					{ title: 'Normal (py-8 md:py-12) — Recommended commercial standard', value: 'normal' },
+					{ title: 'Spacious (py-12 md:py-16) — Airy editorial aesthetic', value: 'spacious' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'normal',
+			group: 'layout',
+			fieldset: 'layoutSettings',
+		}),
+		defineField({
+			name: 'headingCase',
+			title: 'Column Heading Style',
+			description: 'Choose typography casing for navigation column titles.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Title Case (e.g. "Customer Care") — Modern US/UK standard', value: 'title' },
+					{ title: 'Uppercase (e.g. "CUSTOMER CARE") — Classic bold retail', value: 'uppercase' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'title',
+			group: 'layout',
+			fieldset: 'layoutSettings',
+		}),
+		defineField({
+			name: 'showBackToTop',
+			title: 'Display "Back to Top" Button',
+			description: 'Render a smooth scroll-to-top button in the bottom compliance bar.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'layout',
+			fieldset: 'layoutSettings',
+		}),
+
+		/* ====================================================================== */
+		/* TAB 3: APPEARANCE & STYLING                                            */
+		/* ====================================================================== */
 		defineField({
 			name: 'footerThemeStyle',
-			title: 'Footer Color Theme',
+			title: 'Footer Color Theme Preset',
 			description:
-				'Select color theme for the footer. "Default" inherits automatically from Global Theme Tokens.',
+				'Select the color theme for the footer. "Default" inherits automatically from Global Theme Tokens.',
 			type: 'string',
 			options: {
 				list: [
 					{ title: 'Default (Inherit from Global Theme Tokens)', value: 'default' },
-					{ title: 'Dark Elegance (Deep Dark Surface)', value: 'dark' },
-					{ title: 'Light Minimal (Soft Light Surface)', value: 'light' },
-					{ title: 'Custom (Specify custom hex colors below)', value: 'custom' },
+					{ title: 'Slate Dark (Charcoal Slate Elegance)', value: 'dark' },
+					{ title: 'Light Minimal (Soft Pure Surface)', value: 'light' },
+					{ title: 'Midnight Navy (Deep Luxury Blue)', value: 'navy' },
+					{ title: 'Warm Sand (Subtle Oatmeal Tone)', value: 'warm' },
+					{ title: 'Custom Palette (Define custom hex codes)', value: 'custom' },
 				],
 				layout: 'radio',
 			},
 			initialValue: 'default',
-			group: 'layout',
+			group: 'appearance',
+			fieldset: 'colorSettings',
 		}),
 		defineField({
 			name: 'footerBackground',
-			title: 'Custom Footer Background',
-			description: 'Custom hex color for footer background (e.g. #0f172a)',
+			title: 'Custom Background Color',
+			description: 'Hex color for footer surface (e.g. #090d16 or #f8fafc)',
 			type: 'string',
 			validation: (Rule) =>
-				Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error('Invalid Hex Color code'),
-			fieldset: 'colorScheme',
+				Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error('Must be a valid hex code (e.g. #090d16)'),
+			fieldset: 'colorSettings',
 			hidden: ({ parent }) => parent?.footerThemeStyle !== 'custom',
-			group: 'layout',
+			group: 'appearance',
 		}),
 		defineField({
 			name: 'footerText',
-			title: 'Custom Footer Text Color',
-			description: 'Custom hex color for footer text (e.g. #f8fafc)',
+			title: 'Custom Primary Text Color',
+			description: 'Hex color for headings and primary labels (e.g. #ffffff or #0f172a)',
 			type: 'string',
 			validation: (Rule) =>
-				Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error('Invalid Hex Color code'),
-			fieldset: 'colorScheme',
+				Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error('Must be a valid hex code (e.g. #ffffff)'),
+			fieldset: 'colorSettings',
 			hidden: ({ parent }) => parent?.footerThemeStyle !== 'custom',
-			group: 'layout',
+			group: 'appearance',
+		}),
+		defineField({
+			name: 'footerMutedText',
+			title: 'Custom Muted / Secondary Text Color',
+			description: 'Hex color for descriptions, links, and subtext (e.g. #94a3b8 or #64748b)',
+			type: 'string',
+			validation: (Rule) =>
+				Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error('Must be a valid hex code (e.g. #94a3b8)'),
+			fieldset: 'colorSettings',
+			hidden: ({ parent }) => parent?.footerThemeStyle !== 'custom',
+			group: 'appearance',
+		}),
+		defineField({
+			name: 'footerBorder',
+			title: 'Custom Border Divider Color',
+			description: 'Hex color for dividers and separators (e.g. #1e293b or #e2e8f0)',
+			type: 'string',
+			validation: (Rule) =>
+				Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).error('Must be a valid hex code (e.g. #1e293b)'),
+			fieldset: 'colorSettings',
+			hidden: ({ parent }) => parent?.footerThemeStyle !== 'custom',
+			group: 'appearance',
 		}),
 
-		// --- Background Image / Pattern Section ---
-		defineField({
-			name: 'enableBgImage',
-			title: 'Enable Background Image / Pattern',
-			description: 'Add a subtle graphic background, eco texture, or pattern tile to footer.',
-			type: 'boolean',
-			initialValue: false,
-			fieldset: 'backgroundImageSettings',
-			group: 'layout',
-		}),
-		defineField({
-			name: 'backgroundImage',
-			title: 'Background Image File',
-			description: 'Recommended: High resolution JPG/PNG or subtle repeating SVG pattern.',
-			type: 'image',
-			options: { hotspot: true },
-			fieldset: 'backgroundImageSettings',
-			hidden: ({ parent }) => !parent?.enableBgImage,
-			group: 'layout',
-		}),
-		defineField({
-			name: 'bgDisplayMode',
-			title: 'Background Sizing & Repeat',
-			type: 'string',
-			options: {
-				list: [
-					{ title: 'Cover (Full background image fit)', value: 'cover' },
-					{ title: 'Pattern Tile (Repeat horizontally & vertically)', value: 'repeat' },
-					{ title: 'Contain (Fit within bounds without crop)', value: 'contain' },
-				],
-				layout: 'radio',
-			},
-			initialValue: 'cover',
-			fieldset: 'backgroundImageSettings',
-			hidden: ({ parent }) => !parent?.enableBgImage,
-			group: 'layout',
-		}),
-		defineField({
-			name: 'bgOverlayStyle',
-			title: 'Overlay Tint Style',
-			description: 'Ensures optimal text contrast & legibility against the background image.',
-			type: 'string',
-			options: {
-				list: [
-					{ title: 'Dark Overlay (Rich Charcoal / Black tint)', value: 'dark' },
-					{ title: 'Light Overlay (Clean White / Pure Paper tint)', value: 'light' },
-					{ title: 'Brand Primary Gradient (Smooth accent gradient)', value: 'primary_gradient' },
-					{ title: 'None (Pure image without overlay tint)', value: 'none' },
-				],
-				layout: 'radio',
-			},
-			initialValue: 'dark',
-			fieldset: 'backgroundImageSettings',
-			hidden: ({ parent }) => !parent?.enableBgImage,
-			group: 'layout',
-		}),
-		defineField({
-			name: 'bgOverlayOpacity',
-			title: 'Overlay Opacity (%)',
-			description: 'Controls the strength of the overlay tint (0 = fully transparent, 100 = fully solid).',
-			type: 'number',
-			initialValue: 60,
-			validation: (Rule) => Rule.min(0).max(100),
-			fieldset: 'backgroundImageSettings',
-			hidden: ({ parent }) => !parent?.enableBgImage || parent?.bgOverlayStyle === 'none',
-			group: 'layout',
-		}),
-		defineField({
-			name: 'bgBlur',
-			title: 'Background Backdrop Blur',
-			description: 'Apply subtle depth-of-field blur to soften background details and emphasize typography.',
-			type: 'string',
-			options: {
-				list: [
-					{ title: 'None (Sharp)', value: 'none' },
-					{ title: 'Subtle (sm - 4px)', value: 'sm' },
-					{ title: 'Medium (md - 8px)', value: 'md' },
-					{ title: 'Strong (lg - 16px)', value: 'lg' },
-				],
-			},
-			initialValue: 'none',
-			fieldset: 'backgroundImageSettings',
-			hidden: ({ parent }) => !parent?.enableBgImage,
-			group: 'layout',
-		}),
-		defineField({
-			name: 'desktopLayout',
-			title: 'Desktop Columns Layout',
-			description: 'Arrangement of footer columns on desktop screens.',
-			type: 'string',
-			options: {
-				list: [
-					{
-						title: '4 Columns (Brand Info - 2 Navigation Columns - Newsletter Form)',
-						value: '4-columns',
-					},
-					{
-						title: '5 Columns (Brand Info - 3 Navigation Columns - Newsletter Form)',
-						value: '5-columns',
-					},
-					{
-						title: '3 Columns (Brand Info - Navigation Columns - Contact / Social)',
-						value: '3-columns',
-					},
-				],
-				layout: 'radio',
-			},
-			initialValue: '4-columns',
-			group: 'layout',
-		}),
-		defineField({
-			name: 'mobileAccordion',
-			title: 'Enable Collapsible Accordion on Mobile',
-			description:
-				'Turns navigation link groups into collapsible accordions on mobile viewports for compact browsing.',
-			type: 'boolean',
-			initialValue: true,
-			group: 'layout',
-		}),
-		defineField({
-			name: 'showDividers',
-			title: 'Show Section Dividers',
-			description: 'Display subtle divider lines between USP bar, Main Grid, and Bottom Bar.',
-			type: 'boolean',
-			initialValue: true,
-			group: 'layout',
-		}),
-
-		// ================= TAB 2: FEATURE & USP BAR =================
+		/* ====================================================================== */
+		/* TAB 4: TRUST & CONVERSION                                              */
+		/* ====================================================================== */
 		defineField({
 			name: 'showUspBar',
-			title: 'Enable USP / Feature Highlights Bar',
+			title: 'Enable Value Proposition (USP) Bar',
 			description:
-				'Display a top value proposition bar above the footer (e.g. Free Shipping, 100% Genuine, 30-Day Return).',
+				'Display a top reassurance bar above the main footer columns (e.g. Free Worldwide Shipping, 30-Day Easy Returns).',
 			type: 'boolean',
 			initialValue: true,
-			group: 'usp',
+			group: 'conversion',
+			fieldset: 'uspBarSettings',
+		}),
+		defineField({
+			name: 'uspLayout',
+			title: 'USP Bar Layout',
+			description: 'Choose display style for value proposition highlights.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Grid (Adaptive 2 to 4 responsive cards)', value: 'grid' },
+					{ title: 'Inline Bar (Compact horizontal reassurance strip)', value: 'inline' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'grid',
+			hidden: ({ parent }) => parent?.showUspBar === false,
+			group: 'conversion',
+			fieldset: 'uspBarSettings',
 		}),
 		defineField({
 			name: 'uspItems',
-			title: 'USP Highlights List',
-			description: 'Add 3 to 4 key value propositions for customer reassurance.',
+			title: 'Value Proposition Highlights (Max 4)',
+			description: 'Add up to 4 key reassurance points to boost consumer purchasing confidence.',
 			type: 'array',
-			group: 'usp',
+			validation: (Rule) => Rule.max(4),
 			hidden: ({ parent }) => parent?.showUspBar === false,
+			group: 'conversion',
+			fieldset: 'uspBarSettings',
 			of: [
 				{
 					type: 'object',
 					fields: [
 						defineField({
 							name: 'icon',
-							title: 'Icon',
+							title: 'Icon Symbol',
 							type: 'string',
 							options: {
 								list: [
-									{ title: '🚚 Free / Fast Shipping', value: 'shipping' },
-									{ title: '🛡️ 100% Authentic / Safe Guarantee', value: 'shield' },
-									{ title: '🔄 30-Day Easy Returns / Refunds', value: 'return' },
-									{ title: '🎧 24/7 Dedicated Support', value: 'support' },
-									{ title: '🌿 Eco-Friendly / Sustainable', value: 'eco' },
-									{ title: '⭐ Premium Quality Checked', value: 'star' },
-									{ title: '🔒 Secure Checkout & Encryption', value: 'lock' },
+									{ title: 'Shipping & Delivery (Truck)', value: 'shipping' },
+									{ title: 'Authentic Certified / Safe Guarantee (Shield)', value: 'shield' },
+									{ title: 'Easy 30-Day Returns / Refunds (Rotate)', value: 'return' },
+									{ title: '24/7 Dedicated Support (Headphones)', value: 'support' },
+									{ title: 'Eco-Friendly & Sustainable (Leaf)', value: 'eco' },
+									{ title: 'Premium Curated Quality (Star)', value: 'star' },
+									{ title: 'Secure 256-Bit SSL Checkout (Lock)', value: 'lock' },
+									{ title: 'Complimentary Gift Box / Packaging (Gift)', value: 'gift' },
+									{ title: 'Fast 24-48h Express Dispatch (Clock)', value: 'clock' },
+									{ title: 'Flexible Installments / Buy Now Pay Later (Card)', value: 'credit_card' },
+									{ title: 'Best Price / Match Guarantee (Percent)', value: 'discount' },
+									{ title: 'Artisan / Handcrafted Excellence (Sparkles)', value: 'sparkles' },
 								],
 							},
 							initialValue: 'shipping',
 						}),
 						defineField({
 							name: 'title',
-							title: 'Title',
+							title: 'Headline Title',
 							type: 'string',
 							validation: (Rule) => Rule.required(),
+							placeholder: 'e.g. Free Worldwide Shipping',
 						}),
 						defineField({
 							name: 'description',
-							title: 'Short Description / Subtitle',
+							title: 'Short Subtitle / Condition',
 							type: 'string',
+							placeholder: 'e.g. On all domestic orders over $50',
+						}),
+						defineField({
+							name: 'url',
+							title: 'Optional Link Destination (URL)',
+							description: 'Link directly to policy page (e.g. /shipping-returns or /guarantee).',
+							type: 'string',
+							placeholder: 'e.g. /shipping-returns',
 						}),
 					],
 					preview: {
@@ -257,10 +418,10 @@ export default defineType({
 							subtitle: 'description',
 							icon: 'icon',
 						},
-						prepare({ title, subtitle }) {
+						prepare({ title, subtitle, icon }) {
 							return {
-								title: title || 'USP Item',
-								subtitle: subtitle || '',
+								title: title || 'USP Highlight',
+								subtitle: subtitle ? `[${icon || 'shipping'}] ${subtitle}` : `[${icon || 'shipping'}]`,
 							}
 						},
 					},
@@ -268,168 +429,37 @@ export default defineType({
 			],
 		}),
 
-		// ================= TAB 3: BRAND & BUSINESS =================
-		defineField({
-			name: 'showLogo',
-			title: 'Display Brand Logo',
-			description: 'Show brand logo in the first column.',
-			type: 'boolean',
-			initialValue: true,
-			group: 'brand',
-		}),
-		defineField({
-			name: 'brandDescription',
-			title: 'Brand Description / Elevator Pitch',
-			description:
-				'A brief introductory sentence about your store, mission, or sustainable values.',
-			type: 'text',
-			rows: 3,
-			placeholder:
-				'Ecocros is committed to delivering sustainable, premium lifestyle essentials curated for conscious living.',
-			group: 'brand',
-		}),
-		defineField({
-			name: 'useSiteProfile',
-			title: 'Inherit Contact Details from Site Profile',
-			description:
-				'Automatically pulls Hotline, Email, Address, Tax Code, and Working Hours from Global Site Settings (site.ts).',
-			type: 'boolean',
-			initialValue: true,
-			group: 'brand',
-		}),
-		defineField({
-			name: 'showHotline',
-			title: 'Show Phone / Hotline',
-			type: 'boolean',
-			initialValue: true,
-			fieldset: 'contactToggles',
-			group: 'brand',
-		}),
-		defineField({
-			name: 'showEmail',
-			title: 'Show Support Email',
-			type: 'boolean',
-			initialValue: true,
-			fieldset: 'contactToggles',
-			group: 'brand',
-		}),
-		defineField({
-			name: 'showAddress',
-			title: 'Show Showroom / Address',
-			type: 'boolean',
-			initialValue: true,
-			fieldset: 'contactToggles',
-			group: 'brand',
-		}),
-		defineField({
-			name: 'showTaxCode',
-			title: 'Show Tax ID / Business Reg Code',
-			type: 'boolean',
-			initialValue: false,
-			fieldset: 'contactToggles',
-			group: 'brand',
-		}),
-		defineField({
-			name: 'showWorkingHours',
-			title: 'Show Working Hours',
-			type: 'boolean',
-			initialValue: true,
-			fieldset: 'contactToggles',
-			group: 'brand',
-		}),
-		defineField({
-			name: 'customFooterContent',
-			title: 'Additional Custom Legal / Rich Text Content',
-			description: 'Optional Rich text editor for extra legal notices or disclaimers.',
-			type: 'array',
-			of: [
-				{
-					type: 'block',
-					styles: [{ title: 'Normal', value: 'normal' }],
-					lists: [],
-				},
-			],
-			group: 'brand',
-		}),
-
-		// ================= TAB 4: NAVIGATION MENUS =================
-		defineField({
-			name: 'footerMenu',
-			title: 'Footer Navigation Menu',
-			description:
-				'Select the Navigation document containing the footer columns (Link Lists).',
-			type: 'reference',
-			to: [{ type: 'navigation' }],
-			group: 'navigation',
-		}),
-		defineField({
-			name: 'showSocialLinks',
-			title: 'Display Social Media Links',
-			description: 'Show social media icon buttons in the footer.',
-			type: 'boolean',
-			initialValue: true,
-			group: 'navigation',
-		}),
-		defineField({
-			name: 'socialSource',
-			title: 'Social Links Data Source',
-			type: 'string',
-			options: {
-				list: [
-					{
-						title: 'Inherit from Global Business Profile (site.ts)',
-						value: 'site',
-					},
-					{
-						title: 'Custom Navigation Document Reference',
-						value: 'custom',
-					},
-				],
-				layout: 'radio',
-			},
-			initialValue: 'site',
-			hidden: ({ parent }) => parent?.showSocialLinks === false,
-			group: 'navigation',
-		}),
-		defineField({
-			name: 'social',
-			title: 'Custom Social Links Menu Reference',
-			description: 'Select a custom Navigation document for social icons.',
-			type: 'reference',
-			to: [{ type: 'navigation' }],
-			hidden: ({ parent }) =>
-				parent?.showSocialLinks === false || parent?.socialSource !== 'custom',
-			group: 'navigation',
-		}),
-
-		// ================= TAB 5: NEWSLETTER & TRUST BADGES =================
 		defineField({
 			name: 'showNewsletter',
-			title: 'Enable Newsletter Lead Form',
+			title: 'Enable Newsletter Signup Form',
 			description:
-				'Display an email subscription box for lead generation and marketing promotions.',
+				'Display high-converting email subscription capture for marketing leads, VIP drops, and discounts.',
 			type: 'boolean',
 			initialValue: true,
-			group: 'marketing',
+			group: 'conversion',
+			fieldset: 'newsletterSettings',
 		}),
 		defineField({
 			name: 'newsletterTitle',
 			title: 'Newsletter Headline',
 			type: 'string',
-			initialValue: 'Join our Community',
-			placeholder: 'e.g. Subscribe & Get 10% Off',
+			initialValue: 'Unlock 10% Off Your First Order',
+			placeholder: 'e.g. Join the DeanFlow Community',
 			hidden: ({ parent }) => parent?.showNewsletter === false,
-			group: 'marketing',
+			group: 'conversion',
+			fieldset: 'newsletterSettings',
 		}),
 		defineField({
 			name: 'newsletterDescription',
-			title: 'Newsletter Description / Subtext',
+			title: 'Value Proposition & Offer Copy',
 			type: 'text',
 			rows: 2,
 			initialValue:
-				'Subscribe for exclusive drops, early bird offers, and member-only promotions.',
+				'Subscribe for exclusive drops, early bird access, and conscious living inspiration.',
+			placeholder: 'Explain customer benefit: discounts, secret sales, or guides.',
 			hidden: ({ parent }) => parent?.showNewsletter === false,
-			group: 'marketing',
+			group: 'conversion',
+			fieldset: 'newsletterSettings',
 		}),
 		defineField({
 			name: 'newsletterPlaceholder',
@@ -437,7 +467,8 @@ export default defineType({
 			type: 'string',
 			initialValue: 'Enter your email address...',
 			hidden: ({ parent }) => parent?.showNewsletter === false,
-			group: 'marketing',
+			group: 'conversion',
+			fieldset: 'newsletterSettings',
 		}),
 		defineField({
 			name: 'newsletterButtonText',
@@ -445,19 +476,79 @@ export default defineType({
 			type: 'string',
 			initialValue: 'Subscribe',
 			hidden: ({ parent }) => parent?.showNewsletter === false,
-			group: 'marketing',
+			group: 'conversion',
+			fieldset: 'newsletterSettings',
 		}),
+		defineField({
+			name: 'newsletterConsentText',
+			title: 'GDPR / CAN-SPAM Consent Notice',
+			description:
+				'Legal compliance micro-copy reassuring privacy consent. Word "Privacy Policy" automatically links if present.',
+			type: 'string',
+			initialValue:
+				'By subscribing, you agree to our Privacy Policy and consent to receive marketing updates.',
+			hidden: ({ parent }) => parent?.showNewsletter === false,
+			group: 'conversion',
+			fieldset: 'newsletterSettings',
+		}),
+
+		/* ====================================================================== */
+		/* TAB 5: LEGAL & PAYMENTS                                                */
+		/* ====================================================================== */
+		defineField({
+			name: 'legalLinks',
+			title: 'Legal & Policy Navigation Links',
+			description:
+				'Compliance links displayed in the bottom legal row (Privacy Policy, Terms of Service, Shipping, Refunds, Accessibility Statement, Do Not Sell My Info).',
+			type: 'array',
+			of: [{ type: 'link' }],
+			group: 'compliance',
+			fieldset: 'legalPolicies',
+		}),
+		defineField({
+			name: 'showCookieSettingsTrigger',
+			title: 'Enable "Cookie Preferences" Button',
+			description:
+				'Renders an interactive button at the end of the legal links allowing visitors to revisit GDPR/CCPA cookie choices.',
+			type: 'boolean',
+			initialValue: true,
+			group: 'compliance',
+			fieldset: 'legalPolicies',
+		}),
+		defineField({
+			name: 'regionLabel',
+			title: 'Store Region & Currency Indicator',
+			description:
+				'International market label displayed in the bottom bar (e.g. "United States (USD $)" or "United Kingdom (GBP £)").',
+			type: 'string',
+			initialValue: 'United States (USD $)',
+			placeholder: 'e.g. United States (USD $)',
+			group: 'compliance',
+			fieldset: 'legalPolicies',
+		}),
+		defineField({
+			name: 'copyrightText',
+			title: 'Copyright Notice',
+			description:
+				'Dynamic macros supported: "{year}" for current calendar year, "{siteName}" for verified store name.',
+			type: 'string',
+			initialValue: '© {year} {siteName}. All rights reserved.',
+			group: 'compliance',
+			fieldset: 'legalPolicies',
+		}),
+
 		defineField({
 			name: 'showPaymentMethods',
 			title: 'Display Accepted Payment Badges',
-			description: 'Show payment gateway icons in the bottom bar.',
+			description: 'Show clean, standardized payment gateway badges in the bottom compliance bar.',
 			type: 'boolean',
 			initialValue: true,
-			group: 'marketing',
+			group: 'compliance',
+			fieldset: 'paymentTrust',
 		}),
 		defineField({
 			name: 'paymentMethods',
-			title: 'Accepted Payment Methods',
+			title: 'Accepted Global Payment Methods',
 			description: 'Select all payment methods accepted by your store.',
 			type: 'array',
 			of: [{ type: 'string' }],
@@ -465,57 +556,76 @@ export default defineType({
 				list: [
 					{ title: 'Visa', value: 'visa' },
 					{ title: 'Mastercard', value: 'mastercard' },
-					{ title: 'JCB', value: 'jcb' },
 					{ title: 'American Express (Amex)', value: 'amex' },
-					{ title: 'MoMo E-Wallet', value: 'momo' },
-					{ title: 'VNPay QR / Gateway', value: 'vnpay' },
-					{ title: 'ZaloPay', value: 'zalopay' },
-					{ title: 'Cash on Delivery (COD)', value: 'cod' },
-					{ title: 'Bank Direct Transfer', value: 'bank_transfer' },
 					{ title: 'Apple Pay', value: 'apple_pay' },
 					{ title: 'Google Pay', value: 'google_pay' },
 					{ title: 'PayPal', value: 'paypal' },
+					{ title: 'Shop Pay', value: 'shop_pay' },
+					{ title: 'Klarna', value: 'klarna' },
+					{ title: 'Afterpay / Clearpay', value: 'afterpay' },
+					{ title: 'Discover', value: 'discover' },
+					{ title: 'Maestro', value: 'maestro' },
+					{ title: 'UnionPay', value: 'unionpay' },
+					{ title: 'JCB', value: 'jcb' },
+					{ title: 'Cash on Delivery (COD)', value: 'cod' },
+					{ title: 'Bank Wire / Transfer', value: 'bank_transfer' },
 				],
 			},
-			initialValue: ['visa', 'mastercard', 'momo', 'vnpay', 'cod'],
+			initialValue: [
+				'visa',
+				'mastercard',
+				'amex',
+				'apple_pay',
+				'google_pay',
+				'paypal',
+				'shop_pay',
+				'klarna',
+			],
 			hidden: ({ parent }) => parent?.showPaymentMethods === false,
-			group: 'marketing',
+			group: 'compliance',
+			fieldset: 'paymentTrust',
 		}),
 		defineField({
 			name: 'showTrustBadges',
-			title: 'Display Trust & Verification Seals',
+			title: 'Display Trust & Certification Seals',
 			description:
-				'Show certification badges (e.g. Ministry of Industry and Trade, DMCA, SSL, Eco Certified).',
+				'Show verified certification logos (e.g. SSL 256-Bit Encrypted, B-Corp Certified, 1% for the Planet).',
 			type: 'boolean',
 			initialValue: false,
-			group: 'marketing',
+			group: 'compliance',
+			fieldset: 'paymentTrust',
 		}),
 		defineField({
 			name: 'trustBadges',
-			title: 'Trust Badges List',
+			title: 'Trust Badges & Seals List',
+			description: 'Upload high-resolution transparent PNG or SVG badges with optional verification links.',
 			type: 'array',
 			hidden: ({ parent }) => parent?.showTrustBadges === false,
+			group: 'compliance',
+			fieldset: 'paymentTrust',
 			of: [
 				{
 					type: 'object',
 					fields: [
 						defineField({
 							name: 'title',
-							title: 'Badge Title',
+							title: 'Badge Title / Name',
 							type: 'string',
 							validation: (Rule) => Rule.required(),
+							placeholder: 'e.g. 256-Bit SSL Encrypted',
 						}),
 						defineField({
 							name: 'image',
-							title: 'Badge Image / Logo',
+							title: 'Badge Graphic (PNG / SVG)',
 							type: 'image',
 							options: { hotspot: true },
 							validation: (Rule) => Rule.required(),
 						}),
 						defineField({
 							name: 'url',
-							title: 'Verification Link (URL)',
+							title: 'Verification Link URL (Optional)',
 							type: 'url',
+							placeholder: 'https://...',
 						}),
 					],
 					preview: {
@@ -524,25 +634,22 @@ export default defineType({
 							media: 'image',
 							subtitle: 'url',
 						},
+						prepare({ title, media, subtitle }) {
+							return {
+								title: title || 'Trust Badge',
+								subtitle: subtitle || 'Verified Seal',
+								media,
+							}
+						},
 					},
 				},
 			],
-			group: 'marketing',
-		}),
-		defineField({
-			name: 'copyrightText',
-			title: 'Copyright Notice',
-			description:
-				'Custom copyright notice. Use "{year}" for dynamic current year and "{siteName}" for brand name.',
-			type: 'string',
-			initialValue: '© {year} {siteName}. All rights reserved.',
-			group: 'marketing',
 		}),
 	],
 	preview: {
 		prepare: () => ({
 			title: 'Footer Settings',
-			subtitle: 'Global Footer Layout, USP Bar, Navigation & Marketing Settings',
+			subtitle: 'Global Multi-Column Layout, Navigation, Newsletter & Compliance',
 		}),
 	},
 })

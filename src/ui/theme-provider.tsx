@@ -1,25 +1,31 @@
 import { resolveFontFamily } from '@/lib/fonts'
+import { stegaClean } from 'next-sanity'
 
+/**
+ * Global DTC Presets aligned with international standards:
+ * - Eco: Sustainable Living (Patagonia / Allbirds aesthetic)
+ * - Clean: Contemporary DTC (Apple / Skims / Gymshark aesthetic)
+ * - Luxury: Editorial Atelier (Aesop / The Row / Mejuri aesthetic)
+ * - Nordic: Nordic Minimalist (HAY / Arket aesthetic)
+ * - Warm: Warm Earth & Ceramic (Parachute / Cultiver aesthetic)
+ */
 export const THEME_PRESETS: Record<string, any> = {
 	eco: {
-		primaryColor: '#059669',
-		onPrimaryColor: '#ffffff',
-		secondaryColor: '#10b981',
-		onSecondaryColor: '#ffffff',
-		ctaColor: '#ea580c',
-		onCtaColor: '#ffffff',
-		backgroundColor: '#ffffff',
-		surfaceColor: '#f9fafb',
-		textColor: '#111827',
-		textMutedColor: '#6b7280',
-		noteBackground: '#f3f4f6',
-		noteTextColor: '#374151',
-		successColor: '#10b981',
-		warningColor: '#f59e0b',
-		destructiveColor: '#ef4444',
-		borderColor: '#e5e7eb',
-		ringColor: '#059669',
-		borderRadius: 'md',
+		primaryColor: '#1b4332',
+		secondaryColor: '#2d6a4f',
+		ctaColor: '#c2410c',
+		backgroundColor: '#FAF8F5',
+		surfaceColor: '#ffffff',
+		textColor: '#1c1917',
+		textMutedColor: '#78716c',
+		noteBackground: '#f5f5f4',
+		noteTextColor: '#44403c',
+		successColor: '#15803d',
+		warningColor: '#b45309',
+		destructiveColor: '#b91c1c',
+		borderColor: '#e7e5e4',
+		ringColor: '#1b4332',
+		borderRadius: 'rounded',
 		pageMaxWidth: '1280px',
 		sectionSpacingDesktop: '32px',
 		sectionSpacingMobile: '16px',
@@ -27,115 +33,154 @@ export const THEME_PRESETS: Record<string, any> = {
 		containerPaddingMobile: '16px',
 		fontHeading: 'Outfit',
 		fontBody: 'Plus Jakarta Sans',
+		enableMotion: true,
+		buttonHoverEffect: 'scale-subtle',
+		bannerHoverEffect: 'zoom',
+		motionPhysics: 'smooth',
+	},
+	clean: {
+		primaryColor: '#18181b',
+		secondaryColor: '#27272a',
+		ctaColor: '#0f172a',
+		backgroundColor: '#ffffff',
+		surfaceColor: '#f9fafb',
+		textColor: '#111827',
+		textMutedColor: '#6b7280',
+		noteBackground: '#f3f4f6',
+		noteTextColor: '#374151',
+		successColor: '#15803d',
+		warningColor: '#b45309',
+		destructiveColor: '#ef4444',
+		borderColor: '#e5e7eb',
+		ringColor: '#18181b',
+		borderRadius: 'subtle',
+		pageMaxWidth: '1400px',
+		sectionSpacingDesktop: '32px',
+		sectionSpacingMobile: '16px',
+		containerPaddingDesktop: '32px',
+		containerPaddingMobile: '16px',
+		fontHeading: 'Geist',
+		fontBody: 'Inter',
+		enableMotion: true,
+		buttonHoverEffect: 'spring-bounce',
+		bannerHoverEffect: 'zoom',
+		motionPhysics: 'snappy',
 	},
 	luxury: {
-		primaryColor: '#18181b',
-		onPrimaryColor: '#ffffff',
-		secondaryColor: '#27272a',
-		onSecondaryColor: '#ffffff',
-		ctaColor: '#d97706',
-		onCtaColor: '#ffffff',
-		backgroundColor: '#fafafa',
+		primaryColor: '#1c1917',
+		secondaryColor: '#292524',
+		ctaColor: '#b45309',
+		backgroundColor: '#FAF9F6',
 		surfaceColor: '#ffffff',
-		textColor: '#09090b',
-		textMutedColor: '#71717a',
-		noteBackground: '#f4f4f5',
-		noteTextColor: '#27272a',
-		successColor: '#10b981',
-		warningColor: '#f59e0b',
-		destructiveColor: '#ef4444',
-		borderColor: '#e4e4e7',
-		ringColor: '#18181b',
-		borderRadius: 'none',
+		textColor: '#1c1917',
+		textMutedColor: '#78716c',
+		noteBackground: '#f5f5f4',
+		noteTextColor: '#292524',
+		successColor: '#15803d',
+		warningColor: '#b45309',
+		destructiveColor: '#b91c1c',
+		borderColor: '#e7e5e4',
+		ringColor: '#1c1917',
+		borderRadius: 'sharp',
 		pageMaxWidth: '1440px',
 		sectionSpacingDesktop: '48px',
 		sectionSpacingMobile: '24px',
 		containerPaddingDesktop: '40px',
 		containerPaddingMobile: '16px',
-		fontHeading: 'Playfair Display',
+		fontHeading: 'Instrument Serif',
 		fontBody: 'Plus Jakarta Sans',
+		enableMotion: true,
+		buttonHoverEffect: 'lift',
+		bannerHoverEffect: 'zoom-and-lift',
+		motionPhysics: 'gentle',
 	},
-	ocean: {
-		primaryColor: '#0284c7',
-		onPrimaryColor: '#ffffff',
-		secondaryColor: '#0ea5e9',
-		onSecondaryColor: '#ffffff',
-		ctaColor: '#f43f5e',
-		onCtaColor: '#ffffff',
-		backgroundColor: '#f0f9ff',
+	nordic: {
+		primaryColor: '#334155',
+		secondaryColor: '#475569',
+		ctaColor: '#2C3E35',
+		backgroundColor: '#F8FAFC',
 		surfaceColor: '#ffffff',
-		textColor: '#0c4a6e',
+		textColor: '#0f172a',
 		textMutedColor: '#64748b',
-		noteBackground: '#e0f2fe',
-		noteTextColor: '#0369a1',
-		successColor: '#059669',
-		warningColor: '#eab308',
-		destructiveColor: '#e11d48',
-		borderColor: '#bae6fd',
-		ringColor: '#0284c7',
-		borderRadius: 'lg',
+		noteBackground: '#f1f5f9',
+		noteTextColor: '#334155',
+		successColor: '#15803d',
+		warningColor: '#b45309',
+		destructiveColor: '#dc2626',
+		borderColor: '#e2e8f0',
+		ringColor: '#334155',
+		borderRadius: 'subtle',
 		pageMaxWidth: '1280px',
 		sectionSpacingDesktop: '32px',
 		sectionSpacingMobile: '16px',
 		containerPaddingDesktop: '32px',
 		containerPaddingMobile: '16px',
-		fontHeading: 'Montserrat',
-		fontBody: 'Inter',
+		fontHeading: 'DM Sans',
+		fontBody: 'Manrope',
+		enableMotion: true,
+		buttonHoverEffect: 'scale-subtle',
+		bannerHoverEffect: 'zoom',
+		motionPhysics: 'smooth',
 	},
 	warm: {
 		primaryColor: '#78350f',
-		onPrimaryColor: '#ffffff',
 		secondaryColor: '#92400e',
-		onSecondaryColor: '#ffffff',
-		ctaColor: '#c2410c',
-		onCtaColor: '#ffffff',
-		backgroundColor: '#fefce8',
+		ctaColor: '#b91c1c',
+		backgroundColor: '#F7F4EF',
 		surfaceColor: '#ffffff',
-		textColor: '#451a03',
+		textColor: '#292524',
 		textMutedColor: '#78716c',
-		noteBackground: '#fef3c7',
-		noteTextColor: '#92400e',
+		noteBackground: '#f5f2eb',
+		noteTextColor: '#78350f',
 		successColor: '#15803d',
-		warningColor: '#d97706',
+		warningColor: '#b45309',
 		destructiveColor: '#b91c1c',
-		borderColor: '#fde68a',
+		borderColor: '#e7e5e4',
 		ringColor: '#78350f',
-		borderRadius: 'md',
+		borderRadius: 'subtle',
 		pageMaxWidth: '1280px',
 		sectionSpacingDesktop: '40px',
 		sectionSpacingMobile: '20px',
 		containerPaddingDesktop: '32px',
 		containerPaddingMobile: '16px',
 		fontHeading: 'Lora',
-		fontBody: 'Nunito Sans',
+		fontBody: 'Plus Jakarta Sans',
+		enableMotion: true,
+		buttonHoverEffect: 'lift',
+		bannerHoverEffect: 'zoom',
+		motionPhysics: 'smooth',
 	},
-	violet: {
-		primaryColor: '#7c3aed',
-		onPrimaryColor: '#ffffff',
-		secondaryColor: '#9333ea',
-		onSecondaryColor: '#ffffff',
-		ctaColor: '#db2777',
-		onCtaColor: '#ffffff',
-		backgroundColor: '#faf5ff',
-		surfaceColor: '#ffffff',
-		textColor: '#3b0764',
-		textMutedColor: '#6b7280',
-		noteBackground: '#f3e8ff',
-		noteTextColor: '#6b21a8',
-		successColor: '#10b981',
-		warningColor: '#f59e0b',
-		destructiveColor: '#f43f5e',
-		borderColor: '#e9d5ff',
-		ringColor: '#7c3aed',
-		borderRadius: 'full',
-		pageMaxWidth: '1400px',
-		sectionSpacingDesktop: '36px',
-		sectionSpacingMobile: '18px',
-		containerPaddingDesktop: '32px',
-		containerPaddingMobile: '16px',
-		fontHeading: 'Space Grotesk',
-		fontBody: 'Be Vietnam Pro',
-	},
+}
+
+/**
+ * WCAG 2.1 AA Relative Luminance & Contrast Calculator:
+ * Guarantees automated accessible text contrast (#ffffff or #111827) against any background.
+ */
+export function getAccessibleContrastColor(
+	hexColor?: string,
+	darkColor = '#111827',
+	lightColor = '#ffffff',
+): string {
+	if (!hexColor) return lightColor
+	const cleanHex = hexColor.replace('#', '').trim()
+	if (cleanHex.length !== 3 && cleanHex.length !== 6) return lightColor
+
+	let r = 0,
+		g = 0,
+		b = 0
+	if (cleanHex.length === 3) {
+		r = parseInt(cleanHex[0] + cleanHex[0], 16)
+		g = parseInt(cleanHex[1] + cleanHex[1], 16)
+		b = parseInt(cleanHex[2] + cleanHex[2], 16)
+	} else {
+		r = parseInt(cleanHex.substring(0, 2), 16)
+		g = parseInt(cleanHex.substring(2, 4), 16)
+		b = parseInt(cleanHex.substring(4, 6), 16)
+	}
+
+	// YIQ perceived luminance formula: (r * 299 + g * 587 + b * 114) / 1000
+	const yiq = (r * 299 + g * 587 + b * 114) / 1000
+	return yiq >= 150 ? darkColor : lightColor
 }
 
 const formatCssUnit = (val?: string | number, fallback = '0px') => {
@@ -151,32 +196,47 @@ const formatCssUnit = (val?: string | number, fallback = '0px') => {
 export default function ThemeProvider({ theme }: { theme: any }) {
 	if (!theme) return null
 
-	const presetKey = theme.preset || 'eco'
+	const cleanTheme = stegaClean(theme)
+	const presetKey = cleanTheme.preset || 'eco'
 	const presetValues = THEME_PRESETS[presetKey] || THEME_PRESETS.eco
 
-	// Nếu chọn preset khác 'custom', lấy giá trị preset làm base và ưu tiên custom overrides nếu có
 	const resolvedTheme = {
 		...presetValues,
-		...(theme || {}),
+		...(cleanTheme || {}),
 	}
 
-	const getRadiusValue = (radius: string) => {
+	// Automated Accessible Contrast calculation for actions
+	const resolvedOnPrimary =
+		resolvedTheme.onPrimaryColor || getAccessibleContrastColor(resolvedTheme.primaryColor)
+	const resolvedOnSecondary =
+		resolvedTheme.onSecondaryColor || getAccessibleContrastColor(resolvedTheme.secondaryColor)
+	const resolvedOnCta =
+		resolvedTheme.onCtaColor || getAccessibleContrastColor(resolvedTheme.ctaColor)
+
+	// Dynamic Shape & Radius resolution (Luxury Sharp vs Contemporary Subtle vs Eco Pill)
+	const getRadiusTokens = (radius?: string) => {
 		switch (radius) {
 			case 'none':
-				return '0px'
+			case 'sharp':
+				return { themeRadius: '0px', buttonRadius: '0px' }
 			case 'sm':
-				return '4px'
-			case 'lg':
-				return '12px'
-			case 'full':
-				return '9999px'
+				return { themeRadius: '4px', buttonRadius: '4px' }
+			case 'subtle':
 			case 'md':
+				return { themeRadius: '8px', buttonRadius: '8px' }
+			case 'lg':
+			case 'rounded':
+				return { themeRadius: '12px', buttonRadius: '12px' }
+			case 'full':
+			case 'pill':
+				return { themeRadius: '16px', buttonRadius: '9999px' }
 			default:
-				return '8px'
+				return { themeRadius: '8px', buttonRadius: '8px' }
 		}
 	}
 
-	const radiusPx = getRadiusValue(resolvedTheme.borderRadius)
+	const { themeRadius, buttonRadius } = getRadiusTokens(resolvedTheme.borderRadius)
+
 	const resolvedFontSans = resolveFontFamily(resolvedTheme.fontBody, resolvedTheme.customFontBody)
 	const resolvedFontHeading = resolveFontFamily(resolvedTheme.fontHeading, resolvedTheme.customFontHeading)
 
@@ -211,50 +271,56 @@ export default function ThemeProvider({ theme }: { theme: any }) {
 			: resolvedTheme.containerPaddingMobile || '16px'
 	const resolvedContainerPaddingMobile = formatCssUnit(containerPaddingMobileVal, '16px')
 
-	// Collect custom Google Fonts URLs if specified
-	const customFontsToLoad = [
-		resolvedTheme.fontHeading === 'custom' && resolvedTheme.customFontHeading?.trim() ? resolvedTheme.customFontHeading.trim() : null,
-		resolvedTheme.fontBody === 'custom' && resolvedTheme.customFontBody?.trim() ? resolvedTheme.customFontBody.trim() : null,
-	].filter(Boolean) as string[]
+	// Resolve Motion & Animation Tokens
+	const enableMotion = resolvedTheme.enableMotion !== false
+	const buttonHoverEffect = enableMotion ? resolvedTheme.buttonHoverEffect || 'scale-subtle' : 'none'
+	const bannerHoverEffect = enableMotion ? resolvedTheme.bannerHoverEffect || 'zoom' : 'none'
+	const motionPhysics = resolvedTheme.motionPhysics || 'smooth'
 
-	const googleFontsUrl =
-		customFontsToLoad.length > 0
-			? `https://fonts.googleapis.com/css2?${customFontsToLoad
-					.map((f) => `family=${encodeURIComponent(f).replace(/%20/g, '+')}:wght@300;400;500;600;700;800`)
-					.join('&')}&display=swap`
-			: null
+	const motionDuration =
+		motionPhysics === 'snappy' ? '150ms' : motionPhysics === 'gentle' ? '450ms' : '250ms'
+	const motionEase =
+		motionPhysics === 'snappy'
+			? 'cubic-bezier(0.2, 0, 0, 1)'
+			: motionPhysics === 'gentle'
+				? 'cubic-bezier(0.16, 1, 0.3, 1)'
+				: 'cubic-bezier(0.4, 0, 0.2, 1)'
 
 	const cssVars = `
 		:root {
 			/* Typography Variables */
+			--font-body: ${resolvedFontSans};
 			--font-sans: ${resolvedFontSans};
 			--font-heading: ${resolvedFontHeading};
 
 			/* Primary & Action Colors */
-			--primary-color: ${resolvedTheme.primaryColor || '#059669'};
-			--on-primary-color: ${resolvedTheme.onPrimaryColor || '#ffffff'};
-			--secondary-color: ${resolvedTheme.secondaryColor || '#10b981'};
-			--on-secondary-color: ${resolvedTheme.onSecondaryColor || '#ffffff'};
-			--cta-color: ${resolvedTheme.ctaColor || '#ea580c'};
-			--on-cta-color: ${resolvedTheme.onCtaColor || '#ffffff'};
+			--primary-color: ${resolvedTheme.primaryColor || '#1b4332'};
+			--on-primary-color: ${resolvedOnPrimary};
+			--secondary-color: ${resolvedTheme.secondaryColor || '#2d6a4f'};
+			--on-secondary-color: ${resolvedOnSecondary};
+			--cta-color: ${resolvedTheme.ctaColor || '#c2410c'};
+			--on-cta-color: ${resolvedOnCta};
 
 			/* Surface & Content Colors */
 			--bg-color: ${resolvedTheme.backgroundColor || '#ffffff'};
 			--surface-color: ${resolvedTheme.surfaceColor || '#f9fafb'};
 			--text-color: ${resolvedTheme.textColor || '#111827'};
-			--text-muted-color: ${resolvedTheme.textMutedColor || '#4b5563'};
+			--text-muted-color: ${resolvedTheme.textMutedColor || '#6b7280'};
+			--muted-color: ${resolvedTheme.surfaceColor || '#f9fafb'};
 
 			/* Status & Notes Colors */
 			--note-bg: ${resolvedTheme.noteBackground || '#f3f4f6'};
 			--note-text: ${resolvedTheme.noteTextColor || '#374151'};
-			--success-color: ${resolvedTheme.successColor || '#10b981'};
-			--warning-color: ${resolvedTheme.warningColor || '#f59e0b'};
-			--destructive-color: ${resolvedTheme.destructiveColor || '#ef4444'};
+			--success-color: ${resolvedTheme.successColor || '#15803d'};
+			--warning-color: ${resolvedTheme.warningColor || '#b45309'};
+			--destructive-color: ${resolvedTheme.destructiveColor || '#b91c1c'};
 
-			/* Geometry & Tokens */
+			/* Geometry & Shape Tokens */
 			--border-color: ${resolvedTheme.borderColor || '#e5e7eb'};
-			--ring-color: ${resolvedTheme.ringColor || '#059669'};
-			--radius: ${radiusPx};
+			--ring-color: ${resolvedTheme.ringColor || resolvedTheme.primaryColor || '#1b4332'};
+			--theme-radius: ${themeRadius};
+			--button-radius: ${buttonRadius};
+			--radius: ${themeRadius};
 
 			/* Layout & Spacing Tokens */
 			--page-max-width: ${resolvedPageMaxWidth};
@@ -263,18 +329,18 @@ export default function ThemeProvider({ theme }: { theme: any }) {
 			--container-padding-desktop: ${resolvedContainerPaddingDesktop};
 			--container-padding-mobile: ${resolvedContainerPaddingMobile};
 
-			/* Header & Footer Fallbacks */
+			/* Header & Footer Contextual Tokens */
 			--header-bg: ${resolvedTheme.headerBackground || resolvedTheme.backgroundColor || '#ffffff'};
 			--header-text: ${resolvedTheme.headerText || resolvedTheme.textColor || '#111827'};
-			--footer-bg: ${resolvedTheme.footerBackground || '#000000'};
-			--footer-text: ${resolvedTheme.footerText || '#ffffff'};
+			--footer-bg: ${resolvedTheme.footerBackground || '#111827'};
+			--footer-text: ${resolvedTheme.footerText || '#f9fafb'};
+
+			/* Motion & Animation Tokens */
+			--motion-enabled: ${enableMotion ? '1' : '0'};
+			--motion-duration: ${motionDuration};
+			--motion-ease: ${motionEase};
 		}
 	`.trim()
 
-	return (
-		<>
-			{googleFontsUrl && <link rel="stylesheet" href={googleFontsUrl} />}
-			<style dangerouslySetInnerHTML={{ __html: cssVars }} />
-		</>
-	)
+	return <style dangerouslySetInnerHTML={{ __html: cssVars }} />
 }

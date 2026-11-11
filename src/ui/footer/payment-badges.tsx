@@ -5,11 +5,14 @@ import {
 	FaCcVisa,
 	FaCcMastercard,
 	FaCcAmex,
-	FaCcJcb,
+	FaCcDiscover,
 	FaCcPaypal,
 	FaCcApplePay,
+	FaCcJcb,
+	FaGooglePay,
 } from 'react-icons/fa6'
-import { CreditCard, QrCode, ShieldCheck, Banknote } from 'lucide-react'
+import { SiAfterpay, SiKlarna } from 'react-icons/si'
+import { CreditCard, Banknote } from 'lucide-react'
 
 interface PaymentBadgesProps {
 	paymentMethods?: string[]
@@ -23,126 +26,107 @@ interface PaymentBadgesProps {
 }
 
 export default function PaymentBadges({
-	paymentMethods = ['visa', 'mastercard', 'momo', 'vnpay', 'cod'],
+	paymentMethods = ['visa', 'mastercard', 'amex', 'apple_pay', 'google_pay', 'paypal', 'shop_pay', 'klarna'],
 	trustBadges = [],
 	showPaymentMethods = true,
 	showTrustBadges = false,
 }: PaymentBadgesProps) {
+	const pillClass =
+		'flex h-[24px] w-[38px] items-center justify-center rounded-[4px] border border-border/50 bg-white dark:bg-slate-900 text-foreground/80 shadow-2xs transition-all hover:border-primary/50 hover:text-foreground shrink-0 overflow-hidden select-none'
+
 	const renderPaymentIcon = (method: string) => {
 		switch (method) {
 			case 'visa':
 				return (
-					<div
-						key="visa"
-						title="Visa"
-						className="flex h-7 items-center justify-center rounded-md border border-border/50 bg-surface px-2 text-foreground/80 shadow-2xs transition-colors hover:border-primary/50"
-					>
+					<div key="visa" title="Visa" aria-label="Visa" className={pillClass}>
 						<FaCcVisa className="size-5 text-[#1A1F71] dark:text-white" />
 					</div>
 				)
 			case 'mastercard':
 				return (
-					<div
-						key="mastercard"
-						title="Mastercard"
-						className="flex h-7 items-center justify-center rounded-md border border-border/50 bg-surface px-2 text-foreground/80 shadow-2xs transition-colors hover:border-primary/50"
-					>
+					<div key="mastercard" title="Mastercard" aria-label="Mastercard" className={pillClass}>
 						<FaCcMastercard className="size-5 text-[#EB001B]" />
 					</div>
 				)
 			case 'amex':
 				return (
-					<div
-						key="amex"
-						title="American Express"
-						className="flex h-7 items-center justify-center rounded-md border border-border/50 bg-surface px-2 text-foreground/80 shadow-2xs transition-colors hover:border-primary/50"
-					>
+					<div key="amex" title="American Express" aria-label="American Express" className={pillClass}>
 						<FaCcAmex className="size-5 text-[#006FCF]" />
 					</div>
 				)
-			case 'jcb':
+			case 'discover':
 				return (
-					<div
-						key="jcb"
-						title="JCB"
-						className="flex h-7 items-center justify-center rounded-md border border-border/50 bg-surface px-2 text-foreground/80 shadow-2xs transition-colors hover:border-primary/50"
-					>
-						<FaCcJcb className="size-5 text-[#0E4294] dark:text-white" />
+					<div key="discover" title="Discover" aria-label="Discover" className={pillClass}>
+						<FaCcDiscover className="size-5 text-[#FF6000]" />
 					</div>
 				)
 			case 'paypal':
 				return (
-					<div
-						key="paypal"
-						title="PayPal"
-						className="flex h-7 items-center justify-center rounded-md border border-border/50 bg-surface px-2 text-foreground/80 shadow-2xs transition-colors hover:border-primary/50"
-					>
-						<FaCcPaypal className="size-5 text-[#003087] dark:text-white" />
+					<div key="paypal" title="PayPal" aria-label="PayPal" className={pillClass}>
+						<FaCcPaypal className="size-4 text-[#003087] dark:text-white" />
 					</div>
 				)
 			case 'apple_pay':
 				return (
-					<div
-						key="apple_pay"
-						title="Apple Pay"
-						className="flex h-7 items-center justify-center rounded-md border border-border/50 bg-surface px-2 text-foreground/80 shadow-2xs transition-colors hover:border-primary/50"
-					>
+					<div key="apple_pay" title="Apple Pay" aria-label="Apple Pay" className={pillClass}>
 						<FaCcApplePay className="size-5 text-foreground" />
 					</div>
 				)
-			case 'momo':
+			case 'google_pay':
 				return (
-					<div
-						key="momo"
-						title="MoMo"
-						className="flex h-7 items-center justify-center gap-1 rounded-md border border-border/50 bg-surface px-2 text-xs font-bold text-[#A50064] shadow-2xs transition-colors hover:border-primary/50"
-					>
-						<span className="size-2 rounded-full bg-[#A50064]" />
-						<span>MoMo</span>
+					<div key="google_pay" title="Google Pay" aria-label="Google Pay" className={pillClass}>
+						<FaGooglePay className="size-6 text-foreground" />
 					</div>
 				)
-			case 'vnpay':
+			case 'shop_pay':
 				return (
-					<div
-						key="vnpay"
-						title="VNPay"
-						className="flex h-7 items-center justify-center gap-1 rounded-md border border-border/50 bg-surface px-2 text-xs font-bold text-[#005BAA] shadow-2xs transition-colors hover:border-primary/50"
-					>
-						<QrCode className="size-3.5 text-[#ED1C24]" />
-						<span>VNPay</span>
+					<div key="shop_pay" title="Shop Pay" aria-label="Shop Pay" className={pillClass}>
+						<span className="text-[9px] font-black tracking-tight text-[#5A31F4]">Shop</span>
 					</div>
 				)
-			case 'zalopay':
+			case 'klarna':
 				return (
-					<div
-						key="zalopay"
-						title="ZaloPay"
-						className="flex h-7 items-center justify-center gap-1 rounded-md border border-border/50 bg-surface px-2 text-xs font-bold text-[#008FE5] shadow-2xs transition-colors hover:border-primary/50"
-					>
-						<span className="size-2 rounded-full bg-[#008FE5]" />
-						<span>ZaloPay</span>
+					<div key="klarna" title="Klarna" aria-label="Klarna" className={pillClass}>
+						<SiKlarna className="size-4 text-[#FFB3C7] dark:text-pink-300" />
+					</div>
+				)
+			case 'afterpay':
+				return (
+					<div key="afterpay" title="Afterpay / Clearpay" aria-label="Afterpay" className={pillClass}>
+						<SiAfterpay className="size-3.5 text-[#B2FCE4] dark:text-emerald-400" />
+					</div>
+				)
+			case 'jcb':
+				return (
+					<div key="jcb" title="JCB" aria-label="JCB" className={pillClass}>
+						<FaCcJcb className="size-5 text-[#0E4292] dark:text-white" />
+					</div>
+				)
+			case 'maestro':
+				return (
+					<div key="maestro" title="Maestro" aria-label="Maestro" className={pillClass}>
+						<span className="flex items-center -space-x-1">
+							<span className="size-2.5 rounded-full bg-[#EB001B]" />
+							<span className="size-2.5 rounded-full bg-[#006FCF] opacity-80" />
+						</span>
+					</div>
+				)
+			case 'unionpay':
+				return (
+					<div key="unionpay" title="UnionPay" aria-label="UnionPay" className={pillClass}>
+						<span className="text-[8px] font-bold text-[#E21E26] tracking-tighter">Union</span>
 					</div>
 				)
 			case 'cod':
 				return (
-					<div
-						key="cod"
-						title="Cash on Delivery"
-						className="flex h-7 items-center justify-center gap-1.5 rounded-md border border-border/50 bg-surface px-2 text-xs font-medium text-foreground/80 shadow-2xs transition-colors hover:border-primary/50"
-					>
-						<Banknote className="size-3.5 text-primary" />
-						<span>COD</span>
+					<div key="cod" title="Cash on Delivery" aria-label="Cash on Delivery" className={pillClass}>
+						<Banknote className="size-3.5 text-foreground/70" />
 					</div>
 				)
 			case 'bank_transfer':
 				return (
-					<div
-						key="bank_transfer"
-						title="Bank Transfer"
-						className="flex h-7 items-center justify-center gap-1.5 rounded-md border border-border/50 bg-surface px-2 text-xs font-medium text-foreground/80 shadow-2xs transition-colors hover:border-primary/50"
-					>
-						<CreditCard className="size-3.5 text-primary" />
-						<span>Bank</span>
+					<div key="bank_transfer" title="Bank Wire / Transfer" aria-label="Bank Transfer" className={pillClass}>
+						<CreditCard className="size-3.5 text-foreground/70" />
 					</div>
 				)
 			default:
@@ -151,27 +135,27 @@ export default function PaymentBadges({
 	}
 
 	return (
-		<div className="flex flex-wrap items-center gap-4">
-			{/* Trust Badges */}
+		<div className="flex flex-wrap items-center gap-3">
+			{/* Trust Badges & Seals */}
 			{showTrustBadges && trustBadges && trustBadges.length > 0 && (
-				<div className="flex flex-wrap items-center gap-3">
+				<div className="flex flex-wrap items-center gap-2" aria-label="Trust and Security Seals">
 					{trustBadges.map((badge, idx) => {
-						const imgUrl = badge?.image ? urlFor(badge.image).url() : null
+						const imgUrl = badge?.image?.asset ? urlFor(badge.image).url() : null
 						if (!imgUrl) return null
 
 						const content = (
 							<div
 								key={idx}
 								title={badge.title}
-								className="flex h-9 items-center rounded-md border border-border/40 bg-surface/60 p-1 transition-all hover:border-primary/40 hover:bg-surface"
+								className="flex h-7 items-center rounded-md border border-border/40 bg-surface/60 px-1.5 py-0.5 transition-all hover:border-primary/40 hover:bg-surface"
 							>
 								<Image
 									src={imgUrl}
 									alt={badge.title || 'Trust Badge'}
-									width={80}
-									height={28}
+									width={70}
+									height={24}
 									unoptimized
-									className="h-7 w-auto object-contain"
+									className="h-5 w-auto object-contain"
 								/>
 							</div>
 						)
@@ -195,7 +179,10 @@ export default function PaymentBadges({
 
 			{/* Payment Gateway Icons */}
 			{showPaymentMethods && paymentMethods && paymentMethods.length > 0 && (
-				<div className="flex flex-wrap items-center gap-2">
+				<div
+					className="flex flex-wrap items-center gap-1.5"
+					aria-label="Accepted Payment Methods"
+				>
 					{paymentMethods.map((method) => renderPaymentIcon(method))}
 				</div>
 			)}

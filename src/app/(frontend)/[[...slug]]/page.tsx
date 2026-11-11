@@ -7,6 +7,8 @@ import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import { getPage, getProductSettings } from '@/sanity/lib/queries'
 import ModulesResolver from '@/ui/modules'
+import PageBackground, { type PageAppearanceData } from '@/ui/page-background'
+import { cn } from '@/lib/utils'
 
 type Props = {
 	params: Promise<{ slug?: string[] }>
@@ -20,7 +22,59 @@ export default async function Page({ params }: Props) {
 	])
 	if (!page) notFound()
 
-	return <ModulesResolver page={page} productSettings={productSettings} />
+	const appearance = (page as any)?.appearance as PageAppearanceData | undefined
+	const isDarkMode = appearance?.colorScheme === 'dark'
+	const headerMode = appearance?.headerMode || 'default'
+	const hideFooter = Boolean(appearance?.hideFooter)
+
+	return (
+		<div
+			className={cn('relative min-h-full w-full', isDarkMode && 'dark')}
+			data-header-mode={headerMode}
+			data-hide-footer={hideFooter ? 'true' : 'false'}
+		>
+			{/* SSR Zero-Flicker Style Injections for Funnel Navigation */}
+			{headerMode === 'hidden' && (
+				<style
+					dangerouslySetInnerHTML={{
+						__html: `
+							#site-header { display: none !important; }
+							:root { --header-height: 0px !important; }
+						`,
+					}}
+				/>
+			)}
+			{headerMode === 'transparent' && (
+				<style
+					dangerouslySetInnerHTML={{
+						__html: `
+							#site-header:not([data-scrolled="true"]) {
+								position: absolute !important;
+								top: 0 !important;
+								left: 0 !important;
+								right: 0 !important;
+								background-color: transparent !important;
+								border-bottom-color: transparent !important;
+								box-shadow: none !important;
+							}
+						`,
+					}}
+				/>
+			)}
+			{hideFooter && (
+				<style
+					dangerouslySetInnerHTML={{
+						__html: `
+							#site-footer { display: none !important; }
+						`,
+					}}
+				/>
+			)}
+
+			<PageBackground appearance={appearance} />
+			<ModulesResolver page={page} productSettings={productSettings} />
+		</div>
+	)
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -67,7 +121,7 @@ export async function generateStaticParams() {
 			*[
 				_type == 'page'
 				&& defined(metadata.slug.current)
-				&& !(metadata.slug.current in ['404'])
+				&& !(metadata.slug.current in ['404', 'blog', 'checkout', 'search'])
 			].metadata.slug.current
 		`,
 	)

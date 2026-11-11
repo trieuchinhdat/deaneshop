@@ -1,11 +1,16 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 import { SearchIcon } from '@sanity/icons'
 import { FiTag } from 'react-icons/fi'
-import { getBlockText } from '@/lib/utils'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'search-module',
-	title: 'Search',
+	title: 'Interactive Search Bar [DEPRECATED]',
+	description:
+		'Legacy module. Interactive Search Bar is now rendered as a fixed system view at /search.',
+	deprecated: {
+		reason: 'Search module is now rendered as a dedicated system view at /search.',
+	},
 	type: 'object',
 	icon: SearchIcon,
 	groups: [{ name: 'content', default: true }, { name: 'options' }],
@@ -59,13 +64,15 @@ export default defineType({
 			group: 'options',
 		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'search-module',
+		icon: SearchIcon,
+		titleFields: ['intro'],
 		select: {
-			intro: 'intro',
+			scope: 'scope',
 		},
-		prepare: ({ intro }) => ({
-			title: getBlockText(intro),
-			subtitle: 'Search',
-		}),
-	},
+		metadata: (doc) => [
+			doc.scope ? `Scope: ${doc.scope}` : null,
+		],
+	}),
 })

@@ -1,0 +1,47 @@
+/* ========================================================
+   SANITY STUDIO: VISUAL CATALOG & TEMPLATE STORE MODAL STYLES
+   ======================================================== */
+
+/* 1. Full-Frame Dialog Cards for Catalog and Template Store */
+#visual-catalog-modal [data-ui="Dialog__card"],
+#template-store-modal [data-ui="Dialog__card"],
+[id*="template-store"] [data-ui="Dialog__card"],
+[id*="visual-catalog"] [data-ui="Dialog__card"] {
+	width: min(94vw, 1380px) !important;
+	max-width: 94vw !important;
+	height: min(88vh, 880px) !important;
+	border-radius: 16px !important;
+	box-shadow:
+		0 25px 70px -15px rgba(0, 0, 0, 0.8),
+		0 0 0 1px rgba(255, 255, 255, 0.12) !important;
+}
+
+/* 2. Module Catalog Card Interactive Hover */
+.module-catalog-card {
+	transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.module-catalog-card:hover {
+	transform: translateY(-4px) !important;
+	border-color: #10b981 !important;
+	box-shadow:
+		0 14px 28px -6px rgba(0, 0, 0, 0.5),
+		0 0 0 1px #10b981 !important;
+}
+
+/* 3. Smooth custom scrollbar for catalog modal content */
+#visual-catalog-modal [style*="overflow-y: auto"]::-webkit-scrollbar,
+#template-store-modal [style*="overflow-y: auto"]::-webkit-scrollbar {
+	width: 8px;
+}
+
+#visual-catalog-modal [style*="overflow-y: auto"]::-webkit-scrollbar-track,
+#template-store-modal [style*="overflow-y: auto"]::-webkit-scrollbar-track {
+	background: rgba(0, 0, 0, 0.15);
+}
+
+#visual-catalog-modal [style*="overflow-y: auto"]::-webkit-scrollbar-thumb,
+#template-store-modal [style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: 4px;
+}

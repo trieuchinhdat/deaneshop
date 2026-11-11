@@ -42,12 +42,12 @@ export default function PopupModal({ settings }: PopupModalProps) {
 		if (typeof window === 'undefined') return false
 
 		// Already submitted form
-		if (type === 'form' && localStorage.getItem('ecocros_popup_submitted') === 'true') {
+		if (type === 'form' && localStorage.getItem('deanflow_popup_submitted') === 'true') {
 			return false
 		}
 
 		// Closed within frequencyDays window
-		const closedUntil = localStorage.getItem('ecocros_popup_closed_until')
+		const closedUntil = localStorage.getItem('deanflow_popup_closed_until')
 		if (closedUntil && Date.now() < Number(closedUntil)) {
 			return false
 		}
@@ -128,7 +128,7 @@ export default function PopupModal({ settings }: PopupModalProps) {
 		setIsOpen(false)
 		if (typeof window !== 'undefined' && frequencyDays > 0) {
 			const expiry = Date.now() + frequencyDays * 24 * 60 * 60 * 1000
-			localStorage.setItem('ecocros_popup_closed_until', expiry.toString())
+			localStorage.setItem('deanflow_popup_closed_until', expiry.toString())
 		}
 	}
 
@@ -139,7 +139,7 @@ export default function PopupModal({ settings }: PopupModalProps) {
 
 	return (
 		<div
-			className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-3 sm:p-6 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
+			className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-3 sm:p-6 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in print:hidden popup-modal-backdrop"
 			onClick={handleClose}
 			role="dialog"
 			aria-modal="true"
@@ -155,11 +155,7 @@ export default function PopupModal({ settings }: PopupModalProps) {
 				}`}
 				onClick={(e) => e.stopPropagation()}
 			>
-				{/* 
-					Nút đóng [X]:
-					- Khi là Banner Only: Bỏ hoàn toàn màu nền và border, chỉ là icon nổi bật với drop-shadow và hiệu ứng hover mượt mà.
-					- Khi là Form: Nút tròn bán trong suốt sang trọng.
-				*/}
+				{/* Close Button [X] */}
 				<button
 					type="button"
 					onClick={handleClose}
@@ -173,7 +169,7 @@ export default function PopupModal({ settings }: PopupModalProps) {
 					<FiX className={`${isBannerOnly ? 'h-7 w-7 sm:h-8 sm:w-8 stroke-[2.5]' : 'h-5 w-5 stroke-[2.5]'}`} />
 				</button>
 
-				{/* Render Banner hoặc Form */}
+				{/* Render Banner or Lead Form */}
 				{type === 'form' ? (
 					<PopupForm settings={settings} onClose={handleClose} />
 				) : (

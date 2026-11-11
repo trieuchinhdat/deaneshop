@@ -1,10 +1,15 @@
 import { defineField, defineType } from 'sanity'
 import { EditIcon } from '@sanity/icons'
-import { getBlockText } from '@/lib/utils'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'blog-index',
-	title: 'Blog index',
+	title: 'Blog Magazine Index [DEPRECATED]',
+	description:
+		'Legacy module. Blog Index is now a fixed system view managed via Blog & Editorial Settings.',
+	deprecated: {
+		reason: 'Blog Index is a fixed system view managed via Blog & Editorial Settings singleton.',
+	},
 	type: 'object',
 	icon: EditIcon,
 	fields: [
@@ -20,13 +25,15 @@ export default defineType({
 			validation: (Rule) => Rule.min(1),
 		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'blog-index',
+		icon: EditIcon,
+		titleFields: ['intro'],
 		select: {
-			intro: 'intro',
+			postsPerPage: 'postsPerPage',
 		},
-		prepare: ({ intro }) => ({
-			title: getBlockText(intro),
-			subtitle: 'Blog index',
-		}),
-	},
+		metadata: (doc) => [
+			doc.postsPerPage ? `${doc.postsPerPage} posts/page` : null,
+		],
+	}),
 })

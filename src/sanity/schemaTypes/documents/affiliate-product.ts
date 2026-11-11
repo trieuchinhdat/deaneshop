@@ -3,7 +3,10 @@ import { TagIcon } from '@sanity/icons'
 
 export default defineType({
 	name: 'affiliate.product',
-	title: 'Affiliate Products (Catalog)',
+	title: 'Affiliate Products [DEPRECATED]',
+	deprecated: {
+		reason: 'Affiliate product catalog is deprecated. Use standard products or lead landing pages instead.',
+	},
 	type: 'document',
 	icon: TagIcon,
 	groups: [

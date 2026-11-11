@@ -1,0 +1,36 @@
+const { test }=require('node:test')
+const assert=require('node:assert/strict')
+const {load}=require('./load-ts.cjs')
+const c=load('src/lib/commerce.ts')
+const product={_id:'p',title:'Product',price:10,currency:'USD',moq:10,inStock:true,conversionType:'order_request',priceTiers:[{minQty:20,unitPrice:8,incoterm:'FOB'}]}
+test('reject empty, negative, fractional carts; merge duplicate SKU quantities',()=>{
+ for(const items of [[],[{productId:'p',quantity:-1}],[{productId:'p',quantity:1.5}]]) assert.throws(()=>c.requestedItems(items))
+ assert.equal(c.requestedItems([{productId:'p',quantity:2},{productId:'p',quantity:3}])[0].quantity,5)
+})
+test('prices and totals are authoritative, mode/MOQ/tier/custom policies enforced',()=>{
+ const items=c.requestedItems([{productId:'p',quantity:20,price:-500}])
+ const price=c.priceOrder(items,[product],'direct',5,'FOB')
+ assert.equal(price.total,165)
+ assert.throws(()=>c.priceOrder([{productId:'p',quantity:1}],[product],'direct',0,'FOB'))
+ assert.equal(c.priceOrder([{productId:'p',quantity:1}],[product],'sample',0,'FOB').total,10)
+ assert.throws(()=>c.priceOrder(items,[{...product,priceTiers:[{minQty:1,isCustomQuote:true}]}],'direct',0,'FOB'))
+ assert.equal(c.priceOrder(items,[{...product,priceTiers:[{minQty:1,isCustomQuote:true}]}],'wholesale_rfq',0,'FOB').customQuote,true)
+ assert.throws(()=>c.priceOrder([{productId:'p',variantId:'fake',quantity:20}],[product],'direct',0,'FOB'))
+ assert.throws(()=>c.priceOrder(items,[{...product,price:-1}],'sample',0,'FOB'))
+})
+test('first and last attribution remain distinct; hostile field types are removed',()=>{
+ const a=load('src/lib/attribution.ts')
+ const merged=a.mergeAttribution({utm_source:'google',first_touch_at:'first'},{utm_source:'linkedin',first_touch_at:'last'})
+ assert.equal(merged.first_touch.utm_source,'google');assert.equal(merged.last_touch.utm_source,'linkedin');assert.equal(merged.first_touch_at,'first')
+ const parsed=a.parseAttributionCookie('deanflow_attr='+encodeURIComponent(JSON.stringify({utm_source:{bad:true}})))
+ assert.equal(parsed.utm_source,undefined)
+})
+test('RFQ transition denies ID-only actions and only reports changed rows',async()=>{
+ let changed=0,allowed=false,sql
+ const q=load('src/lib/quote-transition.ts',{'./d1':{ordersDb:{getByOrderNumber:async()=>({id:'o'})},d1Query:async s=>{sql=s;return {meta:{changes:changed}}}},'./quote-access':{canAccessQuote:async()=>allowed}})
+ assert.equal((await q.transitionQuote({quoteId:'q',approvedBy:'Buyer',version:1},'approved')).status,403)
+ allowed=true;assert.equal((await q.transitionQuote({quoteId:'q',approvedBy:'Buyer',version:1},'approved')).status,409)
+ changed=1;assert.equal((await q.transitionQuote({quoteId:'q',approvedBy:'Buyer',version:1},'approved')).status,200)
+ assert.match(sql,/quote_status IN \('sent', 'viewed', 'negotiating'\)/)
+ assert.match(sql,/quote_valid_until > \?/)
+})

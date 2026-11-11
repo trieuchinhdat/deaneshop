@@ -1,114 +1,169 @@
-import { groq } from 'next-sanity'
 import { create } from 'zustand'
-import { ROUTES } from '@/lib/env'
-import { sanityFetchLive } from '@/sanity/lib/live'
-import type { SEARCH_QUERY_RESULT, SearchModule } from '@/sanity/types'
+import type { SearchModule } from '@/sanity/types'
+import {
+	searchStorefront,
+	type SearchResponse,
+	type SearchResultItem,
+	type SearchScope,
+} from './actions'
 
-// 1. Định nghĩa Type cho Store
+export type { SearchResponse, SearchResultItem }
+
+const EMPTY_RESPONSE: SearchResponse = {
+	products: [],
+	blogs: [],
+	pages: [],
+	totals: { products: 0, blogs: 0, pages: 0 },
+	pageSize: 8,
+}
+
+let activeRequestSequence = 0
+
+export type SearchFetcher = (params: {
+	query: string
+	scope?: SearchScope
+	productPage?: number
+	blogPage?: number
+	pagePage?: number
+	pageSize?: number
+}) => Promise<SearchResponse>
+
 type SearchStore = {
 	loading: boolean
+	error: string | null
+	products: SearchResultItem[]
+	blogs: SearchResultItem[]
+	pages: SearchResultItem[]
+	totals: SearchResponse['totals']
+	pageSize: number
 	setLoading: (loading: boolean) => void
-	results: SEARCH_QUERY_RESULT
-	setResults: (results: SEARCH_QUERY_RESULT) => void
-	// 👇 Thêm action search vào store
+	setError: (error: string | null) => void
+	setResponse: (response: SearchResponse) => void
+	clearResults: () => void
 	search: (params: {
 		query: string
 		scope?: SearchModule['scope']
+		productPage?: number
+		blogPage?: number
+		pagePage?: number
+		pageSize?: number
 	}) => Promise<void>
 }
 
 export const useSearchStore = create<SearchStore>((set) => ({
 	loading: false,
+	error: null,
+	products: [],
+	blogs: [],
+	pages: [],
+	totals: { products: 0, blogs: 0, pages: 0 },
+	pageSize: 8,
 	setLoading: (loading) => set({ loading }),
-	results: [],
-	setResults: (results) => set({ results }),
+	setError: (error) => set({ error }),
+	setResponse: (response) =>
+		set({
+			products: response.products,
+			blogs: response.blogs,
+			pages: response.pages,
+			totals: response.totals,
+			pageSize: response.pageSize,
+		}),
+	clearResults: () => {
+		activeRequestSequence += 1
+		set({
+			loading: false,
+			error: null,
+			...EMPTY_RESPONSE,
+		})
+	},
 
-	// 👇 Tích hợp logic search vào store
-	search: async ({ query, scope = 'all' }) => {
-		// Tận dụng hàm handleSearch có sẵn
+	search: async ({
+		query,
+		scope = 'all',
+		productPage = 1,
+		blogPage = 1,
+		pagePage = 1,
+		pageSize = 8,
+	}) => {
 		await handleSearch({
 			query,
 			scope,
-			setLoading: (l) => set({ loading: l }),
-			setResults: (r) => set({ results: r }),
+			productPage,
+			blogPage,
+			pagePage,
+			pageSize,
+			setLoading: (loading) => set({ loading }),
+			setError: (error) => set({ error }),
+			setResponse: (response) =>
+				set({
+					products: response.products,
+					blogs: response.blogs,
+					pages: response.pages,
+					totals: response.totals,
+					pageSize: response.pageSize,
+				}),
 		})
 	},
 }))
 
-const SCOPE_MAP = {
-	'blog posts': 'blog.post',
-	pages: 'page',
-	product: 'product',
-}
-
-// Hàm này giữ nguyên để xử lý logic gọi API
 export async function handleSearch({
 	scope = 'all',
 	query,
+	productPage = 1,
+	blogPage = 1,
+	pagePage = 1,
+	pageSize = 8,
 	setLoading,
-	setResults,
+	setError,
+	setResponse,
+	searchFn = searchStorefront,
 }: {
-	scope: SearchModule['scope']
+	scope?: SearchModule['scope']
 	query: string
+	productPage?: number
+	blogPage?: number
+	pagePage?: number
+	pageSize?: number
 	setLoading: (loading: boolean) => void
-	setResults: (results: SEARCH_QUERY_RESULT) => void
+	setError?: (error: string | null) => void
+	setResponse: (response: SearchResponse) => void
+	searchFn?: SearchFetcher
 }) {
-	if (!query) {
-		setResults([])
+	const requestId = ++activeRequestSequence
+	const trimmedQuery = typeof query === 'string' ? query.trim() : ''
+
+	if (!trimmedQuery) {
+		setResponse(EMPTY_RESPONSE)
+		setError?.(null)
 		setLoading(false)
 		return
 	}
 
 	setLoading(true)
+	setError?.(null)
 
-	const scopeValue = SCOPE_MAP[scope as keyof typeof SCOPE_MAP]
-
-	const results = await sanityFetchLive<SEARCH_QUERY_RESULT>({
-		query: SEARCH_QUERY,
-		params: {
-			queryMatch: `*${query}*`,
-			scope: scope === 'all' ? Object.values(SCOPE_MAP) : [scopeValue],
-			blogDir: `/${ROUTES.blog}/`,
-			productDir: `/${ROUTES.products}/`,
-		},
-	})
-
-	setResults(results)
-	setLoading(false)
+	try {
+		const response = await searchFn({
+			query: trimmedQuery,
+			scope: scope || 'all',
+			productPage,
+			blogPage,
+			pagePage,
+			pageSize,
+		})
+		if (requestId !== activeRequestSequence) return
+		setResponse(response)
+	} catch (err) {
+		if (requestId !== activeRequestSequence) return
+		setResponse(EMPTY_RESPONSE)
+		setError?.(
+			err instanceof Error && err.message
+				? err.message
+				: 'Search temporarily unavailable. Please try again.',
+		)
+	} finally {
+		if (requestId === activeRequestSequence) {
+			setLoading(false)
+		}
+	}
 }
-
-const SEARCH_QUERY = groq`*[
-    _type in $scope
-    && defined(metadata.slug.current)
-    && metadata.noIndex != true
-    && !(metadata.slug.current in ['404'])
-    && [
-        modules[].intro[].children[].text,
-        modules[].content[].children[].text,
-        content[].children[].text,
-        title,
-        metadata.title,
-        metadata.description
-    ] match $queryMatch
-]{
-    _id,
-    _type,
-    title,
-    price,
-    "compareAtPrice": compareAtPrice,
-    images,
-    "reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },
-    metadata{
-        ...,
-        image{
-            ...,
-            asset->
-        }
-    },
-    'slug': select(
-        _type == 'product' => '/products/' + metadata.slug.current, 
-        _type == 'blog.post' => $blogDir + metadata.slug.current,
-        metadata.slug.current == 'index' => '/',
-        '/' + metadata.slug.current
-    )
-}`

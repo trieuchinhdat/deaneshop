@@ -77,7 +77,7 @@ export default function CommentCard({
 						{comment.isAuthorReply && (
 							<span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700 uppercase tracking-wide dark:bg-blue-950/70 dark:text-blue-300">
 								<ShieldCheck className="size-3 text-blue-600 dark:text-blue-400" />
-								Author / Team
+								Official Response
 							</span>
 						)}
 
@@ -112,7 +112,7 @@ export default function CommentCard({
 
 			{/* Inline Reply Form */}
 			{isReplying && (
-				<div className="ml-8 sm:ml-14 pt-1">
+				<div className="ml-4 sm:ml-14 pt-1">
 					<CommentForm
 						postId={postId}
 						parentCommentId={comment._id}
@@ -124,7 +124,7 @@ export default function CommentCard({
 
 			{/* Threaded Nested Replies (1 Level) */}
 			{replies.length > 0 && (
-				<div className="ml-5 sm:ml-12 border-l-2 border-zinc-200/80 pl-4 sm:pl-6 space-y-4 pt-2 dark:border-zinc-800">
+				<div className="ml-3 sm:ml-12 border-l-2 border-zinc-200/80 pl-3 sm:pl-6 space-y-4 pt-2 dark:border-zinc-800">
 					{replies.map((reply) => {
 						const replyInitial = (reply.authorName || 'U').charAt(0).toUpperCase()
 						return (

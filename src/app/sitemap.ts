@@ -6,13 +6,15 @@ import { sanityFetchLive } from '@/sanity/lib/live'
 export const dynamic = 'force-dynamic'
 
 export default async function (): Promise<MetadataRoute.Sitemap> {
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://example.com'
+	const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://example.com'
+	const baseUrl = rawBaseUrl.replace(/\/+$/, '')
 
 	const data = await sanityFetchLive<{
 		pages: MetadataRoute.Sitemap
 		categories: MetadataRoute.Sitemap
 		posts: MetadataRoute.Sitemap
 		product: MetadataRoute.Sitemap
+		collections: MetadataRoute.Sitemap
 	}>({
 		query: groq`{
 			'pages': *[
@@ -53,8 +55,17 @@ export default async function (): Promise<MetadataRoute.Sitemap> {
 				_type == 'product'
 				&& defined(metadata.slug.current)
 				&& metadata.noIndex != true
-			]|order(publishDate desc){
+			]|order(_updatedAt desc){
 				'url': $baseUrl + '/' + $productDir + '/' + metadata.slug.current,
+				'lastModified': _updatedAt,
+				'priority': 0.8
+			},
+			'collections': *[
+				_type == 'collection'
+				&& defined(metadata.slug.current)
+				&& metadata.noIndex != true
+			]|order(_updatedAt desc){
+				'url': $baseUrl + '/' + $collectionDir + '/' + metadata.slug.current,
 				'lastModified': _updatedAt,
 				'priority': 0.8
 			}
@@ -63,6 +74,7 @@ export default async function (): Promise<MetadataRoute.Sitemap> {
 			baseUrl,
 			blogDir: ROUTES.blog,
 			productDir: ROUTES.products,
+			collectionDir: ROUTES.collections,
 		},
 	})
 

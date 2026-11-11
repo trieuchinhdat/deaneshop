@@ -38,7 +38,7 @@ export default function RelatedPosts({
 					href={`/${ROUTES.blog}`}
 					className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-zinc-700 hover:text-zinc-950 dark:text-zinc-200 dark:hover:text-white"
 				>
-					View All <ArrowRight className="size-3.5" />
+					View all articles <ArrowRight className="size-3.5" />
 				</Link>
 			</div>
 
@@ -72,10 +72,11 @@ export default function RelatedPosts({
 									)}
 								</div>
 
-								<div className="flex items-center gap-2 text-[11px] sm:text-xs text-zinc-600 dark:text-zinc-300 font-medium">
+								<div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-zinc-600 dark:text-zinc-300 font-medium">
 									<DateComponent date={post.publishDate} />
-									<span>•</span>
-									<ReadTime value={post.readTime || 3} />
+									<span className="before:content-['•'] before:mr-1.5 before:text-zinc-400">
+										<ReadTime value={post.readTime || 3} />
+									</span>
 								</div>
 
 								<h4 className="font-bold text-sm sm:text-base text-zinc-900 line-clamp-2 dark:text-zinc-100 group-hover:underline">

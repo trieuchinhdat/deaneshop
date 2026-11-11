@@ -9,9 +9,13 @@ import { cn } from '@/lib/utils'
 interface WrapperProps extends React.ComponentProps<'header'> {
 	behavior?: string
 	styleVariant?: string
+	headerThemeStyle?: string
 	headerBackground?: string
 	headerText?: string
 	enableScrolledEffect?: boolean
+	transparentOnHome?: boolean
+	topBar?: React.ReactNode
+	topbarSticky?: boolean
 }
 
 export default function Wrapper({
@@ -19,9 +23,13 @@ export default function Wrapper({
 	children,
 	behavior = 'sticky',
 	styleVariant = 'solid',
+	headerThemeStyle = 'default',
 	headerBackground,
 	headerText,
 	enableScrolledEffect = true,
+	transparentOnHome = false,
+	topBar,
+	topbarSticky = false,
 	style,
 	...props
 }: WrapperProps) {
@@ -35,6 +43,10 @@ export default function Wrapper({
 	// Clean stega characters from Sanity visual editing
 	const cleanBg = headerBackground ? stegaClean(headerBackground).trim() : undefined
 	const cleanText = headerText ? stegaClean(headerText).trim() : undefined
+	const cleanTheme = headerThemeStyle ? stegaClean(headerThemeStyle).trim() : 'default'
+
+	// Check if transparent header on homepage hero is active
+	const isTransparentActive = Boolean(transparentOnHome && pathname === '/' && !isScrolled)
 
 	// Set and sync --header-height using ResizeObserver with default fallback
 	useEffect(() => {
@@ -56,7 +68,7 @@ export default function Wrapper({
 
 		updateHeight()
 
-		// ResizeObserver tracks dynamic height change (e.g. mobile search bar, window resize)
+		// ResizeObserver tracks dynamic height change (e.g. mobile search bar, window resize, topbar collapse)
 		const resizeObserver = new ResizeObserver(() => {
 			updateHeight()
 		})
@@ -111,10 +123,6 @@ export default function Wrapper({
 
 	// Close menus & open dropdowns on route navigation
 	useEffect(() => {
-		if (typeof document === 'undefined') return
-		const toggle = document.querySelector('#header-open') as HTMLInputElement
-		if (toggle) toggle.checked = false
-
 		if (!ref.current) return
 		ref.current
 			.querySelectorAll('details.group\\/dropdown, details.group\\/megamenu')
@@ -134,25 +142,31 @@ export default function Wrapper({
 					)
 				: 'sticky top-0 z-[60]'
 
-	const styleClass =
-		styleVariant === 'blur'
+	const styleClass = isTransparentActive
+		? 'bg-transparent text-white border-transparent shadow-none'
+		: cleanTheme === 'light'
 			? cn(
-					'bg-header/85 backdrop-blur-md text-header-foreground',
-					isScrolled && enableScrolledEffect && 'bg-header/95 backdrop-blur-lg shadow-md border-b border-stroke/15'
+					'bg-white text-gray-900 border-b border-gray-200/70',
+					isScrolled && enableScrolledEffect && 'shadow-md border-gray-200'
 				)
-			: styleVariant === 'transparent'
+			: cleanTheme === 'dark'
 				? cn(
-						'bg-transparent text-header-foreground',
-						isScrolled && enableScrolledEffect && 'bg-header/90 backdrop-blur-md shadow-md border-b border-stroke/15'
+						'bg-slate-950 text-slate-100 border-b border-slate-800/80',
+						isScrolled && enableScrolledEffect && 'shadow-lg border-slate-800'
 					)
-				: cn(
-						'bg-header text-header-foreground',
-						isScrolled && enableScrolledEffect && 'shadow-md border-b border-stroke/15'
-					)
+				: styleVariant === 'blur'
+					? cn(
+							'bg-header/85 backdrop-blur-md text-header-foreground border-b border-transparent',
+							isScrolled && enableScrolledEffect && 'bg-header/95 backdrop-blur-lg shadow-md border-stroke/15'
+						)
+					: cn(
+							'bg-header text-header-foreground border-b border-transparent',
+							isScrolled && enableScrolledEffect && 'shadow-md border-stroke/15'
+						)
 
 	const customStyle: React.CSSProperties = {
 		...(style || {}),
-		...(cleanBg
+		...(!isTransparentActive && cleanBg
 			? styleVariant === 'solid'
 				? ({
 						backgroundColor: cleanBg,
@@ -164,7 +178,7 @@ export default function Wrapper({
 						'--color-header': cleanBg,
 					} as React.CSSProperties)
 			: {}),
-		...(cleanText
+		...(!isTransparentActive && cleanText
 			? ({
 					color: cleanText,
 					'--header-text': cleanText,
@@ -176,11 +190,41 @@ export default function Wrapper({
 	return (
 		<header
 			ref={ref}
-			className={cn('w-full transition-all duration-300', positionClass, styleClass, className)}
+			id="site-header"
+			data-scrolled={isScrolled ? 'true' : 'false'}
+			className={cn(
+				'w-full transition-all duration-300 print:hidden',
+				isTransparentActive && '-mb-[var(--header-height,64px)]',
+				positionClass,
+				styleClass,
+				className
+			)}
 			style={customStyle}
 			role="banner"
 			{...props}
 		>
+			{/* Skip link for keyboard & screen reader accessibility */}
+			<a
+				href="#main-content"
+				className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[200] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-xl focus:shadow-2xl focus:font-bold focus:outline-none focus:ring-2 focus:ring-white transition-all"
+			>
+				Skip to main content
+			</a>
+
+			{/* Top Announcement Bar Container with smooth scroll collapse */}
+			{topBar && (
+				<div
+					className={cn(
+						'transition-all duration-300 ease-in-out overflow-hidden',
+						!topbarSticky && isScrolled
+							? 'max-h-0 opacity-0 pointer-events-none'
+							: 'max-h-16 opacity-100'
+					)}
+				>
+					{topBar}
+				</div>
+			)}
+
 			{children}
 		</header>
 	)

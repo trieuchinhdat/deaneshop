@@ -26,7 +26,7 @@ export default function ReadingProgress() {
 			aria-hidden="true"
 		>
 			<div
-				className="h-full bg-gradient-to-r from-zinc-800 via-zinc-900 to-black transition-all duration-75 dark:from-zinc-400 dark:to-white"
+				className="h-full bg-primary transition-all duration-75 shadow-xs"
 				style={{ width: `${progress}%` }}
 			/>
 		</div>

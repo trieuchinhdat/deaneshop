@@ -36,7 +36,7 @@ export default function CategoryPostsList() {
 			_id,
 			title,
 			publishDate,
-			"slug": slug.current
+			"slug": coalesce(metadata.slug.current, slug.current)
 		}`
 
 		client

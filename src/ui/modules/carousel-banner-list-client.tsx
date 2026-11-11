@@ -1,28 +1,18 @@
 'use client'
 
-import { Autoplay, Grid, Navigation, Pagination } from 'swiper/modules'
+import { Autoplay, Navigation, Pagination } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css'
-import 'swiper/css/grid'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 import Link from 'next/link'
 import ResponsiveImage from '@/ui/responsiveImage'
+import { MotionBanner } from '@/ui/motion/theme-motion'
 
 /* ---------------- Types ---------------- */
 
-type CarouselBannerItem = {
-	_key: string
-	alt?: string
-	url?: string
-	loading?: 'lazy' | 'eager'
-	mobileImage?: any
-	asset?: any
-}
-
 type LayoutConfig = {
 	bannersPerRow?: number
-	rows?: number
 }
 
 type CarouselOptions = {
@@ -43,16 +33,17 @@ type Props = {
 /* ---------------- Component ---------------- */
 const resolveInternalLink = (slug: string, type: string) => {
 	switch (type) {
-		case 'product': // Nếu là sản phẩm
+		case 'product':
 			return `/products/${slug}`
-		case 'blog.post': // Nếu là bài viết (check tên schema trong sanity của bạn)
+		case 'blog.post':
 			return `/blog/${slug}`
-		case 'page': // Nếu là page thường
+		case 'page':
 			return slug === 'home' || slug === 'index' ? '/' : `/${slug}`
-		default: // Mặc định
+		default:
 			return `/${slug}`
 	}
 }
+
 export default function CarouselBannerListClient({
 	items,
 	desktop,
@@ -61,43 +52,31 @@ export default function CarouselBannerListClient({
 }: Props) {
 	if (!items?.length) return null
 
-	/* 1. XÁC ĐỊNH SỐ CỘT (COLUMNS) */
-	const desktopCols = desktop?.bannersPerRow ?? 4
+	const desktopCols = desktop?.bannersPerRow ?? 1
 	const mobileCols = mobile?.bannersPerRow ?? 1
-	const desktopRows = desktop?.rows ?? 1
-	const mobileRows = mobile?.rows ?? 1
 
-	/* 2. TỰ ĐỘNG TÍNH GAP (LOGIC BẠN YÊU CẦU) */
 	const desktopGap = desktopCols === 1 ? 0 : 16
-	const mobileGap = mobileCols === 1 ? 0 : 8
+	const mobileGap = mobileCols === 1 ? 0 : 10
 
-	/* 3. SET BIẾN CSS (CHO LÚC CHƯA LOAD JS) */
-	const cssVars = {
-		'--desktop-cols': desktopCols,
-		'--mobile-cols': mobileCols,
-		'--desktop-rows': desktopRows,
-		'--mobile-rows': mobileRows,
-		'--desktop-gap': `${desktopGap}px`, // Truyền gap đã tính
-		'--mobile-gap': `${mobileGap}px`, // Truyền gap đã tính
-	} as React.CSSProperties
-
-	/* ---------- Options ---------- */
 	const {
 		navigation = true,
 		pagination = true,
 		autoSlide = false,
 	} = options ?? {}
 
-	/* ---------- Swiper modules ---------- */
 	const modules = [
-		Grid,
 		navigation && Navigation,
 		pagination && Pagination,
 		autoSlide && Autoplay,
 	].filter(Boolean) as any
 
 	return (
-		<div className="carousel-banner-list" style={cssVars}>
+		<div
+			className="carousel-banner-list relative"
+			style={{
+				touchAction: 'pan-y',
+			}}
+		>
 			<Swiper
 				modules={modules}
 				navigation={navigation}
@@ -105,45 +84,35 @@ export default function CarouselBannerListClient({
 				autoplay={
 					autoSlide
 						? {
-								delay: 4000,
+								delay: 4500,
 								disableOnInteraction: false,
+								pauseOnMouseEnter: true,
 							}
 						: false
 				}
-				slidesPerView={desktopCols}
-				grid={{
-					rows: desktopRows,
-					fill: 'row',
-				}}
-				spaceBetween={desktopGap}
+				slidesPerView={mobileCols}
+				spaceBetween={mobileGap}
 				breakpoints={{
-					0: {
-						slidesPerView: mobileCols,
-						grid: {
-							rows: mobileRows,
-							fill: 'row',
-						},
-						spaceBetween: mobileGap,
+					768: {
+						slidesPerView: Math.min(2, desktopCols),
+						spaceBetween: 12,
 					},
 					1024: {
 						slidesPerView: desktopCols,
-						grid: {
-							rows: desktopRows,
-							fill: 'row',
-						},
 						spaceBetween: desktopGap,
 					},
 				}}
+				className="w-full"
 			>
 				{items.map((item, index) => {
 					const image = item
-					let bannerHref = null
+					let bannerHref: string | null = null
 					const isFirst = index < desktopCols
 
 					const targetDesktopWidth =
 						desktopCols === 1 ? 1440 : Math.min(1440, Math.round(1440 / desktopCols) * 2)
 					const targetMobileWidth =
-						mobileCols === 1 ? 480 : Math.min(480, Math.round(480 / mobileCols) * 2)
+						mobileCols === 1 ? 600 : Math.min(600, Math.round(600 / mobileCols) * 2)
 
 					const bannerSizes =
 						desktopCols === 1 && mobileCols === 1
@@ -161,24 +130,16 @@ export default function CarouselBannerListClient({
 							image.internalType,
 						)
 					}
-					const banner = bannerHref ? (
-						<Link
-							href={bannerHref}
-							target={image.type === 'external' ? '_blank' : undefined}
-						>
-							<ResponsiveImage
-								image={image}
-								className="w-full rounded-md"
-								desktop={{ width: targetDesktopWidth }}
-								mobile={{ width: targetMobileWidth }}
-								priority={isFirst}
-								sizes={bannerSizes}
-							/>
-						</Link>
-					) : (
+
+					const imageElement = (
 						<ResponsiveImage
-							image={image}
-							className="w-full rounded-md"
+							image={{
+								...image,
+								mobileImage: image.mobileImage,
+								alt: image.alt || 'Media Banner',
+							}}
+							className="w-full"
+							imgClassName="theme-banner-img w-full h-auto object-cover"
 							desktop={{ width: targetDesktopWidth }}
 							mobile={{ width: targetMobileWidth }}
 							priority={isFirst}
@@ -186,15 +147,29 @@ export default function CarouselBannerListClient({
 						/>
 					)
 
+					const banner = bannerHref ? (
+						<Link
+							href={bannerHref}
+							target={image.linkBannerType === 'external' ? '_blank' : undefined}
+							className="block overflow-hidden"
+						>
+							{imageElement}
+						</Link>
+					) : (
+						<div className="overflow-hidden">{imageElement}</div>
+					)
+
 					return (
-						<SwiperSlide key={item._key}>
-							<div
+						<SwiperSlide key={item._key || index}>
+							<MotionBanner
 								className={
-									options?.borderRadius ? 'overflow-hidden rounded-xl' : ''
+									options?.borderRadius !== false
+										? 'rounded-xl sm:rounded-2xl'
+										: ''
 								}
 							>
 								{banner}
-							</div>
+							</MotionBanner>
 						</SwiperSlide>
 					)
 				})}

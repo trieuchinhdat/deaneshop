@@ -1,96 +1,107 @@
 import { NextResponse } from 'next/server'
-import { writeClient } from '@/sanity/lib/write-client'
+import { requireAdminSession } from '@/lib/admin-auth'
+import { getEnvVarSync } from '@/lib/cf-env'
+import { PersistenceError, commentsDb, d1Query } from '@/lib/d1'
 
 export async function POST(req: Request) {
 	try {
+		// 1. RBAC Guard: Superadmin, Admin, Marketing can moderate blog comments
+		const auth = await requireAdminSession(['superadmin', 'admin', 'marketing'])
+		if (!auth.ok) {
+			return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
+		}
+		const session = auth.session
+
 		const body = await req.json().catch(() => ({}))
 		const { commentId, action, isApproved, isAuthorReply, replyContent, authorName } = body
 
 		if (!commentId) {
 			return NextResponse.json(
-				{ success: false, error: 'Thiếu mã bình luận (commentId).' },
+				{ success: false, error: 'Missing comment identifier (commentId).' },
 				{ status: 400 },
 			)
 		}
 
-		// 1. Action: Xóa bình luận (Spam/Vi phạm)
+		// 2. Action: Delete Comment (Only Super Admin & Admin)
 		if (action === 'DELETE') {
-			await writeClient.delete(commentId)
-			return NextResponse.json({
-				success: true,
-				message: 'Đã xóa bình luận thành công.',
-			})
-		}
-
-		// 2. Action: Tạo phản hồi chính thức từ Tác giả / Chuyên viên (Reply to comment)
-		if (action === 'REPLY' && replyContent?.trim()) {
-			// Lấy thông tin bài viết từ comment cha
-			const parentDoc = await writeClient.fetch(
-				`*[_type == "blog.comment" && _id == $commentId][0]{
-					_id,
-					"postId": post._ref
-				}`,
-				{ commentId },
-			)
-
-			if (!parentDoc?.postId) {
+			if (session.role !== 'superadmin' && session.role !== 'admin') {
 				return NextResponse.json(
-					{ success: false, error: 'Không tìm thấy bài viết tương ứng với bình luận này.' },
-					{ status: 404 },
+					{ success: false, error: 'Only Administrators can permanently delete blog discussions.' },
+					{ status: 403 },
 				)
 			}
 
-			const replyDoc = {
-				_type: 'blog.comment',
-				post: {
-					_type: 'reference',
-					_ref: parentDoc.postId,
-				},
-				authorName: authorName?.trim() || 'Ecocros Specialist (Tác giả)',
-				authorEmail: 'contact@ecocros.com',
-				content: replyContent.trim(),
-				isAuthorReply: true,
-				isApproved: true,
-				parentComment: {
-					_type: 'reference',
-					_ref: commentId,
-				},
-				createdAt: new Date().toISOString(),
+			const deleted = await commentsDb.delete(commentId)
+			if (!deleted) {
+				return NextResponse.json({ success: false, error: 'Comment not found.' }, { status: 404 })
 			}
-
-			const createdReply = await writeClient.create(replyDoc)
-
-			// Tự động duyệt comment cha nếu chưa duyệt
-			await writeClient.patch(commentId).set({ isApproved: true }).commit()
 
 			return NextResponse.json({
 				success: true,
-				reply: createdReply,
-				message: 'Đã đăng phản hồi chính thức của Tác giả thành công!',
+				message: 'Comment deleted successfully.',
 			})
 		}
 
-		// 3. Action: Cập nhật trạng thái Duyệt (Approved) / Huy hiệu Tác giả (Author Badge)
-		const patchData: Record<string, any> = {}
-		if (typeof isApproved === 'boolean') {
-			patchData.isApproved = isApproved
-		}
-		if (typeof isAuthorReply === 'boolean') {
-			patchData.isAuthorReply = isAuthorReply
+		// 3. Action: Official Reply from Author/Specialist
+		if (action === 'REPLY' && replyContent?.trim()) {
+			const parentComment = await commentsDb.getById(commentId)
+			if (!parentComment) {
+				return NextResponse.json({ success: false, error: 'Parent comment not found.' }, { status: 404 })
+			}
+			const replyId = `cmt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+
+			const replyDoc = await commentsDb.create({
+				id: replyId,
+				post_id: parentComment.post_id,
+				post_title: parentComment.post_title || null,
+				post_slug: parentComment.post_slug || null,
+				parent_comment_id: commentId,
+				author_name: authorName?.trim() || session.name || 'Editorial Team',
+				author_email: getEnvVarSync('SUPPORT_EMAIL') || 'support@store.com',
+				content: replyContent.trim(),
+				is_author_reply: 1,
+				is_approved: 1,
+			})
+
+			// Auto-approve parent comment
+			await commentsDb.update(commentId, { is_approved: 1 })
+
+			return NextResponse.json({
+				success: true,
+				reply: replyDoc,
+				message: 'Official reply posted successfully!',
+			})
 		}
 
-		const updated = await writeClient.patch(commentId).set(patchData).commit()
+		// 4. Action: Update Approval / Author Badge in D1
+		const patch: Record<string, any> = {}
+		if (typeof isApproved === 'boolean') {
+			patch.is_approved = isApproved ? 1 : 0
+		}
+		if (typeof isAuthorReply === 'boolean') {
+			patch.is_author_reply = isAuthorReply ? 1 : 0
+		}
+
+		const updated = await commentsDb.update(commentId, patch)
+		if (!updated) {
+			return NextResponse.json({ success: false, error: 'Comment not found.' }, { status: 404 })
+		}
+
+		await d1Query?.(
+			`INSERT INTO admin_events (type, resource_id, created_at) VALUES ('COMMENT_UPDATED', ?, ?)`,
+			[commentId, new Date().toISOString()],
+		).catch(() => {})
 
 		return NextResponse.json({
 			success: true,
-			comment: updated,
-			message: 'Cập nhật trạng thái bình luận thành công!',
+			message: 'Comment status updated successfully!',
 		})
 	} catch (error: any) {
-		console.error('Lỗi API Admin Comments Update:', error)
+		const status = error instanceof PersistenceError ? 503 : 500
+		console.error('API Admin Comments Update Error:', error)
 		return NextResponse.json(
-			{ success: false, error: error?.message || 'Có lỗi xảy ra khi cập nhật bình luận.' },
-			{ status: 500 },
+			{ success: false, error: status === 503 ? 'Comment database unavailable.' : error?.message || 'Error updating comment.' },
+			{ status },
 		)
 	}
 }

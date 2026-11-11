@@ -13,7 +13,7 @@ export function slug(
 ) {
 	const result = str
 		.toLowerCase()
-		.normalize('NFD') // Decompose combined characters (é → e + ´)
+		.normalize('NFD') // Decompose combined accented characters
 		.replace(/[\u0300-\u036f]/g, '') // Remove diacritical marks (accents)
 		.replace(/[^\w\s-]/g, '') // Remove non-word characters except spaces and hyphens
 		.replace(/[\s_]+/g, '-') // Replace spaces and underscores with hyphens
@@ -63,29 +63,28 @@ export function getBlockText(
 	)
 }
 
-// export const formatVND = (value: number) =>
-// 	new Intl.NumberFormat('en-US', {
-// 		style: 'currency',
-// 		currency: 'USD',
-// 		maximumFractionDigits: 0,
-// 	}).format(value)
-
-export const formatVND = (value: number) =>
-	new Intl.NumberFormat('vi-VN', {
+export const formatCurrency = (
+	value: number | string | undefined | null,
+	currency: string = 'USD',
+	locale: string = 'en-US',
+) => {
+	const num = Number(value) || 0
+	return new Intl.NumberFormat(locale, {
 		style: 'currency',
-		currency: 'VND',
-		maximumFractionDigits: 0,
-	}).format(value)
+		currency: currency?.trim().toUpperCase() || 'USD',
+	}).format(num)
+}
+
+export const formatPrice = formatCurrency
 
 export function generateOrderId() {
 	const now = new Date()
 	const day = String(now.getDate()).padStart(2, '0')
 	const month = String(now.getMonth() + 1).padStart(2, '0')
-	const year = String(now.getFullYear()).slice(-2) // 2 số cuối của năm
+	const year = String(now.getFullYear()).slice(-2)
 
-	// const datePart = `${year}${month}${day}`
-	const datePart = `${day}`
-	const random = Math.floor(1000 + Math.random() * 9000) // Random 4 số
+	const datePart = `${year}${month}${day}`
+	const random = Math.floor(1000 + Math.random() * 9000)
 
-	return `DH${datePart}${random}`
+	return `ORD-${datePart}-${random}`
 }

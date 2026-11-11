@@ -3,7 +3,10 @@ import { VscVersions } from 'react-icons/vsc'
 
 export default defineType({
 	name: 'product.variant',
-	title: 'Product Variant',
+	title: 'Product Variant [DEPRECATED]',
+	deprecated: {
+		reason: 'Variant matrix is deprecated in favor of streamlined single-product landing pages.',
+	},
 	icon: VscVersions,
 	type: 'object',
 	fields: [
@@ -83,7 +86,7 @@ export default defineType({
 			media: 'image',
 		},
 		prepare({ title, sku, price, stock, media }) {
-			const priceStr = price !== undefined ? `${price.toLocaleString('vi-VN')}đ` : 'Default price'
+			const priceStr = price !== undefined ? `$${price.toLocaleString('en-US')}` : 'Default price'
 			const stockStr = stock !== undefined ? `Stock: ${stock}` : ''
 			return {
 				title: title || sku || 'Variant',

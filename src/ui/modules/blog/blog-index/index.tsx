@@ -16,7 +16,7 @@ import SortBy from './sort-by'
 export default async function BlogIndexModule({
 	intro,
 	postsPerPage = 9,
-}: BlogIndex) {
+}: Partial<BlogIndex> = {}) {
 	const [data, blogSettings] = await Promise.all([
 		sanityFetchLive<any>({
 			query: BLOG_INDEX_QUERY,

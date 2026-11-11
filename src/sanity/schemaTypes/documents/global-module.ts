@@ -17,7 +17,7 @@ export default defineType({
 			name: 'path',
 			description:
 				'Use "*" to target all pages. A trailing slash ".../" excludes the parent path.',
-			options: { columns: 2 },
+			options: { columns: 1 },
 		},
 	],
 	fields: [
@@ -43,16 +43,12 @@ export default defineType({
 			fieldset: 'path',
 		}),
 		defineField({
-			...modules({
-				of: [{ type: 'blog-post-content' }],
-			}),
+			...modules(),
 			name: 'before',
 			description: 'Added before all page modules',
 		}),
 		defineField({
-			...modules({
-				of: [{ type: 'blog-post-content' }],
-			}),
+			...modules(),
 			name: 'after',
 			description: 'Added after all page modules',
 		}),

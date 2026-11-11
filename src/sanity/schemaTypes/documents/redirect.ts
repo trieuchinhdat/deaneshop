@@ -23,6 +23,13 @@ export default defineType({
 			type: 'link',
 			validation: (Rule) => Rule.required(),
 		}),
+		defineField({
+			name: 'permanent',
+			title: 'Permanent Redirect (308/301)',
+			description: 'Enable for permanent SEO redirects; disable for temporary 307 redirects.',
+			type: 'boolean',
+			initialValue: true,
+		}),
 	],
 	preview: {
 		select: {

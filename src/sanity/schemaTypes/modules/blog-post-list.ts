@@ -1,48 +1,76 @@
 import { defineField, defineType } from 'sanity'
 import { EditIcon } from '@sanity/icons'
-import { getBlockText } from '@/lib/utils'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'blog-post-list',
-	title: 'Blog Post List',
+	title: 'Content Hub / Insights',
+	description:
+		'Dynamic editorial article cards with publication dates, tags, and reading times to build topical authority and internal linking.',
 	type: 'object',
 	icon: EditIcon,
 	groups: [
-		{ name: 'content', title: '1. Content & Source', default: true },
-		{ name: 'layout', title: '2. Layout & Presentation' },
-		{ name: 'style', title: '3. Appearance & Style' },
-		{ name: 'banner', title: '4. Optional Banner' },
+		{ name: 'content', title: 'Content', default: true },
+		{ name: 'layout', title: 'Layout' },
+		{ name: 'appearance', title: 'Appearance' },
+		{ name: 'settings', title: 'Settings' },
 	],
 	fieldsets: [
 		{
 			name: 'headerGroup',
-			title: 'Header & SEO Meta',
-			options: { columns: 2 },
+			title: 'Header & Tagline',
+			options: { collapsible: true, collapsed: false },
 		},
 		{
 			name: 'ctaGroup',
 			title: 'Call to Action (CTA)',
-			options: { columns: 2 },
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'bannerGroup',
+			title: 'Section Promotional Banner (Optional)',
+			options: { collapsible: true, collapsed: true },
 		},
 		{
 			name: 'gridOptions',
-			title: 'Grid Settings',
-			options: { columns: 2 },
+			title: 'Grid & Density Controls',
+			options: { columns: 1 },
+		},
+		{
+			name: 'carouselOptions',
+			title: 'Carousel Slider Controls',
+			options: { columns: 1 },
+		},
+		{
+			name: 'stylingOptions',
+			title: 'Card & Container Aesthetics',
+			options: { columns: 1 },
+		},
+		{
+			name: 'queryLimits',
+			title: 'Query & Heading Hierarchy',
+			options: { columns: 1 },
 		},
 	],
 	fields: [
-		// ================= GROUP 1: CONTENT & SOURCE =================
+		defineField({
+			name: 'attributes',
+			type: 'module-attributes',
+			group: 'settings',
+		}),
+
+		// ================= TAB 1: CONTENT =================
 		defineField({
 			name: 'sourceType',
 			title: 'Post Source',
-			description: 'Choose how articles are selected for this module.',
+			description: 'Choose how articles are queried and populated for this section.',
 			type: 'string',
 			options: {
 				list: [
-					{ title: 'Recent Articles (Latest published)', value: 'recent' },
+					{ title: 'Recent Articles (Latest published feed)', value: 'recent' },
 					{ title: 'By Category (Topic Cluster Pillar)', value: 'category' },
 					{ title: 'Featured / Case Studies Only', value: 'featured' },
-					{ title: 'Hand-picked (Curated article selection)', value: 'manual' },
+					{ title: 'Hand-picked (Curated exact selection)', value: 'manual' },
 				],
 				layout: 'radio',
 			},
@@ -55,6 +83,14 @@ export default defineType({
 			description: 'Articles from this category will be queried to build topical authority.',
 			type: 'reference',
 			to: [{ type: 'blog.category' }],
+			validation: (Rule) =>
+				Rule.custom((value, context) => {
+					const parent = context.parent as { sourceType?: string } | undefined
+					if (parent?.sourceType === 'category' && !value) {
+						return 'Please select a target category to display articles.'
+					}
+					return true
+				}),
 			hidden: ({ parent }) => parent?.sourceType !== 'category',
 			group: 'content',
 		}),
@@ -64,50 +100,35 @@ export default defineType({
 			description: 'Manually pick the exact articles to display in order.',
 			type: 'array',
 			of: [{ type: 'reference', to: [{ type: 'blog.post' }] }],
+			validation: (Rule) =>
+				Rule.custom((value, context) => {
+					const parent = context.parent as { sourceType?: string } | undefined
+					if (parent?.sourceType === 'manual' && (!value || value.length === 0)) {
+						return 'Please select at least one article to showcase.'
+					}
+					return true
+				}),
 			hidden: ({ parent }) => parent?.sourceType !== 'manual',
-			group: 'content',
-		}),
-		defineField({
-			name: 'limit',
-			title: 'Max Posts to Display',
-			description: 'Number of articles to fetch (recommend 3 for service pages, 4 or 6 for hub pages).',
-			type: 'number',
-			initialValue: 3,
-			validation: (Rule) => Rule.min(1).max(24),
-			hidden: ({ parent }) => parent?.sourceType === 'manual',
 			group: 'content',
 		}),
 
 		// Section Header Fields
 		defineField({
 			name: 'tagline',
-			title: 'Section Tagline / Badge',
-			description: 'Small badge text above headline (e.g., "Knowledge Base", "Proven Case Studies").',
+			title: 'Section Tagline / Eyebrow Badge',
+			description: 'Small badge text above headline (e.g., "Knowledge Base", "Case Studies", "Industry Insights").',
 			type: 'string',
-			fieldset: 'headerGroup',
-			group: 'content',
-		}),
-		defineField({
-			name: 'headingLevel',
-			title: 'Heading Tag (SEO Hierarchy)',
-			description: 'Use H2 for main section, H3 if placed beneath another major H2 section.',
-			type: 'string',
-			options: {
-				list: [
-					{ title: 'H2 (Section Heading)', value: 'h2' },
-					{ title: 'H3 (Sub-heading)', value: 'h3' },
-				],
-				layout: 'radio',
-			},
-			initialValue: 'h2',
+			placeholder: 'e.g. Industry Insights',
 			fieldset: 'headerGroup',
 			group: 'content',
 		}),
 		defineField({
 			name: 'title',
 			title: 'Section Headline',
-			description: 'Main heading text (e.g., "Latest Insights & Expert Solutions").',
+			description: 'Main heading text (e.g., "Latest Insights & Sustainable Innovations").',
 			type: 'string',
+			placeholder: 'e.g. Latest Insights & Sustainable Innovations',
+			fieldset: 'headerGroup',
 			group: 'content',
 		}),
 		defineField({
@@ -116,21 +137,24 @@ export default defineType({
 			description: 'Brief description clarifying the purpose and value of these articles.',
 			type: 'text',
 			rows: 2,
+			placeholder: 'e.g. Explore in-depth editorial guides, research papers, and technical analysis.',
+			fieldset: 'headerGroup',
 			group: 'content',
 		}),
 		defineField({
 			name: 'intro',
 			title: 'Rich Text Intro (Optional Override)',
-			description: 'Use if you need formatted rich text instead of plain title & subtitle.',
+			description: 'Use if you need formatted rich text copy instead of standard title & subtitle.',
 			type: 'array',
 			of: [{ type: 'block' }],
+			fieldset: 'headerGroup',
 			group: 'content',
 		}),
 
 		// CTA & Navigation
 		defineField({
 			name: 'showCta',
-			title: 'Show "View All" Link',
+			title: 'Show "View All" Button',
 			description: 'Renders an internal keyword-rich link button to the blog or category hub.',
 			type: 'boolean',
 			initialValue: true,
@@ -140,8 +164,9 @@ export default defineType({
 		defineField({
 			name: 'ctaText',
 			title: 'Custom CTA Label',
-			description: 'e.g., "Explore all SEO Guides". Leave blank to use default.',
+			description: 'e.g., "Explore all Eco Guides". Leave blank to use default (e.g., "Explore all articles").',
 			type: 'string',
+			placeholder: 'e.g. Explore all articles',
 			hidden: ({ parent }) => !parent?.showCta,
 			fieldset: 'ctaGroup',
 			group: 'content',
@@ -151,81 +176,13 @@ export default defineType({
 			title: 'Custom CTA URL (Optional)',
 			description: 'Direct link destination (defaults to /blog or target category URL).',
 			type: 'string',
+			placeholder: '/blog or https://...',
 			hidden: ({ parent }) => !parent?.showCta,
+			fieldset: 'ctaGroup',
 			group: 'content',
 		}),
 
-		// ================= GROUP 2: LAYOUT & PRESENTATION =================
-		defineField({
-			name: 'layout',
-			title: 'Module Presentation Layout',
-			description: 'Mobile-first responsive presentation style.',
-			type: 'string',
-			options: {
-				list: [
-					{ title: 'Responsive Grid (Equal Card Columns)', value: 'grid' },
-					{ title: 'Native Touch Carousel (Mobile Snap Scroll & Slider)', value: 'carousel' },
-					{ title: 'Spotlight Feature (1 Large Hero Card + Secondary Posts)', value: 'spotlight' },
-					{ title: 'Editorial List (Compact Horizontal Rows)', value: 'list' },
-				],
-				layout: 'radio',
-			},
-			initialValue: 'grid',
-			group: 'layout',
-		}),
-		defineField({
-			name: 'columnsDesktop',
-			title: 'Desktop Grid Columns',
-			description: 'Number of columns on large screens (Mobile & Tablet adapt automatically).',
-			type: 'number',
-			options: {
-				list: [
-					{ title: '2 Columns', value: 2 },
-					{ title: '3 Columns (Recommended for Services)', value: 3 },
-					{ title: '4 Columns', value: 4 },
-				],
-				layout: 'radio',
-			},
-			initialValue: 3,
-			hidden: ({ parent }) => parent?.layout !== 'grid',
-			fieldset: 'gridOptions',
-			group: 'layout',
-		}),
-
-		// ================= GROUP 3: APPEARANCE & CARD STYLE =================
-		defineField({
-			name: 'cardStyle',
-			title: 'Blog Card Design Style',
-			description: 'Inherit global blog setting or override for this specific landing page.',
-			type: 'string',
-			options: {
-				list: [
-					{ title: 'Inherit from Global Blog Settings (Recommended)', value: 'inherit' },
-					{ title: 'Boxed (Card border, background & padding)', value: 'boxed' },
-					{ title: 'Minimalist (Frameless flush image & clean text)', value: 'minimalist' },
-				],
-				layout: 'radio',
-			},
-			initialValue: 'inherit',
-			group: 'style',
-		}),
-		defineField({
-			name: 'containerStyle',
-			title: 'Section Background Container',
-			type: 'string',
-			options: {
-				list: [
-					{ title: 'Transparent / Flat', value: 'transparent' },
-					{ title: 'Muted Background (Subtle card container)', value: 'muted' },
-					{ title: 'Outlined Card Container', value: 'bordered' },
-				],
-				layout: 'radio',
-			},
-			initialValue: 'transparent',
-			group: 'style',
-		}),
-
-		// ================= GROUP 4: OPTIONAL BANNER =================
+		// Section Visual Banner
 		defineField({
 			name: 'image',
 			title: 'Featured Section Banner (Optional)',
@@ -235,11 +192,13 @@ export default defineType({
 				hotspot: true,
 				metadata: ['lqip'],
 			},
-			group: 'banner',
+			fieldset: 'bannerGroup',
+			group: 'content',
 			fields: [
 				defineField({
 					name: 'mobileImage',
 					title: 'Mobile Banner Image (Optional)',
+					description: 'Alternative cropped banner optimized for mobile screens.',
 					type: 'image',
 					options: {
 						hotspot: true,
@@ -249,15 +208,20 @@ export default defineType({
 				defineField({
 					name: 'alt',
 					title: 'Alt Text (SEO & Accessibility)',
+					description: 'Describe the banner image for screen readers and search engines.',
 					type: 'string',
 				}),
 				defineField({
 					name: 'linkBannerType',
-					title: 'Banner Link Type',
+					title: 'Banner Link Destination',
 					type: 'string',
 					options: {
 						layout: 'radio',
-						list: ['none', 'internal', 'external'],
+						list: [
+							{ title: 'No Link', value: 'none' },
+							{ title: 'Internal Page / Article / Category', value: 'internal' },
+							{ title: 'External Website URL', value: 'external' },
+						],
 					},
 					initialValue: 'none',
 				}),
@@ -265,7 +229,13 @@ export default defineType({
 					name: 'internal',
 					title: 'Internal Target',
 					type: 'reference',
-					to: [{ type: 'page' }, { type: 'blog.post' }, { type: 'product' }, { type: 'collection' }],
+					to: [
+						{ type: 'page' },
+						{ type: 'blog.post' },
+						{ type: 'blog.category' },
+						{ type: 'product' },
+						{ type: 'collection' },
+					],
 					hidden: ({ parent }) => parent?.linkBannerType !== 'internal',
 				}),
 				defineField({
@@ -277,17 +247,206 @@ export default defineType({
 				}),
 			],
 		}),
+
+		// ================= TAB 2: LAYOUT =================
+		defineField({
+			name: 'layout',
+			title: 'Presentation Layout',
+			description: 'Choose the visual arrangement and layout pattern for the article cards.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Responsive Grid (Equal Card Columns)', value: 'grid' },
+					{ title: 'Interactive Carousel (Horizontal Swipe with Controls)', value: 'carousel' },
+					{ title: 'Spotlight Feature (1 Hero Card + Secondary Grid)', value: 'spotlight' },
+					{ title: 'Editorial List (Compact Horizontal Rows)', value: 'list' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'grid',
+			group: 'layout',
+		}),
+		defineField({
+			name: 'columnsDesktop',
+			title: 'Desktop Columns',
+			description: 'Number of columns displayed simultaneously on large desktop viewports.',
+			type: 'number',
+			options: {
+				list: [
+					{ title: '2 Columns (Spacious)', value: 2 },
+					{ title: '3 Columns (Recommended standard)', value: 3 },
+					{ title: '4 Columns (High density)', value: 4 },
+				],
+				layout: 'radio',
+			},
+			initialValue: 3,
+			hidden: ({ parent }) => parent?.layout === 'list' || parent?.layout === 'spotlight',
+			fieldset: 'gridOptions',
+			group: 'layout',
+		}),
+		defineField({
+			name: 'mobileLayout',
+			title: 'Mobile Screen Layout',
+			description: 'Control how article cards behave on mobile devices (smartphones).',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Horizontal Swipe Carousel (Space-saving snap scroll)', value: 'carousel' },
+					{ title: '1 Column Stack (Standard vertical scroll)', value: 'stack' },
+					{ title: '2 Columns Grid (Compact mobile layout)', value: 'grid-2' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'carousel',
+			hidden: ({ parent }) => parent?.layout === 'spotlight' || parent?.layout === 'list',
+			fieldset: 'gridOptions',
+			group: 'layout',
+		}),
+		defineField({
+			name: 'showNavigationArrows',
+			title: 'Show Carousel Navigation Arrows',
+			description: 'Display previous and next arrow buttons on desktop and tablet.',
+			type: 'boolean',
+			initialValue: true,
+			hidden: ({ parent }) => parent?.layout !== 'carousel' && parent?.mobileLayout !== 'carousel',
+			fieldset: 'carouselOptions',
+			group: 'layout',
+		}),
+		defineField({
+			name: 'headerAlignment',
+			title: 'Header Text Alignment',
+			description: 'Align the section badge, headline, and subtitle.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Left Aligned (Standard)', value: 'left' },
+					{ title: 'Center Aligned (Editorial Spotlight)', value: 'center' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'left',
+			fieldset: 'gridOptions',
+			group: 'layout',
+		}),
+
+		// ================= TAB 3: APPEARANCE =================
+		defineField({
+			name: 'cardStyle',
+			title: 'Card Design Style',
+			description: 'Visual treatment of article thumbnail cards.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Inherit from Global Blog Settings', value: 'inherit' },
+					{ title: 'Boxed (Card border, background & padding)', value: 'boxed' },
+					{ title: 'Minimalist (Frameless flush image & clean text)', value: 'minimalist' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'inherit',
+			fieldset: 'stylingOptions',
+			group: 'appearance',
+		}),
+		defineField({
+			name: 'cardImageAspectRatio',
+			title: 'Thumbnail Aspect Ratio',
+			description: 'Proportion of article images in preview cards.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Inherit from Global Blog Settings', value: 'inherit' },
+					{ title: '16:9 (Standard Widescreen)', value: '16:9' },
+					{ title: '3:2 (Editorial Classic)', value: '3:2' },
+					{ title: '4:3 (Balanced Rectangle)', value: '4:3' },
+					{ title: '1:1 (Square)', value: '1:1' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'inherit',
+			fieldset: 'stylingOptions',
+			group: 'appearance',
+		}),
+		defineField({
+			name: 'cardShowCategoryCount',
+			title: 'Show Article Count in Category Badges',
+			description: 'Display total count of articles inside category badge pills (e.g., "News (14)").',
+			type: 'boolean',
+			initialValue: false,
+			fieldset: 'stylingOptions',
+			group: 'appearance',
+		}),
+		defineField({
+			name: 'containerStyle',
+			title: 'Container Background',
+			description: 'Outer section background and border styling.',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'Transparent / Flat (No background box)', value: 'transparent' },
+					{ title: 'Muted Background (Subtle shaded section card)', value: 'muted' },
+					{ title: 'Outlined Card Container (Bordered card)', value: 'bordered' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'transparent',
+			fieldset: 'stylingOptions',
+			group: 'appearance',
+		}),
+
+		// ================= TAB 4: SETTINGS =================
+		defineField({
+			name: 'limit',
+			title: 'Max Posts to Query',
+			description: 'Number of articles to fetch (recommend 3 for landing pages, 6 for hubs).',
+			type: 'number',
+			initialValue: 3,
+			validation: (Rule) => Rule.min(1).max(24),
+			hidden: ({ parent }) => parent?.sourceType === 'manual',
+			fieldset: 'queryLimits',
+			group: 'settings',
+		}),
+		defineField({
+			name: 'headingLevel',
+			title: 'Heading Tag (SEO Hierarchy)',
+			description: 'Semantic HTML tag for the section title (H2 for standard page sections, H3 for sub-sections).',
+			type: 'string',
+			options: {
+				list: [
+					{ title: 'H2 (Section Heading — Recommended)', value: 'h2' },
+					{ title: 'H3 (Sub-heading)', value: 'h3' },
+				],
+				layout: 'radio',
+			},
+			initialValue: 'h2',
+			fieldset: 'queryLimits',
+			group: 'settings',
+		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'blog-post-list',
+		icon: EditIcon,
+		titleFields: ['title', 'intro'],
 		select: {
-			title: 'title',
-			intro: 'intro',
 			sourceType: 'sourceType',
 			layout: 'layout',
+			limit: 'limit',
 		},
-		prepare: ({ title, intro, sourceType, layout }) => ({
-			title: title || getBlockText(intro) || 'Blog Post List',
-			subtitle: `Source: ${sourceType || 'recent'} • Layout: ${layout || 'grid'}`,
-		}),
-	},
+		metadata: (doc) => {
+			const sourceLabels: Record<string, string> = {
+				recent: 'Latest Articles',
+				category: 'By Category',
+				featured: 'Featured Only',
+				manual: 'Curated Selection',
+			}
+			const layoutLabels: Record<string, string> = {
+				grid: 'Responsive Grid',
+				carousel: 'Carousel Slider',
+				spotlight: 'Spotlight Feature',
+				list: 'Editorial List',
+			}
+			const src = doc.sourceType ? (sourceLabels[doc.sourceType] ?? doc.sourceType) : 'Latest Articles'
+			const lay = doc.layout ? (layoutLabels[doc.layout] ?? doc.layout) : 'Grid'
+			return [`Source: ${src}`, `Layout: ${lay}`]
+		},
+	}),
 })

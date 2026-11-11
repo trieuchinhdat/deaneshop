@@ -1,120 +1,88 @@
 import { NextResponse } from 'next/server'
-import { writeClient } from '@/sanity/lib/write-client'
+import { getAdminSession, ROLE_PERMITTED_TABS } from '@/lib/admin-auth'
+import {
+	buildUnifiedCustomersProjection,
+	formatCommentsForWorkspace,
+	formatOrdersWithRelations,
+	formatReviewsForWorkspace,
+	getRoleScopedAggregates,
+} from '@/lib/admin-queries'
+import { PersistenceError, commentsDb, leadsDb, ordersDb, reviewsDb } from '@/lib/d1'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
 	try {
+		const session = await getAdminSession()
+		if (!session) {
+			return NextResponse.json(
+				{ success: false, message: 'Unauthorized' },
+				{ status: 401 },
+			)
+		}
+
+		const allowedTabs = ROLE_PERMITTED_TABS[session.role] || []
+		const shouldFetchOrders = allowedTabs.includes('orders')
+		const shouldFetchLeads = allowedTabs.includes('leads')
+		const shouldFetchCustomers = allowedTabs.includes('customers')
+		const shouldFetchReviews = allowedTabs.includes('reviews')
+		const shouldFetchComments = allowedTabs.includes('comments')
 		const { searchParams } = new URL(req.url)
 		const since = searchParams.get('since')
 
-		const [newOrders, allOrders, allCustomers, allReviews, allComments] = await Promise.all([
-			since
-				? writeClient.fetch(
-						`*[_type == "order" && _createdAt > $since] | order(_createdAt desc) {
-							_id,
-							_createdAt,
-							orderId,
-							customer,
-							items,
-							pricing,
-							paymentMethod,
-							paymentStatus,
-							fulfillmentStatus,
-							customerNote
-						}`,
-						{ since },
-					)
+		const [d1Orders, d1Leads, d1Reviews, d1Comments, summary, customersProjection] = await Promise.all([
+			shouldFetchOrders ? ordersDb.list({ limit: 200 }) : Promise.resolve([]),
+			shouldFetchLeads
+				? leadsDb.list({
+						limit: 100,
+						assigned_to: session.role === 'sales' ? session.id : undefined,
+					})
 				: Promise.resolve([]),
-
-			writeClient.fetch(
-				`*[_type == "order"] | order(_createdAt desc) {
-					_id,
-					_createdAt,
-					orderId,
-					customer,
-					customerRef->{ _id, name, phone, email, cskhStatus },
-					items,
-					pricing,
-					paymentMethod,
-					paymentStatus,
-					fulfillmentStatus,
-					carrier,
-					trackingCode,
-					customerNote,
-					internalNotes,
-					history
-				}`,
-			),
-
-			writeClient.fetch(
-				`*[_type == "customer"] | order(createdAt desc) {
-					_id,
-					name,
-					phone,
-					email,
-					address,
-					source,
-					cskhStatus,
-					couponReceived,
-					orderCount,
-					totalSpent,
-					lastOrderAt,
-					createdAt,
-					internalNotes
-				}`,
-			),
-
-			writeClient.fetch(
-				`*[_type == "review"] | order(createdAt desc) {
-					_id,
-					author,
-					rating,
-					comment,
-					isApproved,
-					response,
-					createdAt,
-					product->{ _id, title, "slug": metadata.slug.current },
-					images[]{
-						_key,
-						asset->{ _id, url }
-					},
-					videos[]{
-						_key,
-						asset->{ _id, url }
-					}
-				}`,
-			),
-
-			writeClient.fetch(
-				`*[_type == "blog.comment"] | order(createdAt desc) {
-					_id,
-					authorName,
-					authorEmail,
-					content,
-					isAuthorReply,
-					isApproved,
-					createdAt,
-					post->{ _id, title, "slug": metadata.slug.current },
-					parentComment->{ _id, authorName, content }
-				}`,
-			),
+			shouldFetchReviews ? reviewsDb.list({ isApproved: 'all', limit: 100 }) : Promise.resolve([]),
+			shouldFetchComments ? commentsDb.list({ isApproved: 'all', limit: 100 }) : Promise.resolve([]),
+			getRoleScopedAggregates(session),
+			shouldFetchCustomers
+				? buildUnifiedCustomersProjection(session, { limit: 200, offset: 0 })
+				: Promise.resolve({ customers: [], total: 0 }),
 		])
+
+		const [formattedD1Orders, formattedD1Reviews, formattedD1Comments] = await Promise.all([
+			formatOrdersWithRelations(d1Orders),
+			formatReviewsForWorkspace(d1Reviews),
+			formatCommentsForWorkspace(d1Comments),
+		])
+
+		const newOrders = since
+			? formattedD1Orders.filter(
+					(o) => new Date(o._createdAt || '').getTime() > new Date(since).getTime(),
+				)
+			: []
 
 		return NextResponse.json({
 			success: true,
-			hasNew: (newOrders || []).length > 0,
-			newCount: (newOrders || []).length,
-			newOrders: newOrders || [],
-			orders: allOrders || [],
-			customers: allCustomers || [],
-			reviews: allReviews || [],
-			comments: allComments || [],
+			hasNew: newOrders.length > 0,
+			newCount: newOrders.length,
+			newOrders,
+			orders: formattedD1Orders,
+			customers: shouldFetchCustomers ? customersProjection.customers : [],
+			reviews: formattedD1Reviews,
+			comments: formattedD1Comments,
+			leads: shouldFetchLeads ? d1Leads : [],
+			summary,
 			timestamp: new Date().toISOString(),
 		})
 	} catch (error: any) {
+		const status = error instanceof PersistenceError ? 503 : 500
 		console.error('API Admin Poll Error:', error)
 		return NextResponse.json(
-			{ success: false, message: error.message || 'Lỗi khi kiểm tra dữ liệu mới' },
-			{ status: 500 },
+			{
+				success: false,
+				message:
+					status === 503
+						? 'Database unavailable'
+						: error.message || 'Error checking for updates',
+			},
+			{ status },
 		)
 	}
 }

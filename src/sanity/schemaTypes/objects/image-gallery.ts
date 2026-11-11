@@ -1,5 +1,6 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 import { ImagesIcon } from '@sanity/icons'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'image-gallery',
@@ -54,16 +55,18 @@ export default defineType({
 			validation: (Rule) => Rule.min(2).required(),
 		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'image-gallery',
+		icon: ImagesIcon,
+		imageField: 'images.0',
+		titleFields: ['title'],
 		select: {
-			title: 'title',
 			images: 'images',
 			layout: 'layout',
 		},
-		prepare: ({ title, images, layout }) => ({
-			title: title || 'Image Gallery',
-			subtitle: `${images?.length || 0} images (${layout || 'grid-2'})`,
-			media: images?.[0],
-		}),
-	},
+		metadata: (doc) => [
+			doc.images?.length ? `${doc.images.length} images` : null,
+			doc.layout ? `Layout: ${doc.layout}` : null,
+		],
+	}),
 })

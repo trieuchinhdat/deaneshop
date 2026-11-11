@@ -1,60 +1,44 @@
-import { defineArrayMember, defineField, defineType } from 'sanity'
-import { FiImage } from 'react-icons/fi'
+import { defineField, defineType } from 'sanity'
 import { IoMdPhotos } from 'react-icons/io'
+import { FiImage } from 'react-icons/fi'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'carousel-banner-list',
-	title: 'Carousel Banner List',
+	title: 'Media Slider',
+	description: 'Clean visual image and lookbook carousel with responsive images, links, and smooth touch swipe.',
 	type: 'object',
 	icon: IoMdPhotos,
 	groups: [
-		{ name: 'content' },
-		{ name: 'image', default: true },
-		{ name: 'layout' },
-		{ name: 'options' },
+		{ name: 'content', title: 'Content', default: true },
+		{ name: 'design', title: 'Design' },
+		{ name: 'settings', title: 'Settings' },
 	],
 	fieldsets: [
 		{
-			name: 'backgroundColor',
-			title: 'Background & Color',
+			name: 'colors',
+			title: 'Background & Color Contrast',
 			options: { columns: 2 },
 		},
 	],
 	fields: [
 		defineField({
+			name: 'attributes',
+			type: 'module-attributes',
+			group: 'settings',
+		}),
+		defineField({
 			name: 'intro',
+			title: 'Section Header & Intro',
 			type: 'array',
 			of: [{ type: 'block' }],
 			group: 'content',
 		}),
 		defineField({
-			name: 'backgroundColor',
-			title: 'Background Color',
-			type: 'string',
-			description: 'Hex code (e.g. #FFFFFF)',
-			initialValue: '#FFFFFF',
-			fieldset: 'backgroundColor',
-			group: 'content',
-			validation: (Rule) =>
-				Rule.regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
-					name: 'hex', // Error message code
-					invert: false, // Pattern must match
-				}).error('Must be a valid hex color code'),
-		}),
-		defineField({
-			name: 'textColor',
-			title: 'Text Color',
-			type: 'string',
-			description: 'Hex code (e.g. #000000)',
-			initialValue: '#000000',
-			fieldset: 'backgroundColor',
-			group: 'content',
-		}),
-		defineField({
 			name: 'items',
-			title: 'Carousel Images',
+			title: 'Slider Slides',
 			type: 'array',
-			group: 'image',
+			group: 'content',
 			of: [
 				{
 					type: 'image',
@@ -65,14 +49,14 @@ export default defineType({
 					fieldsets: [
 						{
 							name: 'linkType',
-							title: 'Link type',
-							options: { columns: 2 },
+							title: 'Link Destination',
+							options: { columns: 1 },
 						},
 					],
 					fields: [
 						defineField({
 							name: 'mobileImage',
-							title: 'Mobile image (Optional)',
+							title: 'Mobile Image Override (Optional)',
 							type: 'image',
 							options: {
 								hotspot: true,
@@ -81,10 +65,12 @@ export default defineType({
 						}),
 						defineField({
 							name: 'alt',
+							title: 'Alt Text (SEO & Accessibility)',
 							type: 'string',
 						}),
 						defineField({
 							name: 'linkBannerType',
+							title: 'Link Type',
 							type: 'string',
 							options: {
 								layout: 'radio',
@@ -94,6 +80,7 @@ export default defineType({
 						}),
 						defineField({
 							name: 'internal',
+							title: 'Internal Target',
 							type: 'reference',
 							to: [
 								{ type: 'page' },
@@ -105,18 +92,15 @@ export default defineType({
 						}),
 						defineField({
 							name: 'external',
+							title: 'External Target URL',
 							placeholder: 'https://example.com',
 							type: 'url',
-							validation: (Rule) =>
-								Rule.uri({
-									scheme: ['http', 'https', 'mailto', 'tel'],
-									allowRelative: true,
-								}),
 							hidden: ({ parent }) => parent?.linkBannerType !== 'external',
 							fieldset: 'linkType',
 						}),
 						defineField({
 							name: 'loading',
+							title: 'Image Loading Strategy',
 							type: 'string',
 							options: {
 								list: ['lazy', 'eager'],
@@ -125,179 +109,132 @@ export default defineType({
 							initialValue: 'lazy',
 						}),
 					],
-
 					preview: {
 						select: {
 							alt: 'alt',
-							hasMobile: 'mobileImage.asset',
+							media: 'asset',
 						},
-						prepare({ alt, hasMobile }) {
+						prepare({ alt, media }) {
 							return {
-								title: alt || 'No alt text',
-								media: hasMobile ? FiImage : FiImage,
+								title: alt || 'Slide Banner',
+								media: media || FiImage,
 							}
 						},
 					},
 				},
 			],
 		}),
+
+		// Tab 2: Design
 		defineField({
 			name: 'desktop',
-			title: 'Desktop layout',
+			title: 'Desktop Layout',
 			type: 'object',
-			group: 'layout',
-			fieldsets: [
-				{
-					name: 'desktopLayout',
-					title: 'Desktop',
-					options: { columns: 2 },
-				},
-			],
+			group: 'design',
 			fields: [
 				defineField({
 					name: 'bannersPerRow',
-					title: 'Banners per row',
-					description: 'Số banner hiển thị trên 1 dòng (desktop)',
+					title: 'Banners Visible Per View',
 					type: 'number',
 					initialValue: 1,
-					validation: (Rule) => Rule.min(1).max(12),
+					validation: (Rule) => Rule.min(1).max(4),
 					options: {
 						list: [
-							{ title: '1 banner', value: 1 },
+							{ title: '1 banner (Full Width)', value: 1 },
 							{ title: '2 banners', value: 2 },
 							{ title: '3 banners', value: 3 },
 							{ title: '4 banners', value: 4 },
-							{ title: '5 banners', value: 5 },
-							{ title: '6 banners', value: 6 },
 						],
 						layout: 'radio',
 					},
-					fieldset: 'desktopLayout',
-				}),
-
-				defineField({
-					name: 'rows',
-					title: 'Rows',
-					description: 'Số hàng hiển thị (desktop)',
-					type: 'number',
-					initialValue: 1,
-					validation: (Rule) => Rule.min(1).max(3),
-					options: {
-						list: [
-							{ title: '1 row', value: 1 },
-							{ title: '2 rows', value: 2 },
-							{ title: '3 rows', value: 3 },
-						],
-						layout: 'radio',
-					},
-					fieldset: 'desktopLayout',
 				}),
 			],
 		}),
 		defineField({
 			name: 'mobile',
-			title: 'Mobile layout',
+			title: 'Mobile Layout',
 			type: 'object',
-			group: 'layout',
-			fieldsets: [
-				{
-					name: 'mobileLayout',
-					title: 'Mobile',
-					options: { columns: 2 },
-				},
-			],
+			group: 'design',
 			fields: [
 				defineField({
 					name: 'bannersPerRow',
-					title: 'Banners per row',
-					description: 'Số banner hiển thị trên 1 dòng (mobile)',
-					type: 'number',
-					initialValue: 1,
-					validation: (Rule) => Rule.min(1).max(5),
-					options: {
-						list: [
-							{ title: '1 banner', value: 1 },
-							{ title: '2 banners', value: 2 },
-							{ title: '3 banners', value: 3 },
-							{ title: '4 banners', value: 4 },
-							{ title: '5 banners', value: 5 },
-						],
-						layout: 'radio',
-					},
-					fieldset: 'mobileLayout',
-				}),
-
-				defineField({
-					name: 'rows',
-					title: 'Rows',
-					description: 'Số hàng hiển thị (mobile)',
+					title: 'Banners Visible on Mobile',
 					type: 'number',
 					initialValue: 1,
 					validation: (Rule) => Rule.min(1).max(2),
 					options: {
 						list: [
-							{ title: '1 row', value: 1 },
-							{ title: '2 rows', value: 2 },
+							{ title: '1 banner (Clean Mobile-First)', value: 1 },
+							{ title: '2 banners', value: 2 },
 						],
 						layout: 'radio',
 					},
-					fieldset: 'mobileLayout',
 				}),
 			],
 		}),
 		defineField({
 			name: 'options',
-			title: 'Options',
+			title: 'Display & Navigation Options',
 			type: 'object',
-			group: 'options',
+			group: 'design',
 			fields: [
 				defineField({
 					name: 'width',
-					title: 'Enable custom full width',
+					title: 'Full Bleed (Edge to Edge)',
 					type: 'boolean',
 					initialValue: false,
 				}),
 				defineField({
 					name: 'borderRadius',
-					title: 'Enable border radius',
+					title: 'Rounded Corners',
 					type: 'boolean',
-					initialValue: false,
+					initialValue: true,
 				}),
 				defineField({
 					name: 'navigation',
-					title: 'Show navigation arrows',
+					title: 'Show Navigation Arrows',
 					type: 'boolean',
 					initialValue: true,
 				}),
-
 				defineField({
 					name: 'pagination',
-					title: 'Show pagination dots',
+					title: 'Show Pagination Dots',
 					type: 'boolean',
 					initialValue: true,
 				}),
-
 				defineField({
 					name: 'autoSlide',
-					title: 'Enable auto slide',
+					title: 'Enable Auto Slide',
 					type: 'boolean',
 					initialValue: false,
 				}),
 			],
 		}),
+		defineField({
+			name: 'backgroundColor',
+			title: 'Background Color (Optional)',
+			type: 'string',
+			fieldset: 'colors',
+			group: 'design',
+		}),
+		defineField({
+			name: 'textColor',
+			title: 'Text Color (Optional)',
+			type: 'string',
+			fieldset: 'colors',
+			group: 'design',
+		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'carousel-banner-list',
+		icon: IoMdPhotos,
+		imageField: 'items.0.image',
+		titleFields: ['items.0.title', 'title'],
 		select: {
 			items: 'items',
 		},
-		prepare({ items }) {
-			const count = items?.length || 0
-
-			return {
-				title: 'Carousel Banner List',
-				subtitle: `${count} banner${count !== 1 ? 's' : ''}`,
-				media: IoMdPhotos,
-			}
-		},
-	},
+		metadata: (doc) => [
+			doc.items?.length ? `${doc.items.length} slides` : null,
+		],
+	}),
 })

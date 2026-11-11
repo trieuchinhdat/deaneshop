@@ -8,15 +8,18 @@ import { sanityFetchLive } from '@/sanity/lib/live'
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://example.com'
 
 export async function GET() {
-	const { blog, posts } = await sanityFetchLive<any>({
+	const { site, blog, posts } = await sanityFetchLive<any>({
 		query: BLOG_RSS_QUERY,
 		params: {
 			blogDir: ROUTES.blog,
 		},
 	})
 
+	const brandName = site?.siteName || site?.title || 'Store'
+	const blogTitle = blog?.metadata?.title || `${brandName} Journal`
+
 	const rssXML = `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel>
-		<title>${escapeHTML(blog?.metadata?.title || 'Ecocros Journal')}</title>
+		<title>${escapeHTML(blogTitle)}</title>
 		<description>${escapeHTML(blog?.metadata?.description || 'Curated stories and guides')}</description>
 		<link>${BASE_URL}/${ROUTES.blog}</link>
 		<language>en-US</language>
@@ -76,6 +79,10 @@ function Item({ post }: { post: any }) {
 }
 
 const BLOG_RSS_QUERY = groq`{
+	'site': *[_type == 'site'][0]{
+		siteName,
+		title
+	},
 	'blog': *[_type == 'blog-settings'][0]{
 		'metadata': {
 			'title': title,

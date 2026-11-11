@@ -24,7 +24,7 @@ export default defineType({
 			links: 'links',
 		},
 		prepare: ({ link, links }) => ({
-			title: link.label || link.internal?.title,
+			title: link?.label || link?.internal?.title || 'Untitled Column',
 			subtitle: count(links, 'link'),
 		}),
 	},

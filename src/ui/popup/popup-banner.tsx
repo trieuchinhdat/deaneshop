@@ -40,7 +40,7 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 		? { ...bannerImage, mobileImage: mobileBannerImage }
 		: mobileBannerImage
 
-	// ================= 1. TRƯỜNG HỢP NỀN TRONG SUỐT (FRAMELESS / TRANSPARENT DIE-CUT BANNER) =================
+	// ================= 1. FRAMELESS / TRANSPARENT DIE-CUT BANNER =================
 	if (transparentBackground && hasImage) {
 		const ImageElement = (
 			<div className="relative flex flex-col items-center justify-center select-none group">
@@ -51,7 +51,7 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 					className="max-h-[80vh] w-auto max-w-full object-contain drop-shadow-2xl transition-transform duration-300 group-hover:scale-[1.02]"
 				/>
 
-				{/* Floating Coupon nếu có */}
+				{/* Floating Coupon */}
 				{couponCode && (
 					<div className="mt-3 inline-flex items-center gap-2.5 rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-gray-900 shadow-xl backdrop-blur-md border border-white/40">
 						<span className="font-mono text-sm tracking-wider text-emerald-700 font-extrabold">
@@ -65,19 +65,19 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 							{copied ? (
 								<>
 									<FiCheck className="h-3.5 w-3.5 stroke-[3]" />
-									<span>Đã sao chép</span>
+									<span>Copied!</span>
 								</>
 							) : (
 								<>
 									<FiCopy className="h-3.5 w-3.5" />
-									<span>Sao chép</span>
+									<span>Copy</span>
 								</>
 							)}
 						</button>
 					</div>
 				)}
 
-				{/* Floating CTA Button nếu có */}
+				{/* Floating CTA Button */}
 				{bannerCtaText && (
 					<div className="mt-3">
 						<span className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-6 py-3 text-sm font-bold text-white shadow-2xl transition-all hover:bg-gray-800 hover:scale-105 active:scale-95">
@@ -100,7 +100,7 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 		return ImageElement
 	}
 
-	// ================= 2. TRƯỜNG HỢP BANNER ĐỒ HỌA THUẦN (FULL GRAPHIC BANNER - KHÔNG CẦN CHỮ) =================
+	// ================= 2. FULL GRAPHIC BANNER =================
 	if (hasImage && !hasText) {
 		const Content = (
 			<div className="relative w-full overflow-hidden rounded-2xl md:rounded-3xl bg-neutral-900 shadow-2xl group border border-neutral-800">
@@ -111,9 +111,9 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 					className="w-full h-auto max-h-[82vh] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
 				/>
 
-				{/* Lớp phủ hành động dưới đáy banner nếu có CTA hoặc Coupon */}
+				{/* Action Overlay */}
 				{(bannerCtaText || couponCode) && (
-					<div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-6 flex flex-wrap items-center justify-between gap-3">
+					<div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-6 flex flex-wrap items-center justify-between gap-3">
 						{couponCode && (
 							<button
 								type="button"
@@ -151,29 +151,29 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 		return Content
 	}
 
-	// ================= 3. TRƯỜNG HỢP BANNER KÈM NỘI DUNG CHỮ (IMAGE + TEXT & COUPON) =================
+	// ================= 3. SPLIT BANNER (IMAGE + CONTENT & ACTIONS) =================
 	return (
 		<div className="flex flex-col md:flex-row w-full overflow-hidden rounded-2xl md:rounded-3xl bg-white text-gray-900 shadow-2xl border border-gray-100">
-			{/* Cột Ảnh Banner */}
+			{/* Banner Image Column */}
 			{hasImage && (
-				<div className="relative w-full md:w-1/2 h-40 sm:h-52 md:h-auto md:min-h-[380px] bg-gradient-to-br from-neutral-100 to-neutral-200 overflow-hidden flex items-center justify-center shrink-0">
+				<div className="relative w-full md:w-1/2 h-40 sm:h-52 md:h-auto md:min-h-[380px] bg-linear-to-br from-neutral-100 to-neutral-200 overflow-hidden flex items-center justify-center shrink-0">
 					<ResponsiveImage
 						image={imgObject}
 						desktop={{ width: 700 }}
 						mobile={{ width: 500 }}
 						className="h-full w-full object-cover"
 					/>
-					<div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent md:hidden" />
+					<div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent md:hidden" />
 				</div>
 			)}
 
-			{/* Cột Nội Dung & Ưu Đãi */}
+			{/* Content Column */}
 			<div
 				className={`flex flex-col justify-center p-5 sm:p-7 md:p-9 ${
 					hasImage ? 'w-full md:w-1/2' : 'w-full max-w-xl mx-auto text-center'
 				}`}
 			>
-				{/* Badge sự kiện */}
+				{/* Badge */}
 				{bannerBadge && (
 					<div className="mb-3 inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold tracking-wider text-emerald-700 uppercase border border-emerald-200/60 shadow-2xs">
 						<FiTag className="h-3.5 w-3.5 text-emerald-600" />
@@ -181,12 +181,12 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 					</div>
 				)}
 
-				{/* Tiêu đề */}
+				{/* Heading */}
 				<h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 leading-tight">
-					{bannerTitle || 'Ưu Đãi Đặc Biệt'}
+					{bannerTitle || 'Special Offer'}
 				</h3>
 
-				{/* Mô tả */}
+				{/* Description */}
 				{bannerDescription && (
 					<p className="mt-3 text-sm sm:text-base text-gray-600 leading-relaxed">
 						{bannerDescription}
@@ -198,7 +198,7 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 					<div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-emerald-400/80 bg-emerald-50/50 p-3 sm:p-3.5 transition-all">
 						<div className="flex flex-col text-left">
 							<span className="text-[11px] font-semibold text-emerald-800 uppercase tracking-wider">
-								Mã Ưu Đãi Của Bạn
+								Your Exclusive Code
 							</span>
 							<span className="font-mono text-base sm:text-lg font-black tracking-widest text-emerald-950">
 								{couponCode}
@@ -217,19 +217,19 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 							{copied ? (
 								<>
 									<FiCheck className="h-4 w-4 stroke-[3]" />
-									<span>Đã sao chép!</span>
+									<span>Copied!</span>
 								</>
 							) : (
 								<>
 									<FiCopy className="h-4 w-4" />
-									<span>Sao chép mã</span>
+									<span>Copy Code</span>
 								</>
 							)}
 						</button>
 					</div>
 				)}
 
-				{/* Nút Hành Động CTA */}
+				{/* CTA Action Button */}
 				<div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
 					{bannerCtaUrl ? (
 						<Link
@@ -237,7 +237,7 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 							onClick={onClose}
 							className="flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-gray-800 hover:shadow-xl active:scale-[0.98]"
 						>
-							<span>{bannerCtaText || 'Khám Phá Ngay'}</span>
+							<span>{bannerCtaText || 'Explore Now'}</span>
 							<FiArrowRight className="h-4 w-4" />
 						</Link>
 					) : (
@@ -246,7 +246,7 @@ export default function PopupBanner({ settings, onClose }: PopupBannerProps) {
 							onClick={onClose}
 							className="flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-gray-800 active:scale-[0.98] cursor-pointer"
 						>
-							<span>{bannerCtaText || 'Đã Hiểu'}</span>
+							<span>{bannerCtaText || 'Got It'}</span>
 						</button>
 					)}
 				</div>

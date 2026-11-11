@@ -1,5 +1,6 @@
 import { defineField, defineType } from 'sanity'
 import { PlayIcon } from '@sanity/icons'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'video-embed',
@@ -48,16 +49,18 @@ export default defineType({
 			initialValue: '16:9',
 		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'video-embed',
+		icon: PlayIcon,
+		imageField: 'customThumbnail',
+		titleFields: ['title'],
 		select: {
-			title: 'title',
 			url: 'url',
-			media: 'customThumbnail',
+			aspectRatio: 'aspectRatio',
 		},
-		prepare: ({ title, url, media }) => ({
-			title: title || 'Video Embed',
-			subtitle: url,
-			media,
-		}),
-	},
+		metadata: (doc) => [
+			doc.aspectRatio ? `Aspect: ${doc.aspectRatio}` : null,
+			doc.url || null,
+		],
+	}),
 })

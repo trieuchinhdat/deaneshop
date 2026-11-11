@@ -14,6 +14,7 @@ export interface BlogCardSettings {
 	cardStyle?: 'boxed' | 'minimalist' | string
 	cardImageAspectRatio?: '16:9' | '3:2' | '4:3' | '1:1' | string
 	cardShowCategory?: boolean
+	cardShowCategoryCount?: boolean
 	cardShowExcerpt?: boolean
 	cardShowAuthor?: boolean
 	cardShowDate?: boolean
@@ -24,6 +25,7 @@ export default function PostPreview({
 	post,
 	cardSettings,
 	layout = 'grid',
+	headingLevel = 'h3',
 	as: Component = 'li',
 	className,
 	...props
@@ -31,6 +33,7 @@ export default function PostPreview({
 	post: BlogPost & any
 	cardSettings?: BlogCardSettings
 	layout?: 'grid' | 'list'
+	headingLevel?: 'h2' | 'h3' | 'h4'
 	as?: 'li' | 'article' | 'div'
 } & React.HTMLAttributes<HTMLElement>) {
 	if (!post) return null
@@ -39,6 +42,7 @@ export default function PostPreview({
 		cardStyle = 'boxed',
 		cardImageAspectRatio = '16:9',
 		cardShowCategory = true,
+		cardShowCategoryCount = false,
 		cardShowExcerpt = true,
 		cardShowAuthor = true,
 		cardShowDate = true,
@@ -52,7 +56,9 @@ export default function PostPreview({
 		post.slug?.replace(`/${ROUTES.blog}/`, '') ||
 		post._id
 	const postUrl = `/${ROUTES.blog}/${slug}`
-	const primaryCategory = post.categories?.[0] as BlogCategory | undefined
+	const primaryCategory = post.categories?.[0] as
+		| (BlogCategory & { postCount?: number })
+		| undefined
 
 	const aspectClass =
 		cardImageAspectRatio === '3:2'
@@ -68,15 +74,18 @@ export default function PostPreview({
 		cardShowDate ||
 		cardShowReadTime
 
+	const HeadingTag = headingLevel
+
 	// 1. EDITORIAL LIST LAYOUT (1 Column Wide Card)
 	if (layout === 'list') {
 		return (
 			<Component
 				className={cn(
-					'group relative flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-7 transition-all duration-300',
+					'group relative flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-7 transition-all duration-300 rounded-2xl',
+					'focus-within:ring-2 focus-within:ring-primary/40 focus-within:ring-offset-2',
 					isMinimalist
-						? 'bg-transparent p-0 pb-6 sm:pb-8 border-b border-zinc-200/70 dark:border-zinc-800 last:border-b-0'
-						: 'overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-4 sm:p-5 shadow-2xs hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900',
+						? 'bg-transparent p-0 pb-6 sm:pb-8 border-b border-zinc-200/70 dark:border-zinc-800 last:border-b-0 rounded-none'
+						: 'overflow-hidden border border-zinc-200/80 bg-white p-4 sm:p-5 shadow-2xs hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900',
 					className,
 				)}
 				{...props}
@@ -111,6 +120,9 @@ export default function PostPreview({
 					{cardShowCategory && primaryCategory?.title && (
 						<span className="absolute top-2.5 left-2.5 rounded-full bg-white/95 px-2.5 py-0.5 text-[10px] sm:text-[11px] font-bold tracking-wide uppercase text-zinc-900 shadow-xs backdrop-blur-xs dark:bg-zinc-900/95 dark:text-zinc-100">
 							{primaryCategory.title}
+							{cardShowCategoryCount && typeof primaryCategory.postCount === 'number' && (
+								<span className="ml-1 opacity-70">({primaryCategory.postCount})</span>
+							)}
 						</span>
 					)}
 				</figure>
@@ -119,12 +131,12 @@ export default function PostPreview({
 				<div className="flex flex-1 flex-col justify-between space-y-3">
 					<div className="space-y-2">
 						{/* Headline */}
-						<h3 className="font-bold text-lg sm:text-xl text-zinc-900 line-clamp-2 leading-snug dark:text-zinc-50 transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
-							<Link href={postUrl}>
+						<HeadingTag className="font-bold text-lg sm:text-xl text-zinc-900 line-clamp-2 leading-snug dark:text-zinc-50 transition-colors group-hover:text-primary dark:group-hover:text-primary">
+							<Link href={postUrl} className="focus:outline-none focus-visible:underline">
 								<span className="absolute inset-0 z-10" />
 								{post.title}
 							</Link>
-						</h3>
+						</HeadingTag>
 
 						{/* Excerpt */}
 						{cardShowExcerpt &&
@@ -157,7 +169,7 @@ export default function PostPreview({
 							)}
 
 							<div className="flex items-center gap-1.5 shrink-0">
-								{cardShowAuthor && cardShowDate && !post.author && (
+								{cardShowAuthor && cardShowDate && post.author && (
 									<DateComponent date={post.publishDate} />
 								)}
 								{cardShowReadTime && (
@@ -178,10 +190,11 @@ export default function PostPreview({
 	return (
 		<Component
 			className={cn(
-				'group relative flex flex-col justify-between transition-all duration-300',
+				'group relative flex flex-col justify-between transition-all duration-300 rounded-2xl',
+				'focus-within:ring-2 focus-within:ring-primary/40 focus-within:ring-offset-2',
 				isMinimalist
 					? 'bg-transparent p-0 border-0 shadow-none'
-					: 'overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-2xs hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900',
+					: 'overflow-hidden border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-2xs hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900',
 				className,
 			)}
 			{...props}
@@ -218,17 +231,20 @@ export default function PostPreview({
 					{cardShowCategory && primaryCategory?.title && (
 						<span className="absolute top-2.5 left-2.5 rounded-full bg-white/95 px-2.5 py-0.5 text-[10px] sm:text-[11px] font-bold tracking-wide uppercase text-zinc-900 shadow-xs backdrop-blur-xs dark:bg-zinc-900/95 dark:text-zinc-100">
 							{primaryCategory.title}
+							{cardShowCategoryCount && typeof primaryCategory.postCount === 'number' && (
+								<span className="ml-1 opacity-70">({primaryCategory.postCount})</span>
+							)}
 						</span>
 					)}
 				</figure>
 
 				{/* 2. Headline */}
-				<h3 className="font-bold text-base sm:text-lg text-zinc-900 line-clamp-2 leading-snug dark:text-zinc-50 transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
-					<Link href={postUrl}>
+				<HeadingTag className="font-bold text-base sm:text-lg text-zinc-900 line-clamp-2 leading-snug dark:text-zinc-50 transition-colors group-hover:text-primary dark:group-hover:text-primary">
+					<Link href={postUrl} className="focus:outline-none focus-visible:underline">
 						<span className="absolute inset-0 z-10" />
 						{post.title}
 					</Link>
-				</h3>
+				</HeadingTag>
 
 				{/* 3. Excerpt */}
 				{cardShowExcerpt && (post.excerpt || post.metadata?.description) && (
@@ -260,7 +276,7 @@ export default function PostPreview({
 					)}
 
 					<div className="flex items-center gap-1.5 shrink-0">
-						{cardShowAuthor && cardShowDate && !post.author && (
+						{cardShowAuthor && cardShowDate && post.author && (
 							<DateComponent date={post.publishDate} />
 						)}
 						{cardShowReadTime && (

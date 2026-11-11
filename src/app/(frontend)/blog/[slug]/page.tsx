@@ -2,12 +2,23 @@ import type { Metadata } from 'next'
 import { groq } from 'next-sanity'
 import { notFound } from 'next/navigation'
 import { ROUTES } from '@/lib/env'
+import { enrichProductsWithD1Reviews } from '@/lib/reviews'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import { sanityFetchLive } from '@/sanity/lib/live'
-import { MODULES_QUERY, getProductSettings, getBlogSettings } from '@/sanity/lib/queries'
+import { PRODUCT_CARD_FIELDS } from '@/sanity/lib/product-card-query'
+import {
+	getBlogSettings,
+	getProductSettings,
+	LINK_QUERY,
+	MODULES_QUERY,
+} from '@/sanity/lib/queries'
 import type { BLOG_POST_QUERY_RESULT } from '@/sanity/types'
 import ModulesResolver from '@/ui/modules'
+import BlogPostContent from '@/ui/modules/blog/blog-post-content'
+import Breadcrumbs from '@/ui/modules/breadcrumbs'
+
+export const dynamic = 'force-dynamic'
 
 type Props = {
 	params: Promise<{ slug: string }>
@@ -22,12 +33,40 @@ export default async function BlogPage({ params }: Props) {
 	])
 	if (!post) notFound()
 
+	const globalBefore = (post as any).globalBefore || []
+	const customModules = (post as any).customModules || []
+	const globalAfter = (post as any).globalAfter || []
+
+	const bottomModules = [...customModules, ...globalAfter]
+
 	return (
-		<ModulesResolver
-			post={post}
-			productSettings={productSettings}
-			blogSettings={blogSettings}
-		/>
+		<>
+			<Breadcrumbs currentPage={post} />
+
+			{globalBefore.length > 0 && (
+				<ModulesResolver
+					modules={globalBefore}
+					productSettings={productSettings}
+					blogSettings={blogSettings}
+				/>
+			)}
+
+			<BlogPostContent
+				post={post}
+				productSettings={productSettings}
+				blogSettings={blogSettings}
+			/>
+
+			{bottomModules.length > 0 && (
+				<div className="mt-12">
+					<ModulesResolver
+						modules={bottomModules}
+						productSettings={productSettings}
+						blogSettings={blogSettings}
+					/>
+				</div>
+			)}
+		</>
 	)
 }
 
@@ -103,47 +142,26 @@ async function getPost(slug: string) {
 		query: BLOG_POST_QUERY,
 		params: { slug, blogDir: `${ROUTES.blog}/` },
 	})
-
-	if (!post) return null
-
-	const globalBefore = (post as any).globalBefore || []
-	const customModules = (post as any).customModules || []
-	const globalAfter = (post as any).globalAfter || []
-
-	const hasBreadcrumbs = [...globalBefore, ...customModules, ...globalAfter].some(
-		(m: any) => m?._type === 'breadcrumbs',
-	)
-
-	const hasBlogPostContent = [...globalBefore, ...customModules, ...globalAfter].some(
-		(m: any) => m?._type === 'blog-post-content',
-	)
-
-	let finalCustomModules = [...customModules]
-
-	if (!hasBlogPostContent) {
-		finalCustomModules.unshift({
-			_type: 'blog-post-content',
-			_key: `${post._id}-default-content`,
-		})
+	if (post && Array.isArray((post as any).relatedProducts)) {
+		return {
+			...post,
+			relatedProducts: await enrichProductsWithD1Reviews(
+				(post as any).relatedProducts,
+			),
+		}
 	}
-
-	if (!hasBreadcrumbs) {
-		finalCustomModules.unshift({
-			_type: 'breadcrumbs',
-			_key: `${post._id}-default-breadcrumbs`,
-		})
-	}
-
-	;(post as any).modules = [...globalBefore, ...finalCustomModules, ...globalAfter] as any
-
 	return post
 }
 
 const BLOG_POST_QUERY = groq`*[_type == 'blog.post' && metadata.slug.current == $slug][0]{
 	...,
 	excerpt,
+	keyTakeaways,
 	isFeatured,
 	lastUpdatedDate,
+	factCheckedDate,
+	ftcDisclosure,
+	customFtcDisclosure,
 	tags,
 	content[]{
 		...,
@@ -179,6 +197,9 @@ const BLOG_POST_QUERY = groq`*[_type == 'blog.post' && metadata.slug.current == 
 				title,
 				price,
 				salePrice,
+				hasVariants,
+				inStock,
+				stock,
 				images[]{
 					...,
 					asset->
@@ -192,6 +213,10 @@ const BLOG_POST_QUERY = groq`*[_type == 'blog.post' && metadata.slug.current == 
 				...,
 				asset->
 			}
+		},
+		_type == 'cta-banner' => {
+			...,
+			buttonLink{ ${LINK_QUERY} }
 		}
 	},
 	'contentPlainText': pt::text(content),
@@ -214,45 +239,18 @@ const BLOG_POST_QUERY = groq`*[_type == 'blog.post' && metadata.slug.current == 
 			asset->
 		}
 	},
-	relatedProducts[]->{
-		_id,
-		title,
-		price,
-		compareAtPrice,
-		tags,
-		sold,
-		stock,
-		hasVariants,
-		options[]{
-			name,
-			values
-		},
-		variants[]{
-			_key,
-			title,
-			price,
-			compareAtPrice,
-			stock,
-			options[]{
-				name,
-				value
-			},
-			image{
-				...,
-				asset->
-			}
-		},
-		"slug": metadata.slug.current,
-		images[]{
+	reviewedBy->{
+		name,
+		role,
+		shortBio,
+		image{
 			...,
 			asset->
-		},
-		"reviews": *[_type == "review" && references(^._id) && isApproved == true]{ rating },
-		categories[]->{
-			title,
-			"slug": slug.current
 		}
 	},
+	relatedProducts[]->{
+${PRODUCT_CARD_FIELDS}
+},
 	relatedPosts[]->{
 		_id,
 		title,
@@ -302,14 +300,6 @@ const BLOG_POST_QUERY = groq`*[_type == 'blog.post' && metadata.slug.current == 
 				asset->
 			}
 		}
-	},
-	'comments': *[_type == 'blog.comment' && post._ref == ^._id && isApproved == true] | order(createdAt asc){
-		_id,
-		authorName,
-		content,
-		isAuthorReply,
-		createdAt,
-		'parentId': parentComment._ref
 	},
 	'globalBefore': (
 		*[_type == 'global-module' && path == '*'].before[]{ ${MODULES_QUERY} }

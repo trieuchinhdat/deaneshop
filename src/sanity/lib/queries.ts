@@ -1,13 +1,15 @@
 import { groq } from 'next-sanity'
-import type { PAGE_QUERY_RESULT, PRODUCT_SETTINGS_QUERY_RESULT, SITE_QUERY_RESULT } from '@/sanity/types'
+import type {
+	PAGE_QUERY_RESULT,
+	PRODUCT_SETTINGS_QUERY_RESULT,
+	SITE_QUERY_RESULT,
+} from '@/sanity/types'
 import { sanityFetchLive } from './live'
-
-
 
 /* fragments */
 
 // @sanity-typegen-ignore
-const LINK_QUERY = groq`
+export const LINK_QUERY = groq`
 	...,
 	type == 'internal' => {
 		internal->{
@@ -102,16 +104,31 @@ const SITE_QUERY = groq`*[_type == 'site'][0]{
 		fontHeading,
 		customFontHeading,
 		fontBody,
-		customFontBody
+		customFontBody,
+		enableMotion,
+		buttonHoverEffect,
+		bannerHoverEffect,
+		motionPhysics
 	},
+	'widgetEnabled': coalesce(*[_type == 'widget-settings'][0].enabled, true),
 	'widgetPosition': coalesce(*[_type == 'widget-settings'][0].widgetPosition, widgetPosition, 'bottom-right'),
 	'displayMode': coalesce(*[_type == 'widget-settings'][0].displayMode, displayMode, 'expandable'),
+	'deviceVisibility': coalesce(*[_type == 'widget-settings'][0].deviceVisibility, 'all'),
+	'triggerMode': coalesce(*[_type == 'widget-settings'][0].triggerMode, 'scroll'),
+	'themeStyle': coalesce(*[_type == 'widget-settings'][0].themeStyle, 'primary'),
+	'onlineBadge': coalesce(*[_type == 'widget-settings'][0].onlineBadge, true),
+	'bottomOffsetMobile': coalesce(*[_type == 'widget-settings'][0].bottomOffsetMobile, 'normal'),
+	'customBottomOffsetMobile': *[_type == 'widget-settings'][0].customBottomOffsetMobile,
+	'bottomOffsetDesktop': coalesce(*[_type == 'widget-settings'][0].bottomOffsetDesktop, 'normal'),
+	'customBottomOffsetDesktop': *[_type == 'widget-settings'][0].customBottomOffsetDesktop,
+	'mobileDisplayStyle': coalesce(*[_type == 'widget-settings'][0].mobileDisplayStyle, 'expanded'),
 	'mainButtonLabel': coalesce(*[_type == 'widget-settings'][0].mainButtonLabel, mainButtonLabel, 'Need Help?'),
 	'mainButtonIcon': coalesce(*[_type == 'widget-settings'][0].mainButtonIcon, mainButtonIcon, 'chat'),
 	'floatingButtons': coalesce(*[_type == 'widget-settings'][0].floatingButtons, floatingButtons)[] {
 		_key,
 		type,
 		label,
+		subtitle,
 		value,
 		icon,
 		isActive,
@@ -194,9 +211,28 @@ export const MODULES_QUERY = groq`
 	_type == 'card-list' => {
 		cards[]{
 			...,
+			link{ ${LINK_QUERY} },
+			image{
+				...,
+				asset->
+			},
+			icon{
+				...,
+				asset->
+			},
 			ctas[]{
 				...,
 				link{ ${LINK_QUERY} }
+			}
+		}
+	},
+	_type == 'stat-list' => {
+		stats[]{
+			...,
+			link{ ${LINK_QUERY} },
+			icon{
+				...,
+				asset->
 			}
 		}
 	},
@@ -209,10 +245,29 @@ export const MODULES_QUERY = groq`
 	_type == 'person-list' => {
 		people[]{
 			...,
-			_type == 'reference' => @->
+			_type == 'reference' => @->{
+				...,
+				image{
+					...,
+					asset->{
+						...,
+						metadata
+					}
+				}
+			},
+			defined(image) => {
+				image{
+					...,
+					asset->{
+						...,
+						metadata
+					}
+				}
+			}
 		}
 	},
 	_type == 'prose' => {
+		...,
 		content[]{
 			...,
 			_type == 'image' => {
@@ -221,6 +276,62 @@ export const MODULES_QUERY = groq`
 					...,
 					metadata
 				}
+			},
+			_type == 'affiliateLink' => {
+				...,
+				affiliateRef->{
+					_id,
+					title,
+					merchant,
+					url,
+					price,
+					originalPrice,
+					couponCode,
+					rating,
+					ratingCount,
+					badge,
+					highlights,
+					description,
+					image{
+						...,
+						asset->
+					}
+				}
+			},
+			_type == 'product-embed' => {
+				...,
+				product->{
+					_id,
+					title,
+					price,
+					salePrice,
+					hasVariants,
+					inStock,
+					stock,
+					images[]{
+						...,
+						asset->
+					},
+					metadata
+				}
+			},
+			_type == 'image-gallery' => {
+				...,
+				images[]{
+					...,
+					asset->
+				}
+			},
+			_type == 'cta-banner' => {
+				...,
+				buttonLink{ ${LINK_QUERY} }
+			},
+			_type == 'video-embed' => {
+				...,
+				customThumbnail{
+					...,
+					asset->
+				}
 			}
 		},
 		'headings': select(
@@ -228,12 +339,82 @@ export const MODULES_QUERY = groq`
 				style,
 				'text': pt::text(@)
 			}
-		)
+		),
+		'readingTime': length(string::split(pt::text(content), ' ')) / 200
 	},
 	_type == 'quote-list' => {
+		...,
 		testimonials[]{
 			...,
-			_type == 'reference' => @->
+			_type == 'reference' => @->{
+				...,
+				mediaLogo{
+					...,
+					asset->
+				},
+				author{
+					...,
+					image{
+						...,
+						asset->
+					}
+				},
+				videoThumbnail{
+					...,
+					asset->
+				}
+			},
+			mediaLogo{
+				...,
+				asset->
+			},
+			author{
+				...,
+				image{
+					...,
+					asset->
+				}
+			},
+			videoThumbnail{
+				...,
+				asset->
+			}
+		}
+	},
+	_type == 'social-proof' => {
+		...,
+		reviews[]{
+			...,
+			authorAvatar {
+				...,
+				asset->
+			},
+			videoThumbnail {
+				...,
+				asset->
+			}
+		}
+	},
+	_type == 'step-list' => {
+		steps[]{
+			...,
+			image{
+				...,
+				asset->
+			},
+			videoThumbnail{
+				...,
+				asset->
+			},
+			icon{
+				...,
+				asset->
+			},
+			link{ ${LINK_QUERY} },
+			ctas[]{
+				...,
+				link{ ${LINK_QUERY} }
+			}
 		}
 	},
 	_type == 'product-list' => {
@@ -247,7 +428,7 @@ export const MODULES_QUERY = groq`
 		collection->{
 			_id,	
 			title,
-			"slug": slug.current
+			"slug": coalesce(metadata.slug.current, slug.current)
 		},
     },
 	_type == 'product' => {
@@ -268,6 +449,10 @@ export const MODULES_QUERY = groq`
 			price,
 			salePrice,
 			sales,
+			inStock,
+			shortPitch,
+			keyBenefits,
+			specs,
 			hasVariants,
 			options[]{
 				name,
@@ -292,22 +477,6 @@ export const MODULES_QUERY = groq`
 					value
 				}
 			},
-			"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {
-				_id,
-				author,
-				rating,
-				comment,
-				response,
-				createdAt,
-				images[]{
-					...,
-					asset->
-				},
-				videos[]{
-					...,
-					asset->
-				}
-			},
 		}
 	},
 	_type == 'carousel-banner-list' => {
@@ -322,6 +491,50 @@ export const MODULES_QUERY = groq`
             "internalSlug": internal->metadata.slug.current,
         }
     },
+	_type == 'hero.split' => {
+		...,
+		image {
+			...,
+			asset->,
+			mobileImage {
+				...,
+				asset->
+			}
+		}
+	},
+	_type == 'hero-slider' => {
+		...,
+		slides[]{
+			...,
+			image {
+				...,
+				asset->
+			},
+			mobileImage {
+				...,
+				asset->
+			},
+			ctas[]{
+				...,
+				link{ ${LINK_QUERY} }
+			}
+		}
+	},
+	_type == 'media-grid' => {
+		...,
+		items[]{
+			...,
+			image {
+				...,
+				asset->
+			},
+			mobileImage {
+				...,
+				asset->
+			},
+			link{ ${LINK_QUERY} }
+		}
+	},
 	_type == 'blog-post-list' => {
         ..., 
         image {
@@ -333,7 +546,8 @@ export const MODULES_QUERY = groq`
         category->{
             _id,
             title,
-            slug
+            slug,
+            "postCount": count(*[_type == "blog.post" && references(^._id) && metadata.noIndex != true])
         },
         manualPosts[]->{
             _id,
@@ -345,7 +559,8 @@ export const MODULES_QUERY = groq`
             categories[]->{
                 _id,
                 title,
-                slug
+                slug,
+                "postCount": count(*[_type == "blog.post" && references(^._id) && metadata.noIndex != true])
             },
             author->{
                 name,
@@ -365,10 +580,84 @@ export const MODULES_QUERY = groq`
             "slug": metadata.slug.current
         }
     },
-	_type == 'collection-content' => {
+	_type == 'tiered-pricing' => {
 		...,
+		linkedProduct->{
+			_id,
+			_type,
+			title,
+			price,
+			compareAtPrice,
+			sku,
+			images[]{
+				...,
+				asset->
+			},
+			"slug": metadata.slug.current
+		}
 	},
-	_type == 'wishlist' => {
+	_type == 'compliance-vault' => {
+		...,
+		certificates[]{
+			...,
+			badgeIcon {
+				...,
+				asset->
+			}
+		},
+		gatedDocuments[]{
+			_key,
+			_type,
+			title,
+			category,
+			description,
+			fileSize,
+			"assetId": coalesce(_key, fileAsset.asset._id),
+			"hasFile": defined(fileAsset.asset._ref) || defined(externalDownloadUrl),
+			fileAsset {
+				_type,
+				asset->{
+					_id,
+					size,
+					originalFilename,
+					mimeType,
+					extension
+				}
+			}
+		}
+	},
+	_type == 'sticky-mobile-cta' => {
+		...,
+		image {
+			...,
+			asset->
+		},
+		linkedProduct->{
+			_id,
+			title,
+			price,
+			compareAtPrice,
+			sku,
+			images[]{
+				...,
+				asset->
+			},
+			"slug": coalesce(metadata.slug.current, slug.current),
+			hasVariants,
+			variants[]{
+				_key,
+				title,
+				sku,
+				price,
+				compareAtPrice,
+				image{
+					...,
+					asset->
+				}
+			}
+		}
+	},
+	_type == 'collection-content' => {
 		...,
 	},
 `
@@ -407,8 +696,14 @@ export const HEADER_SETTINGS_QUERY = groq`*[_type == 'header-settings'][0]{
 	allowDismiss,
 	autoPlayInterval,
 	menu->{ ${NAVIGATION_QUERY} },
-	categoryMenu->{ ${NAVIGATION_QUERY} },
 	mobileMenu->{ ${NAVIGATION_QUERY} },
+	mobileDrawerFooterLinks[]{ ${LINK_QUERY} },
+	highlightCta{
+		...,
+		iconType,
+		actionType,
+		link{ ${LINK_QUERY} }
+	},
 	ctas[]{
 		...,
 		iconType,
@@ -435,8 +730,8 @@ export const HEADER_SETTINGS_QUERY = groq`*[_type == 'header-settings'][0]{
 			alt,
 			loading
 		},
-		"internalType": internal->_type,
-		"internalSlug": internal->metadata.slug.current
+			"internalType": internal->_type,
+            "internalSlug": coalesce(internal->metadata.slug.current, internal->slug.current) 
 	}
 }`
 
@@ -450,12 +745,8 @@ export async function getSite() {
 
 export const FOOTER_SETTINGS_QUERY = groq`*[_type == 'footer-settings'][0]{
 	...,
-	backgroundImage{
-		...,
-		asset->
-	},
 	footerMenu->{ ${NAVIGATION_QUERY} },
-	social->{ ${NAVIGATION_QUERY} },
+	legalLinks[]{ ${LINK_QUERY} },
 	trustBadges[]{
 		...,
 		image{
@@ -478,24 +769,28 @@ export async function getFooterSettings() {
 	return {
 		// Inherit or override
 		footerMenu: footerSettings?.footerMenu ?? site?.footer,
-		social:
-			footerSettings?.socialSource === 'custom'
-				? footerSettings?.social
-				: (site?.socialLinks || site?.social),
-		footerContent: footerSettings?.customFooterContent ?? site?.footerContent,
-		copyright: footerSettings?.copyright ?? site?.copyright,
+		social: site?.socialLinks || site?.social,
+		legalLinks: footerSettings?.legalLinks,
+		showCookieSettingsTrigger:
+			footerSettings?.showCookieSettingsTrigger ?? true,
+		regionLabel: footerSettings?.regionLabel || 'United States (USD $)',
 		copyrightText: footerSettings?.copyrightText,
+		desktopLayout: footerSettings?.desktopLayout || 'standard',
+		spacing: footerSettings?.spacing || 'normal',
+		headingCase: footerSettings?.headingCase || 'title',
+		showBackToTop: footerSettings?.showBackToTop ?? true,
 		footerBackground: footerSettings?.footerBackground,
 		footerText: footerSettings?.footerText,
+		footerMutedText: footerSettings?.footerMutedText,
+		footerBorder: footerSettings?.footerBorder,
 		footerThemeStyle: footerSettings?.footerThemeStyle ?? 'default',
-		desktopLayout: footerSettings?.desktopLayout ?? '4-columns',
 		mobileAccordion: footerSettings?.mobileAccordion ?? true,
-		showDividers: footerSettings?.showDividers ?? true,
 		showUspBar: footerSettings?.showUspBar ?? true,
+		uspLayout: footerSettings?.uspLayout || 'grid',
 		uspItems: footerSettings?.uspItems,
 		showLogo: footerSettings?.showLogo ?? true,
 		brandDescription: footerSettings?.brandDescription,
-		useSiteProfile: footerSettings?.useSiteProfile ?? true,
+		showContactInfo: footerSettings?.showContactInfo ?? true,
 		showHotline: footerSettings?.showHotline ?? true,
 		showEmail: footerSettings?.showEmail ?? true,
 		showAddress: footerSettings?.showAddress ?? true,
@@ -507,8 +802,18 @@ export async function getFooterSettings() {
 		newsletterDescription: footerSettings?.newsletterDescription,
 		newsletterPlaceholder: footerSettings?.newsletterPlaceholder,
 		newsletterButtonText: footerSettings?.newsletterButtonText,
+		newsletterConsentText: footerSettings?.newsletterConsentText,
 		showPaymentMethods: footerSettings?.showPaymentMethods ?? true,
-		paymentMethods: footerSettings?.paymentMethods ?? ['visa', 'mastercard', 'momo', 'vnpay', 'cod'],
+		paymentMethods: footerSettings?.paymentMethods ?? [
+			'visa',
+			'mastercard',
+			'amex',
+			'apple_pay',
+			'google_pay',
+			'paypal',
+			'shop_pay',
+			'klarna',
+		],
 		showTrustBadges: footerSettings?.showTrustBadges ?? false,
 		trustBadges: footerSettings?.trustBadges,
 		...(footerSettings || {}),
@@ -560,20 +865,111 @@ export const PAGE_QUERY = groq`
 	}
 `
 
+export const CAMPAIGN_HOME_QUERY = groq`
+	*[_type == 'site'][0]{
+		campaignHomeEnabled,
+		'campaignPage': campaignHomePage->{
+			...,
+			'modules': (
+				*[_type == 'global-module' && path == '*'].before[]{ ${MODULES_QUERY} }
+				+ *[_type == 'global-module' && path != '*' && ${GLOBAL_MODULE_PATH_QUERY}].before[]{ ${MODULES_QUERY} }
+				+ modules[]{ ${MODULES_QUERY} }
+				+ *[_type == 'global-module' && path != '*' && ${GLOBAL_MODULE_PATH_QUERY}].after[]{ ${MODULES_QUERY} }
+				+ *[_type == 'global-module' && path == '*'].after[]{ ${MODULES_QUERY} }
+			)
+		},
+		campaignStartDate,
+		campaignEndDate,
+		keepOriginalSeo
+	}
+`
+
 export async function getPage(slug?: string[]) {
+	const currentSlug = slug ? slug.join('/') : 'index'
+
+	// If accessing root homepage, inspect for active Campaign Home Override
+	if (currentSlug === 'index') {
+		try {
+			const campaign = await sanityFetchLive<any>({
+				query: CAMPAIGN_HOME_QUERY,
+				params: { slug: 'index' },
+			})
+
+			const isCampaignActive = Boolean(
+				campaign?.campaignHomeEnabled &&
+				campaign?.campaignPage &&
+				(!campaign?.campaignStartDate ||
+					new Date(campaign.campaignStartDate) <= new Date()) &&
+				(!campaign?.campaignEndDate ||
+					new Date(campaign.campaignEndDate) >= new Date()),
+			)
+
+			if (isCampaignActive) {
+				const originalHomePage = await sanityFetchLive<PAGE_QUERY_RESULT>({
+					query: PAGE_QUERY,
+					params: { slug: 'index' },
+				})
+
+				const campaignPage = campaign.campaignPage
+				const shouldKeepOriginalSeo = campaign?.keepOriginalSeo !== false
+
+				return {
+					...campaignPage,
+					_id: originalHomePage?._id || campaignPage._id,
+					title: shouldKeepOriginalSeo
+						? originalHomePage?.title || campaignPage.title
+						: campaignPage.title,
+					metadata: shouldKeepOriginalSeo
+						? originalHomePage?.metadata || campaignPage.metadata
+						: campaignPage.metadata,
+					modules: campaignPage.modules || [],
+				} as PAGE_QUERY_RESULT
+			}
+		} catch (error) {
+			console.error('Failed to resolve campaign homepage override:', error)
+		}
+	}
+
 	return await sanityFetchLive<PAGE_QUERY_RESULT>({
 		query: PAGE_QUERY,
 		params: {
-			slug: slug ? slug.join('/') : 'index',
+			slug: currentSlug,
 		},
 	})
 }
 
+export const CHECKOUT_SETTINGS_QUERY = groq`*[_type == 'checkout-settings'][0]{
+	...,
+	topModules[]{ ${MODULES_QUERY} },
+	bottomModules[]{ ${MODULES_QUERY} },
+	metadata
+}`
 
+export async function getCheckoutSettings() {
+	return await sanityFetchLive<any>({
+		query: CHECKOUT_SETTINGS_QUERY,
+	})
+}
 
 export async function getCartCheckoutSettings() {
-	return await sanityFetchLive<any>({
-		query: groq`*[_type == 'cart-checkout'][0]{...}`,
+	return await getCheckoutSettings()
+}
+
+export const GLOBAL_MODULES_QUERY = groq`{
+	'before': (
+		*[_type == 'global-module' && path == '*'].before[]{ ${MODULES_QUERY} }
+		+ *[_type == 'global-module' && path != '*' && ${GLOBAL_MODULE_PATH_QUERY}].before[]{ ${MODULES_QUERY} }
+	),
+	'after': (
+		*[_type == 'global-module' && path != '*' && ${GLOBAL_MODULE_PATH_QUERY}].after[]{ ${MODULES_QUERY} }
+		+ *[_type == 'global-module' && path == '*'].after[]{ ${MODULES_QUERY} }
+	)
+}`
+
+export async function getGlobalModules(slug: string = '') {
+	return await sanityFetchLive<{ before: any[]; after: any[] }>({
+		query: GLOBAL_MODULES_QUERY,
+		params: { slug },
 	})
 }
 
@@ -630,7 +1026,10 @@ export const BLOG_SETTINGS_QUERY = groq`*[_type == 'blog-settings'][0]{
 			...,
 			asset->
 		}
-	}
+	},
+	topModules[]{ ${MODULES_QUERY} },
+	bottomModules[]{ ${MODULES_QUERY} },
+	metadata
 }`
 
 export async function getBlogSettings() {
@@ -678,12 +1077,12 @@ export const BLOG_CATEGORY_QUERY = groq`*[_type == 'blog.category' && slug.curre
 	}
 }`
 
-export async function getBlogCategory(slug: string, blogDir: string = '/blog/') {
+export async function getBlogCategory(
+	slug: string,
+	blogDir: string = '/blog/',
+) {
 	return await sanityFetchLive<any>({
 		query: BLOG_CATEGORY_QUERY,
 		params: { slug, blogDir },
 	})
 }
-
-
-

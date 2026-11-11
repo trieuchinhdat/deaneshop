@@ -13,11 +13,7 @@ export default defineType({
 		defineField({
 			name: 'uid',
 			title: 'Unique identifier',
-			description: (
-				<>
-					Used for anchor/jump links (HTML <code>id</code> attribute).
-				</>
-			),
+			description: 'Used for anchor/jump links (HTML id attribute).',
 			type: 'string',
 			validation: (Rule) =>
 				Rule.regex(/^[a-zA-Z0-9-]+$/g).error(

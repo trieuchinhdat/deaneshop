@@ -1,21 +1,27 @@
+import CookiePreferences from '@/ui/cookie-preferences'
 import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
+import { stegaClean } from 'next-sanity'
 import { getActiveFontClasses } from '@/lib/fonts'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { preconnect } from 'react-dom'
 import { dev } from '@/lib/env'
 import Footer from '@/ui/footer'
 import Header from '@/ui/header'
-import VisualEditing from '@/ui/modules/visual-editing'
+import VisualEditing from '@/ui/visual-editing'
 import '@/app.css'
 import { getFooterSettings, getPopupSettings, getSite } from '@/sanity/lib/queries'
 import { urlFor } from '@/sanity/lib/image'
 import ChatBoxWrapper from '@/ui/chatbox-wrapper'
 import OrganizationJsonLd from '@/ui/organization-json-ld'
 import PopupModal from '@/ui/popup/popup-modal'
+import { FiTool, FiPhone, FiMail, FiClock } from 'react-icons/fi'
 import ThemeProvider from '@/ui/theme-provider'
+import { ThemeMotionProvider } from '@/ui/motion/theme-motion'
 import TrackingScripts from '@/ui/tracking-scripts'
 import ScrollToTop from '@/ui/scroll-to-top'
+import JourneyTracker from '@/ui/journey-tracker'
+import WebVitalsReporter from '@/ui/web-vitals-reporter'
 
 export async function generateMetadata(): Promise<Metadata> {
 	const site = await getSite()
@@ -33,10 +39,16 @@ export async function generateMetadata(): Promise<Metadata> {
 		? urlFor(site.defaultOgImage).width(1200).height(630).fit('crop').auto('format').url()
 		: undefined
 
+	const brandName = site?.siteName || site?.title || 'Store'
+	const pageTitle = site?.title || brandName
+	const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://deanflow.com'
+	const baseUrl = rawBaseUrl.startsWith('http') ? rawBaseUrl : `https://${rawBaseUrl}`
+
 	return {
+		metadataBase: new URL(baseUrl),
 		title: {
-			default: site?.title || 'Ecocros Store',
-			template: `%s | ${site?.title || 'Ecocros Store'}`,
+			default: pageTitle,
+			template: `%s | ${brandName}`,
 		},
 		description: site?.defaultSeoDescription || 'Official online store delivering premium products and lifestyle goods.',
 		icons: {
@@ -44,7 +56,7 @@ export async function generateMetadata(): Promise<Metadata> {
 			apple: appleIconUrl,
 		},
 		openGraph: {
-			title: site?.title || 'Ecocros Store',
+			title: pageTitle,
 			description: site?.defaultSeoDescription || 'Official online store delivering premium products.',
 			images: ogImageUrl ? [{ url: ogImageUrl, width: 1200, height: 630 }] : [],
 		},
@@ -78,18 +90,27 @@ export default async function RootLayout({
 
 	// Selective font loading: Only load the exact fonts used on the page for maximum PageSpeed
 	const activeFontClasses = getActiveFontClasses(
-		data?.theme?.fontBody || undefined,
-		data?.theme?.fontHeading || undefined,
+		stegaClean(data?.theme?.fontBody) || undefined,
+		stegaClean(data?.theme?.fontHeading) || undefined,
 	)
+
+	// Motion & Micro-interaction Tokens
+	const isMotionEnabled = theme?.enableMotion !== false
+	const buttonHoverEffect = isMotionEnabled ? (stegaClean(theme?.buttonHoverEffect) || 'scale-subtle') : 'none'
+	const bannerHoverEffect = isMotionEnabled ? (stegaClean(theme?.bannerHoverEffect) || 'zoom') : 'none'
+	const motionPhysics = stegaClean(theme?.motionPhysics) || 'smooth'
 
 	// Maintenance Mode Fullscreen Screen
 	if (data?.maintenanceMode) {
 		return (
-			<html lang="en" className={activeFontClasses}>
-				<body className="flex min-h-screen items-center justify-center bg-slate-950 text-white font-sans selection:bg-emerald-500 selection:text-white px-4">
+			<html lang="en" className={activeFontClasses} suppressHydrationWarning>
+				<body
+					className="flex min-h-screen items-center justify-center bg-slate-950 text-white font-sans selection:bg-emerald-500 selection:text-white px-4"
+					suppressHydrationWarning
+				>
 					<div className="relative w-full max-w-xl p-8 md:p-12 text-center rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl backdrop-blur-xl">
 						<div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-6 shadow-inner">
-							<span className="text-2xl animate-pulse">🛠️</span>
+							<FiTool className="text-2xl animate-pulse" />
 						</div>
 
 						<h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-3">
@@ -103,7 +124,7 @@ export default async function RootLayout({
 						<div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-6 border-y border-slate-800/80 mb-6 text-sm text-slate-300">
 							{data.hotline && (
 								<div className="flex items-center gap-2">
-									<span className="text-slate-400">📞 Hotline:</span>
+									<span className="text-slate-400 flex items-center gap-1.5"><FiPhone className="text-emerald-400" /> Hotline:</span>
 									<a href={`tel:${data.hotline}`} className="font-semibold text-emerald-400 hover:underline">
 										{data.hotline}
 									</a>
@@ -112,7 +133,7 @@ export default async function RootLayout({
 							{data.hotline && data.email && <span className="hidden sm:inline text-slate-600">•</span>}
 							{data.email && (
 								<div className="flex items-center gap-2">
-									<span className="text-slate-400">✉️ Email:</span>
+									<span className="text-slate-400 flex items-center gap-1.5"><FiMail className="text-emerald-400" /> Email:</span>
 									<a href={`mailto:${data.email}`} className="font-semibold text-emerald-400 hover:underline">
 										{data.email}
 									</a>
@@ -121,13 +142,13 @@ export default async function RootLayout({
 						</div>
 
 						{data.workingHours && (
-							<p className="text-xs text-slate-400 mb-2">
-								🕒 Working Hours: {data.workingHours}
+							<p className="text-xs text-slate-400 mb-2 flex items-center justify-center gap-1.5">
+								<FiClock className="text-slate-500" /> Working Hours: {data.workingHours}
 							</p>
 						)}
 
 						<div className="mt-8 text-xs text-slate-400">
-							&copy; {new Date().getFullYear()} {data.companyName || data.title || 'Ecocros Store'}. All rights reserved.
+							&copy; {new Date().getFullYear()} {data.companyName || data.siteName || data.title || 'Store'}. All rights reserved.
 						</div>
 					</div>
 				</body>
@@ -136,37 +157,66 @@ export default async function RootLayout({
 	}
 
 	return (
-		<html lang="vi" className={activeFontClasses}>
+		<html lang="en" className={activeFontClasses} suppressHydrationWarning>
 			<head>
 				<OrganizationJsonLd site={data} />
 			</head>
-			<body className="bg-background text-foreground font-sans antialiased">
+			<body
+				className="bg-background text-foreground font-sans antialiased"
+				data-motion-enabled={isMotionEnabled ? 'true' : 'false'}
+				data-button-hover={buttonHoverEffect}
+				data-banner-hover={bannerHoverEffect}
+				data-motion-physics={motionPhysics}
+				suppressHydrationWarning
+			>
 				{tracking && <TrackingScripts scripts={tracking} />}
 
 				<ThemeProvider theme={theme} />
 
-				<NuqsAdapter>
-					<ScrollToTop />
-					<div className="flex min-h-screen flex-col">
-						<Header />
-						<main className="grow">{children}</main>
-						<Footer />
-					</div>
+				<ThemeMotionProvider
+					tokens={{
+						enableMotion: isMotionEnabled,
+						buttonHoverEffect: buttonHoverEffect as any,
+						bannerHoverEffect: bannerHoverEffect as any,
+						motionPhysics: motionPhysics as any,
+					}}
+				>
+					<NuqsAdapter>
+						<CookiePreferences />
+						<JourneyTracker />
+						<WebVitalsReporter />
+						<ScrollToTop />
+						<div className="flex min-h-screen flex-col print:min-h-0 print:block">
+							<Header />
+							<main id="main-content" className="grow print:grow-0">{children}</main>
+							<Footer />
+						</div>
 
-					<ChatBoxWrapper
-						floatingButtons={data?.floatingButtons || undefined}
-						position={data?.widgetPosition || undefined}
-						displayMode={data?.displayMode || undefined}
-						mainButtonLabel={data?.mainButtonLabel || undefined}
-						mainButtonIcon={data?.mainButtonIcon || undefined}
-						items={chatItems}
-					/>
+						<ChatBoxWrapper
+							enabled={data?.widgetEnabled !== false}
+							floatingButtons={data?.floatingButtons || undefined}
+							position={data?.widgetPosition || undefined}
+							displayMode={data?.displayMode || undefined}
+							deviceVisibility={data?.deviceVisibility || undefined}
+							triggerMode={data?.triggerMode || undefined}
+							themeStyle={data?.themeStyle || undefined}
+							onlineBadge={data?.onlineBadge !== false}
+							bottomOffsetMobile={data?.bottomOffsetMobile || undefined}
+							customBottomOffsetMobile={data?.customBottomOffsetMobile || undefined}
+							bottomOffsetDesktop={data?.bottomOffsetDesktop || undefined}
+							customBottomOffsetDesktop={data?.customBottomOffsetDesktop || undefined}
+							mobileDisplayStyle={data?.mobileDisplayStyle || undefined}
+							mainButtonLabel={data?.mainButtonLabel || undefined}
+							mainButtonIcon={data?.mainButtonIcon || undefined}
+							items={chatItems}
+						/>
 
-					<PopupModal settings={data?.popup || popupSettings} />
+						<PopupModal settings={data?.popup || popupSettings} />
 
-					<VisualEditing />
-					{!dev && <Analytics />}
-				</NuqsAdapter>
+						<VisualEditing />
+						{!dev && process.env.VERCEL && <Analytics />}
+					</NuqsAdapter>
+				</ThemeMotionProvider>
 			</body>
 		</html>
 	)

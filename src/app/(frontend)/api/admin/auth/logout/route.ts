@@ -16,12 +16,12 @@ export async function POST() {
 
 		return NextResponse.json({
 			success: true,
-			message: 'Đăng xuất tài khoản Admin thành công.',
+			message: 'Admin signed out successfully.',
 		})
 	} catch (error: any) {
-		console.error('Lỗi API Admin Logout:', error)
+		console.error('API Admin Logout error:', error)
 		return NextResponse.json(
-			{ success: false, error: 'Không thể đăng xuất.' },
+			{ success: false, error: 'Failed to sign out.' },
 			{ status: 500 },
 		)
 	}

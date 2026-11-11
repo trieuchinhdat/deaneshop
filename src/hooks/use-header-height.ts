@@ -5,10 +5,9 @@ export function useHeaderHeight() {
 	const [height, setHeight] = useState(0)
 
 	useEffect(() => {
-		// Hàm cập nhật chiều cao
+		// Update header height
 		const updateHeight = () => {
-			// Giả sử Header của bạn là thẻ <header> hoặc có id="main-header"
-			// Bạn nên đặt id="site-header" cho header chính để chính xác nhất
+			// Find header element (<header> or id="site-header")
 			const header =
 				document.querySelector('header') ||
 				document.getElementById('site-header')
@@ -18,13 +17,13 @@ export function useHeaderHeight() {
 			}
 		}
 
-		// 1. Đo ngay khi mount
+		// 1. Measure on initial mount
 		updateHeight()
 
-		// 2. Đo khi resize màn hình
+		// 2. Measure on window resize
 		window.addEventListener('resize', updateHeight)
 
-		// 3. (Optional) Dùng ResizeObserver để đo nếu header tự co giãn DOM
+		// 3. Observe header DOM resize
 		const header = document.querySelector('header')
 		let observer: ResizeObserver | null = null
 

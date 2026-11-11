@@ -3,8 +3,10 @@ import { CommentIcon } from '@sanity/icons'
 
 export default defineType({
 	name: 'blog.comment',
-	title: 'Blog Comments & Q&A',
+	title: 'Blog Comments & Q&A [Archive]',
+	description: '⚠️ Live blog comments are stored and moderated in Cloudflare D1 (/admin). Documents here are legacy read-only records.',
 	type: 'document',
+	readOnly: true,
 	icon: CommentIcon,
 	groups: [
 		{ name: 'content', title: 'Comment Content', default: true },
@@ -86,7 +88,7 @@ export default defineType({
 			isAuthorReply: 'isAuthorReply',
 		},
 		prepare({ authorName, content, postTitle, isApproved, isAuthorReply }) {
-			const status = isApproved ? '✅ LIVE' : '⏳ PENDING'
+			const status = isApproved ? 'LIVE' : 'PENDING'
 			const authorType = isAuthorReply ? ' [AUTHOR]' : ''
 			return {
 				title: `${authorName || 'Anonymous'}${authorType} • ${status}`,

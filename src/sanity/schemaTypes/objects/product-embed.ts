@@ -1,5 +1,6 @@
 import { defineField, defineType } from 'sanity'
 import { BasketIcon } from '@sanity/icons'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'product-embed',
@@ -43,16 +44,16 @@ export default defineType({
 			rows: 2,
 		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'product-embed',
+		icon: BasketIcon,
+		imageField: 'product.images.0',
+		titleFields: ['product.title', 'customBadge'],
 		select: {
-			title: 'product.title',
-			media: 'product.images.0',
 			layout: 'layout',
 		},
-		prepare: ({ title, media, layout }) => ({
-			title: title ? `🛍️ Product: ${title}` : 'Product Embed',
-			subtitle: `Layout: ${layout || 'card'}`,
-			media,
-		}),
-	},
+		metadata: (doc) => [
+			doc.layout ? `Layout: ${doc.layout}` : null,
+		],
+	}),
 })

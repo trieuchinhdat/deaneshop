@@ -1,0 +1,94 @@
+/**
+ * Wall of Love / Testimonials CSS Module
+ * High-performance styling for Marquee ticker and Masonry layout
+ */
+
+.marqueeWrapper {
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+	-webkit-mask-image: linear-gradient(
+		to right,
+		transparent 0%,
+		black 6%,
+		black 94%,
+		transparent 100%
+	);
+	mask-image: linear-gradient(
+		to right,
+		transparent 0%,
+		black 6%,
+		black 94%,
+		transparent 100%
+	);
+}
+
+.marqueeTrack {
+	display: flex;
+	width: max-content;
+	user-select: none;
+	touch-action: pan-y;
+}
+
+.marqueeGroup {
+	display: flex;
+	align-items: stretch;
+	flex-shrink: 0;
+	gap: 1.5rem;
+	padding-right: 1.5rem;
+	will-change: transform;
+	animation: quoteScrollLeft 38s linear infinite;
+}
+
+.marqueeTrack:hover .marqueeGroup,
+.marqueeTrack:focus-within .marqueeGroup {
+	animation-play-state: paused;
+}
+
+@keyframes quoteScrollLeft {
+	from {
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		transform: translate3d(-100%, 0, 0);
+	}
+}
+
+/* Accessible reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+	.marqueeGroup {
+		animation: none !important;
+		transform: none !important;
+	}
+
+	.marqueeWrapper {
+		-webkit-mask-image: none !important;
+		mask-image: none !important;
+		overflow-x: auto;
+		scrollbar-width: thin;
+	}
+
+	.marqueeTrack {
+		width: 100%;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 1.5rem;
+		padding: 0.5rem 1rem;
+	}
+
+	.marqueeGroup[data-duplicate='true'] {
+		display: none !important;
+	}
+}
+
+/* Masonry Column Layout */
+.masonryColumns {
+	column-gap: 1.5rem;
+	column-fill: balance;
+}
+
+.masonryItem {
+	break-inside: avoid;
+	margin-bottom: 1.5rem;
+	transform: translateZ(0);
+}

@@ -1,9 +1,15 @@
 import { defineField, defineType } from 'sanity'
 import { BsCollection } from 'react-icons/bs'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'collection-content',
-	title: 'Collection content',
+	title: 'Collection Grid & Facets [DEPRECATED]',
+	description:
+		'Legacy module. Collection Grid & Facets is rendered automatically on /collections/[slug].',
+	deprecated: {
+		reason: 'Collection content is rendered automatically on /collections/[slug].',
+	},
 	type: 'object',
 	icon: BsCollection,
 	groups: [{ name: 'options', default: true }, { name: 'layout' }],
@@ -11,12 +17,12 @@ export default defineType({
 		{
 			name: 'displayOptions',
 			title: 'Display Options',
-			options: { columns: 3 },
+			options: { columns: 1 },
 		},
 		{
 			name: 'paginationOptions',
 			title: 'Pagination & Filter',
-			options: { columns: 2 },
+			options: { columns: 1 },
 		},
 	],
 	fields: [
@@ -81,13 +87,14 @@ export default defineType({
 			group: 'options',
 		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'collection-content',
+		icon: BsCollection,
 		select: {
 			uid: 'attributes.uid',
 		},
-		prepare: ({ uid }) => ({
-			title: 'Collection content',
-			subtitle: uid ? `#${uid}` : 'Main collection content block',
-		}),
-	},
+		metadata: (doc) => [
+			doc.uid ? `#${doc.uid}` : null,
+		],
+	}),
 })

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertCircle, CheckCircle2, Loader2, MessageSquare, Send } from 'lucide-react'
+import { CheckCircle2, CircleAlert, Loader2, MessageSquare, Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function CommentForm({
@@ -104,7 +104,7 @@ export default function CommentForm({
 				<form onSubmit={handleSubmit} className="space-y-4">
 					{errorMsg && (
 						<div className="flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-900">
-							<AlertCircle className="size-4 shrink-0 text-rose-600 dark:text-rose-400" />
+							<CircleAlert className="size-4 shrink-0 text-rose-600 dark:text-rose-400" />
 							<span>{errorMsg}</span>
 						</div>
 					)}
@@ -140,7 +140,7 @@ export default function CommentForm({
 							placeholder={
 								replyingToName
 									? `Write your reply to ${replyingToName}...`
-									: 'Ask a question, share your perspective, or leave a review...'
+									: 'Ask a question, share an observation, or request technical specification details...'
 							}
 							required
 							minLength={5}
@@ -199,7 +199,10 @@ export default function CommentForm({
 					{/* Action Bar */}
 					<div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
 						<p className="text-[11px] text-zinc-600 dark:text-zinc-400 text-center sm:text-left">
-							🔒 Email is kept strictly confidential and never displayed publicly.
+							🔒 Email is kept confidential and never displayed publicly. By commenting, you agree to our{' '}
+							<a href="/privacy-policy" className="underline hover:text-zinc-900 dark:hover:text-zinc-100">
+								Privacy Policy
+							</a>.
 						</p>
 
 						<button
@@ -215,7 +218,7 @@ export default function CommentForm({
 							) : (
 								<>
 									<Send className="size-3.5" />
-									<span>{parentCommentId ? 'Post Reply' : 'Submit Comment'}</span>
+									<span>{parentCommentId ? 'Post Reply' : 'Submit Inquiry'}</span>
 								</>
 							)}
 						</button>

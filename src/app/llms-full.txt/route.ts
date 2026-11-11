@@ -7,7 +7,8 @@ export const revalidate = 3600
 const LLMS_FULL_QUERY = groq`{
 	'site': *[_type == 'site'][0]{
 		title,
-		description
+		siteName,
+		'description': coalesce(defaultSeoDescription, description, '')
 	},
 	'pages': *[
 		_type == 'page'
@@ -55,7 +56,7 @@ const LLMS_FULL_QUERY = groq`{
 }`
 
 export async function GET() {
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://ecocros.com'
+	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://deanflow.com'
 
 	try {
 		const fetchPromise = sanityFetchLive<any>({
@@ -72,10 +73,10 @@ export async function GET() {
 
 		const data = await Promise.race([fetchPromise, timeoutPromise])
 
-		const siteTitle = data?.site?.title || 'Ecocros'
+		const siteTitle = data?.site?.siteName || data?.site?.title || 'Store'
 		const siteDescription =
 			data?.site?.description ||
-			'Ecocros - Modern E-Commerce Platform offering curated lifestyle, home, and tech products.'
+			`${siteTitle} - Modern E-Commerce Platform offering curated lifestyle, home, and tech products.`
 
 		const sections: string[] = []
 
@@ -141,7 +142,8 @@ export async function GET() {
 		})
 	} catch (error) {
 		console.error('Error generating llms-full.txt:', error)
-		return new Response(`# Ecocros\n> Full knowledge base fallback.\n`, {
+		const fallbackBrand = process.env.NEXT_PUBLIC_SITE_NAME || 'Store'
+		return new Response(`# ${fallbackBrand}\n> Full knowledge base fallback.\n`, {
 			status: 200,
 			headers: {
 				'Content-Type': 'text/plain; charset=utf-8',

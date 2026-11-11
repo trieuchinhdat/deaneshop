@@ -1,73 +1,39 @@
+import { formatAdminOrder } from '@/lib/admin-format'
+import { requireAdminSession } from '@/lib/admin-auth'
 import { NextResponse } from 'next/server'
-import { writeClient } from '@/sanity/lib/write-client'
+import { PersistenceError, ordersDb } from '@/lib/d1'
 
 export async function GET(request: Request) {
 	try {
+		const auth = await requireAdminSession(['superadmin', 'admin', 'cskh'])
+		if (!auth.ok) return NextResponse.json({ success: false }, { status: auth.status })
 		const { searchParams } = new URL(request.url)
 		const status = searchParams.get('status') || 'ALL'
 		const search = searchParams.get('search') || ''
+		const limit = Number(searchParams.get('limit')) || 100
+		const offset = Number(searchParams.get('offset')) || 0
 
-		let groqFilter = `_type == "order"`
+		// 1. Fetch from Cloudflare D1 (Primary fast edge query)
+		const [d1Orders, d1Counts] = await Promise.all([
+			ordersDb.list({
+				status,
+				search,
+				limit,
+				offset,
+			}),
+			ordersDb.counts(),
+		])
 
-		if (status !== 'ALL') {
-			groqFilter += ` && fulfillmentStatus == "${status}"`
-		}
+		// Format D1 orders to match expected frontend structure
+		const formattedOrders = (d1Orders || []).map((order) => formatAdminOrder(order))
 
-		if (search.trim()) {
-			const s = search.trim().toLowerCase()
-			groqFilter += ` && (
-				lower(orderId) match "*${s}*" || 
-				lower(customer.name) match "*${s}*" || 
-				lower(customer.phone) match "*${s}*" ||
-				lower(trackingCode) match "*${s}*"
-			)`
-		}
-
-		const query = `*[${groqFilter}] | order(_createdAt desc) [0...100] {
-			_id,
-			_createdAt,
-			_updatedAt,
-			_rev,
-			orderId,
-			customer,
-			items,
-			pricing,
-			paymentMethod,
-			paymentStatus,
-			fulfillmentStatus,
-			carrier,
-			trackingCode,
-			customerNote,
-			internalNotes,
-			history
-		}`
-
-		const orders = await writeClient.fetch(query)
-
-		// Lấy số lượng theo các trạng thái (Counts)
-		const countsQuery = `{
-			"ALL": count(*[_type == "order"]),
-			"PENDING": count(*[_type == "order" && fulfillmentStatus == "PENDING"]),
-			"CONFIRMED": count(*[_type == "order" && fulfillmentStatus == "CONFIRMED"]),
-			"PROCESSING": count(*[_type == "order" && fulfillmentStatus == "PROCESSING"]),
-			"SHIPPING": count(*[_type == "order" && fulfillmentStatus == "SHIPPING"]),
-			"DELIVERED": count(*[_type == "order" && fulfillmentStatus == "DELIVERED"]),
-			"RETURNED": count(*[_type == "order" && fulfillmentStatus == "RETURNED"]),
-			"CANCELLED": count(*[_type == "order" && fulfillmentStatus == "CANCELLED"])
-		}`
-
-		const counts = await writeClient.fetch(countsQuery)
-
-		return NextResponse.json({
-			success: true,
-			orders: orders || [],
-			counts: counts || {},
-		})
+		return NextResponse.json({ success: true, source: 'cloudflare-d1', orders: formattedOrders, counts: d1Counts })
 	} catch (error: any) {
+		const status = error instanceof PersistenceError ? 503 : 500
 		console.error('API Orders List Error:', error)
 		return NextResponse.json(
-			{ success: false, message: error.message || 'Lỗi khi tải danh sách đơn hàng' },
-			{ status: 500 },
+			{ success: false, message: status === 503 ? 'Order database unavailable' : error.message || 'Error loading orders' },
+			{ status },
 		)
 	}
 }

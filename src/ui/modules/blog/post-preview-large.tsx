@@ -13,16 +13,22 @@ import type { BlogCardSettings } from './post-preview'
 export default function PostPreviewLarge({
 	post,
 	cardSettings,
+	headingLevel = 'h2',
+	priority = false,
 	className,
 }: {
 	post: BlogPost & any
 	cardSettings?: BlogCardSettings
+	headingLevel?: 'h2' | 'h3' | 'h4'
+	priority?: boolean
+	className?: string
 } & React.ComponentProps<'article'>) {
 	if (!post) return null
 
 	const {
 		cardStyle = 'boxed',
 		cardShowCategory = true,
+		cardShowCategoryCount = false,
 		cardShowExcerpt = true,
 		cardShowAuthor = true,
 		cardShowDate = true,
@@ -36,21 +42,25 @@ export default function PostPreviewLarge({
 		post.slug?.replace(`/${ROUTES.blog}/`, '') ||
 		post._id
 	const postUrl = `/${ROUTES.blog}/${slug}`
-	const primaryCategory = post.categories?.[0] as BlogCategory | undefined
+	const primaryCategory = post.categories?.[0] as
+		| (BlogCategory & { postCount?: number })
+		| undefined
+	const HeadingTag = headingLevel
 
 	return (
 		<article
 			className={cn(
-				'group relative transition-all duration-300',
+				'group relative transition-all duration-300 rounded-3xl',
+				'focus-within:ring-2 focus-within:ring-primary/40 focus-within:ring-offset-2',
 				isMinimalist
 					? 'bg-transparent p-0 border-0 shadow-none'
-					: 'overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-6 sm:p-8 lg:p-10 shadow-xs hover:border-zinc-300 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900',
+					: 'overflow-hidden border border-zinc-200/80 bg-white p-5 sm:p-8 lg:p-10 shadow-xs hover:border-zinc-300 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900',
 				className,
 			)}
 		>
-			<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+			<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-center">
 				{/* Image Column (7 cols) */}
-				<figure className="relative aspect-16/10 w-full overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800 lg:col-span-7">
+				<figure className="relative aspect-[16/10] sm:aspect-16/9 lg:aspect-[16/10] w-full overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800 lg:col-span-7">
 					{post.metadata?.image ? (
 						<Img
 							className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -58,8 +68,8 @@ export default function PostPreviewLarge({
 							width={800}
 							height={500}
 							sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 800px)"
-							priority
-							loading="eager"
+							priority={priority}
+							loading={priority ? 'eager' : 'lazy'}
 							alt={post.title ?? 'Featured article'}
 						/>
 					) : (
@@ -70,13 +80,13 @@ export default function PostPreviewLarge({
 							width={800}
 							height={500}
 							sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 800px)"
-							priority
-							loading="eager"
+							priority={priority}
+							loading={priority ? 'eager' : 'lazy'}
 						/>
 					)}
 
 					{/* Badge Overlay */}
-					<div className="absolute top-4 left-4 flex flex-wrap gap-2">
+					<div className="absolute top-3.5 left-3.5 sm:top-4 sm:left-4 flex flex-wrap gap-2">
 						<span className="inline-flex items-center gap-1 rounded-full bg-zinc-900/90 px-3 py-1 text-xs font-bold tracking-wide uppercase text-white backdrop-blur-xs shadow-xs dark:bg-white/90 dark:text-zinc-900">
 							<Sparkles className="size-3 text-amber-400 fill-amber-400" />
 							Featured Story
@@ -84,13 +94,16 @@ export default function PostPreviewLarge({
 						{cardShowCategory && primaryCategory?.title && (
 							<span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-zinc-900 backdrop-blur-xs shadow-xs dark:bg-zinc-900/90 dark:text-zinc-100">
 								{primaryCategory.title}
+								{cardShowCategoryCount && typeof primaryCategory.postCount === 'number' && (
+									<span className="ml-1 opacity-75 font-normal">({primaryCategory.postCount})</span>
+								)}
 							</span>
 						)}
 					</div>
 				</figure>
 
 				{/* Content Column (5 cols) */}
-				<div className="flex flex-col justify-center space-y-5 lg:col-span-5">
+				<div className="flex flex-col justify-center space-y-4 sm:space-y-5 lg:col-span-5">
 					{/* Meta line */}
 					{(cardShowDate || cardShowReadTime) && (
 						<div className="flex items-center gap-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
@@ -106,12 +119,12 @@ export default function PostPreviewLarge({
 					)}
 
 					{/* Title */}
-					<h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50 leading-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
-						<Link href={postUrl}>
+					<HeadingTag className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50 leading-tight transition-colors group-hover:text-primary dark:group-hover:text-primary">
+						<Link href={postUrl} className="focus:outline-none focus-visible:underline">
 							<span className="absolute inset-0 z-10" />
 							{post.title}
 						</Link>
-					</h2>
+					</HeadingTag>
 
 					{/* Excerpt */}
 					{cardShowExcerpt && (post.excerpt || post.metadata?.description) && (
@@ -123,7 +136,7 @@ export default function PostPreviewLarge({
 					{/* Author and CTA */}
 					<div
 						className={cn(
-							'relative z-20 flex flex-wrap items-center justify-between gap-4 pt-4',
+							'relative z-20 flex flex-wrap items-center justify-between gap-4 pt-3 sm:pt-4',
 							isMinimalist
 								? 'border-t-0'
 								: 'border-t border-zinc-100 dark:border-zinc-800',
@@ -138,7 +151,7 @@ export default function PostPreviewLarge({
 							<span />
 						)}
 
-						<span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:translate-x-1 transition-transform">
+						<span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-primary dark:group-hover:text-primary group-hover:translate-x-1 transition-all">
 							Read Article <ArrowRight className="size-4" />
 						</span>
 					</div>

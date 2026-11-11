@@ -1,62 +1,89 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import type { LinkList as LinkListType } from '@/sanity/types'
 import SanityLink, { type SanityLinkType } from '@/ui/sanity-link'
 import { ChevronDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface LinkListProps extends LinkListType {
 	isMobileAccordion?: boolean
+	headingCase?: 'title' | 'uppercase'
 }
 
 export default function LinkList({
 	link,
 	links,
 	isMobileAccordion = true,
+	headingCase = 'title',
 }: LinkListProps) {
 	const [isOpen, setIsOpen] = useState(false)
+	const contentId = useId()
+
+	const headerClasses = cn(
+		'font-semibold text-foreground tracking-tight select-none',
+		headingCase === 'uppercase'
+			? 'text-xs uppercase tracking-wider'
+			: 'text-sm sm:text-base tracking-normal'
+	)
 
 	return (
 		<div className="flex flex-col">
-			{/* Header / Trigger */}
-			<div className="flex items-center justify-between border-b border-border/40 pb-2 md:border-none md:pb-0">
-				<h4 className="text-sm font-semibold tracking-wide text-foreground uppercase">
-					{link?.label}
-				</h4>
-				{isMobileAccordion && (
-					<button
-						type="button"
-						onClick={() => setIsOpen(!isOpen)}
-						className="flex size-11 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground transition-transform md:hidden cursor-pointer"
-						aria-label={`Toggle ${link?.label} menu`}
-						aria-expanded={isOpen}
-					>
-						<ChevronDown
-							className={`size-4 transition-transform duration-200 ${
-								isOpen ? 'rotate-180 text-primary' : ''
-							}`}
-						/>
-					</button>
+			{/* Mobile Trigger Button */}
+			<button
+				type="button"
+				onClick={() => {
+					if (isMobileAccordion) setIsOpen((prev) => !prev)
+				}}
+				className={cn(
+					'flex w-full items-center justify-between border-b border-border/40 py-3 text-left md:hidden',
+					isMobileAccordion ? 'cursor-pointer hover:text-primary transition-colors' : 'cursor-default'
 				)}
+				aria-expanded={isMobileAccordion ? isOpen : undefined}
+				aria-controls={isMobileAccordion ? contentId : undefined}
+			>
+				<span className={headerClasses}>{link?.label}</span>
+				{isMobileAccordion && (
+					<ChevronDown
+						aria-hidden="true"
+						className={cn(
+							'size-4 text-muted-foreground transition-transform duration-200 shrink-0',
+							isOpen && 'rotate-180 text-primary'
+						)}
+					/>
+				)}
+			</button>
+
+			{/* Desktop Static Heading */}
+			<div className="hidden md:block pb-1">
+				<h3 className={headerClasses}>{link?.label}</h3>
 			</div>
 
-			{/* List Items */}
-			<ul
-				className={`flex flex-col gap-2 pt-3 transition-all duration-200 ${
+			{/* List Items Container with Smooth Grid Transition on Mobile */}
+			<div
+				id={contentId}
+				className={cn(
+					'grid transition-[grid-template-rows] duration-200 ease-out md:grid-rows-[1fr]',
 					isMobileAccordion
-						? `${isOpen ? 'max-md:flex' : 'max-md:hidden'} md:flex`
-						: 'flex'
-				}`}
+						? isOpen
+							? 'grid-rows-[1fr]'
+							: 'grid-rows-[0fr]'
+						: 'grid-rows-[1fr]'
+				)}
 			>
-				{links?.map((item) => (
-					<li key={item._key}>
-						<SanityLink
-							className="text-sm text-muted-foreground transition-colors hover:text-primary hover:translate-x-0.5 inline-block py-1"
-							link={item as SanityLinkType}
-						/>
-					</li>
-				))}
-			</ul>
+				<div className="overflow-hidden">
+					<ul className="flex flex-col gap-1.5 pt-2.5 pb-2 md:pt-3 md:pb-0">
+						{links?.map((item) => (
+							<li key={item._key}>
+								<SanityLink
+									className="group inline-flex min-h-[38px] md:min-h-0 items-center py-1 text-sm text-muted-foreground transition-all duration-200 hover:text-foreground hover:translate-x-1 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40 rounded-sm"
+									link={item as SanityLinkType}
+								/>
+							</li>
+						))}
+					</ul>
+				</div>
+			</div>
 		</div>
 	)
 }

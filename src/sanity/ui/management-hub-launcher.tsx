@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Card, Stack, Text, Heading, Button, Flex, Box } from '@sanity/ui'
-import { FiExternalLink, FiPackage, FiUsers, FiStar } from 'react-icons/fi'
+import { FiExternalLink, FiPackage, FiUsers, FiStar, FiMessageCircle } from 'react-icons/fi'
 
 export default function ManagementHubLauncher() {
 	return (
@@ -12,7 +12,7 @@ export default function ManagementHubLauncher() {
 					padding={5}
 					radius={4}
 					shadow={2}
-					style={{ maxWidth: '520px', width: '100%', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}
+					style={{ maxWidth: '540px', width: '100%', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}
 				>
 					<Stack space={4}>
 						<Flex align="center" gap={3}>
@@ -34,17 +34,16 @@ export default function ManagementHubLauncher() {
 							</Box>
 							<Stack space={1}>
 								<Heading size={2} style={{ color: '#0f172a', fontWeight: '800' }}>
-									Commerce Admin
+									Commerce & CRM Admin
 								</Heading>
 								<Text size={1} style={{ color: '#059669', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-									Orders, CRM & Customer Operations
+									Cloudflare D1 Edge Operations Hub
 								</Text>
 							</Stack>
 						</Flex>
 
 						<Text size={2} style={{ color: '#64748b', lineHeight: '1.6' }}>
-							All operational transactional features including <strong>Order Fulfillment</strong>,{' '}
-							<strong>Customer CRM 360°</strong>, and <strong>Product Reviews Moderation</strong> are managed in the high-speed dedicated Commerce Admin workspace.
+							All live transactional records (Orders, B2B Leads, Customer CRM, Product Reviews & Blog Comments) are stored in <strong>Cloudflare D1 Edge SQL</strong> and managed at ultra-fast edge speed in Commerce Admin.
 						</Text>
 
 						{/* Quick Feature Grid */}
@@ -53,19 +52,25 @@ export default function ManagementHubLauncher() {
 								<Flex align="center" gap={2}>
 									<FiPackage style={{ color: '#0284c7' }} />
 									<Text size={1} style={{ color: '#334155', fontWeight: '600' }}>
-										<strong>Orders:</strong> 1-Click status updates, search, and A4/A5 print invoices.
+										<strong>Orders:</strong> 1-click status updates, printable A4/A5 commercial invoices & packing slips.
 									</Text>
 								</Flex>
 								<Flex align="center" gap={2}>
 									<FiUsers style={{ color: '#059669' }} />
 									<Text size={1} style={{ color: '#334155', fontWeight: '600' }}>
-										<strong>Customer CRM:</strong> Leads from popup, order history, VIP tiers, and notes.
+										<strong>Leads & CRM:</strong> Kanban pipeline, qualification scoring, and direct customer outreach.
 									</Text>
 								</Flex>
 								<Flex align="center" gap={2}>
 									<FiStar style={{ color: '#d97706' }} />
 									<Text size={1} style={{ color: '#334155', fontWeight: '600' }}>
-										<strong>Reviews:</strong> 1-Click approval, media preview, and seller response.
+										<strong>Reviews:</strong> Moderate verified product reviews and post merchant responses.
+									</Text>
+								</Flex>
+								<Flex align="center" gap={2}>
+									<FiMessageCircle style={{ color: '#8b5cf6' }} />
+									<Text size={1} style={{ color: '#334155', fontWeight: '600' }}>
+										<strong>Comments:</strong> Approve reader questions and publish expert responses.
 									</Text>
 								</Flex>
 							</Stack>

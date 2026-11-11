@@ -130,7 +130,7 @@ export default function AffiliateLinkBlock({
 	// ================= LAYOUT 1: MINIMAL CTA BUTTON =================
 	if (layout === 'button') {
 		return (
-			<div className="my-6 flex flex-col items-center justify-center gap-2">
+			<div className="not-prose my-6 flex flex-col items-center justify-center gap-2">
 				<Link
 					href={targetUrl}
 					target="_blank"
@@ -154,7 +154,7 @@ export default function AffiliateLinkBlock({
 	// ================= LAYOUT 2: COMPACT DEAL STRIP =================
 	if (layout === 'strip') {
 		return (
-			<aside className="my-6 overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-3.5 sm:p-4 dark:border-zinc-800 dark:bg-zinc-900/50 shadow-2xs">
+			<aside className="not-prose my-6 overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-3.5 sm:p-4 dark:border-zinc-800 dark:bg-zinc-900/50 shadow-2xs">
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 					<div className="flex items-center gap-2.5 min-w-0">
 						<div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400">
@@ -226,7 +226,7 @@ export default function AffiliateLinkBlock({
 
 	// ================= LAYOUT 3: THE VERDICT BOX (DEFAULT) =================
 	return (
-		<aside className="my-8 overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-7 shadow-xs dark:border-zinc-800 dark:bg-zinc-900/90 transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
+		<aside className="not-prose my-8 overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-7 shadow-xs dark:border-zinc-800 dark:bg-zinc-900/90 transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
 			{/* Top Header: Badge + Rating */}
 			<div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-800/80">
 				{badge && (
@@ -326,7 +326,7 @@ export default function AffiliateLinkBlock({
 								) : (
 									<>
 										<Copy className="size-3.5" />
-										<span>Copy Code</span>
+										<span>Copy code</span>
 									</>
 								)}
 							</button>
@@ -351,7 +351,7 @@ export default function AffiliateLinkBlock({
 				</Link>
 
 				<p className="text-center text-[11px] text-zinc-600 dark:text-zinc-400">
-					Transparency: We may earn an affiliate commission when you purchase through our links at no extra cost to you.
+					Transparency: We maintain strict editorial independence. We may earn an affiliate commission when you purchase through our links at no additional cost to you.
 				</p>
 			</div>
 		</aside>

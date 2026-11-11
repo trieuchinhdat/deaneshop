@@ -21,11 +21,34 @@ import {
 	Space_Grotesk,
 	Syne,
 	Oswald,
+	Geist,
+	Instrument_Serif,
+	Newsreader,
 } from 'next/font/google'
 
 export const plusJakartaSans = Plus_Jakarta_Sans({
 	subsets: ['vietnamese', 'latin'],
 	variable: '--font-plus-jakarta-sans',
+	display: 'swap',
+})
+
+export const geist = Geist({
+	subsets: ['latin'],
+	variable: '--font-geist',
+	display: 'swap',
+})
+
+export const instrumentSerif = Instrument_Serif({
+	weight: '400',
+	subsets: ['latin'],
+	variable: '--font-instrument-serif',
+	display: 'swap',
+})
+
+export const newsreader = Newsreader({
+	weight: ['300', '400', '500', '600', '700'],
+	subsets: ['latin'],
+	variable: '--font-newsreader',
 	display: 'swap',
 })
 
@@ -162,6 +185,9 @@ export const oswald = Oswald({
 
 export const GOOGLE_FONTS_OBJECTS: Record<string, { variable: string }> = {
 	'Plus Jakarta Sans': plusJakartaSans,
+	Geist: geist,
+	'Instrument Serif': instrumentSerif,
+	Newsreader: newsreader,
 	Inter: inter,
 	'Be Vietnam Pro': beVietnamPro,
 	Outfit: outfit,
@@ -187,6 +213,9 @@ export const GOOGLE_FONTS_OBJECTS: Record<string, { variable: string }> = {
 
 export const GOOGLE_FONTS_MAP: Record<string, string> = {
 	'Plus Jakarta Sans': 'var(--font-plus-jakarta-sans), sans-serif',
+	Geist: 'var(--font-geist), sans-serif',
+	'Instrument Serif': 'var(--font-instrument-serif), serif',
+	Newsreader: 'var(--font-newsreader), serif',
 	Inter: 'var(--font-inter), sans-serif',
 	'Be Vietnam Pro': 'var(--font-be-vietnam-pro), sans-serif',
 	Outfit: 'var(--font-outfit), sans-serif',
@@ -211,7 +240,7 @@ export const GOOGLE_FONTS_MAP: Record<string, string> = {
 }
 
 /**
- * Tối ưu Tree-shaking: Chỉ lấy đúng class của font đang được kích hoạt ở website
+ * Tree-shaking font loader: Only applies the active CSS variable for fonts configured in the theme
  */
 export function getActiveFontClasses(fontBody?: string, fontHeading?: string): string {
 	const bodyFontName = fontBody || 'Plus Jakarta Sans'

@@ -1,11 +1,10 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getImageDimensions } from '@sanity/asset-utils'
 import type { ImageUrlBuilderOptionsWithAliases } from '@sanity/image-url'
 import { stegaClean } from 'next-sanity'
-import Image, { getImageProps, type ImageProps } from 'next/image'
-import { preload } from 'react-dom'
+import Image, { type ImageProps } from 'next/image'
 import { urlFor } from '@/sanity/lib/image'
 import type {
 	SanityImageAsset,
@@ -137,11 +136,16 @@ export function parseVideoMedia(item: any): VideoDetails | null {
 	) {
 		const videoUrl = getSanityFileUrl(item) || url
 		if (!videoUrl) return null
+		const posterUrl =
+			typeof item?.poster === 'string'
+				? item.poster
+				: item?.poster?.asset?.url || undefined
 		return {
 			type: 'video',
 			url: videoUrl,
 			embedUrl: videoUrl,
 			isIframe: false,
+			poster: posterUrl,
 		}
 	}
 
@@ -217,35 +221,74 @@ function safeUrlFor(
 
 function VideoMediaItem({
 	src,
+	poster,
 	className,
 	style,
 }: {
 	src: string
+	poster?: string
 	className?: string
 	style?: React.CSSProperties
 }) {
 	const videoRef = useRef<HTMLVideoElement>(null)
+	const [isInView, setIsInView] = useState(false)
+	const [reducedMotion, setReducedMotion] = useState(false)
+
+	useEffect(() => {
+		if (typeof window === 'undefined') return
+		const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)')
+		if (mq) {
+			setReducedMotion(mq.matches)
+			const onChange = () => setReducedMotion(mq.matches)
+			mq.addEventListener?.('change', onChange)
+			return () => mq.removeEventListener?.('change', onChange)
+		}
+	}, [])
+
+	useEffect(() => {
+		const el = videoRef.current
+		if (!el || typeof IntersectionObserver === 'undefined') {
+			setIsInView(true)
+			return
+		}
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					setIsInView(entry.isIntersecting)
+				}
+			},
+			{ rootMargin: '120px 0px', threshold: 0.1 },
+		)
+		observer.observe(el)
+		return () => observer.disconnect()
+	}, [])
 
 	const resetAndPlay = () => {
-		if (videoRef.current) {
-			try {
-				videoRef.current.currentTime = 0
-				videoRef.current.play().catch(() => {})
-			} catch {
-				// ignore
-			}
-		}
+		if (!videoRef.current || reducedMotion || !isInView) return
+		try {
+			videoRef.current.play().catch(() => {})
+		} catch {}
 	}
 
 	useEffect(() => {
-		resetAndPlay()
-	}, [src])
+		const el = videoRef.current
+		if (!el) return
+		if (isInView && !reducedMotion) {
+			el.play().catch(() => {})
+		} else {
+			try {
+				el.pause()
+			} catch {}
+		}
+	}, [isInView, reducedMotion, src])
 
 	return (
 		<video
 			ref={videoRef}
-			src={src}
-			autoPlay
+			src={isInView ? src : undefined}
+			poster={poster}
+			preload={isInView ? 'metadata' : 'none'}
+			autoPlay={false}
 			loop
 			muted
 			playsInline
@@ -276,6 +319,7 @@ export default function Img({
 			return (
 				<iframe
 					src={videoMedia.embedUrl}
+					loading="lazy"
 					className={`h-full w-full object-cover border-0 pointer-events-none ${props.className || ''}`}
 					allow="autoplay; encrypted-media; picture-in-picture"
 					title={(props.alt as string) || 'Product video'}
@@ -287,6 +331,7 @@ export default function Img({
 		return (
 			<VideoMediaItem
 				src={videoUrl}
+				poster={videoMedia.poster}
 				className={props.className as string}
 				style={props.style}
 			/>
@@ -323,10 +368,16 @@ export default function Img({
 		stegaClean(image.loading) === 'eager'
 
 	const loading = isPriority
-		? 'eager'
-		: stegaClean(props.loading || image.loading)
+		? undefined
+		: stegaClean(props.loading || image.loading) || 'lazy'
 
-	const srcUrl = safeUrlFor(image, finalWidth, finalHeight, imageOptions)
+	const responsiveSizes =
+		props.sizes ||
+		(finalWidth > 400
+			? '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 1200px'
+			: undefined)
+
+	const srcUrl = safeUrlFor(image, finalWidth, imageOptions?.height ? finalHeight : undefined, imageOptions)
 
 	if (!srcUrl) return null
 
@@ -335,11 +386,11 @@ export default function Img({
 			src={srcUrl}
 			width={finalWidth}
 			height={finalHeight}
+			sizes={responsiveSizes}
 			loading={loading}
 			priority={isPriority}
 			placeholder={lqip ? 'blur' : undefined}
 			blurDataURL={lqip}
-			unoptimized
 			{...props}
 		/>
 	)
@@ -349,6 +400,7 @@ export function Source({
 	image,
 	width: targetWidth,
 	height: targetHeight,
+	sizes = '(max-width: 767px) 100vw',
 	media = '(width < 768px)',
 	options,
 	...props
@@ -359,32 +411,30 @@ export function Source({
 	if (!image?.asset || parseVideoMedia(image)) return null
 
 	try {
-		const { src, width, height } = generateSrc(
+		const { width, height } = generateSrc(
 			image,
 			targetWidth,
 			targetHeight,
 			options,
 		)
 
-		if (!src) return null
+		const maxCandidate = Math.max(width || 750, 750)
+		const candidates = [384, 640, 750, 960].filter((w) => w <= maxCandidate * 1.25)
+		const srcSetEntries = candidates
+			.map((candidateWidth) => {
+				const candidateUrl = safeUrlFor(image, candidateWidth, undefined, options)
+				return candidateUrl ? `${candidateUrl} ${candidateWidth}w` : ''
+			})
+			.filter(Boolean)
 
-		const { props: imageProps } = getImageProps({
-			src,
-			width,
-			height,
-			alt: '',
-			unoptimized: true,
-		})
-
-		if (stegaClean(image.loading) === 'eager') {
-			preload(imageProps.src, { as: 'image' })
-		}
+		if (srcSetEntries.length === 0) return null
 
 		return (
 			<source
-				srcSet={imageProps.src}
-				width={imageProps.width}
-				height={imageProps.height}
+				srcSet={srcSetEntries.join(', ')}
+				sizes={sizes}
+				width={width}
+				height={height}
 				media={media}
 				{...props}
 			/>

@@ -1,159 +1,63 @@
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 import { cookies } from 'next/headers'
+import { getEnvVarSync } from './cf-env'
+import { adminUsersDb } from './d1'
+import { ROLE_PERMITTED_TABS, type AdminRole } from './admin-roles'
+export * from './admin-roles'
 
 export interface AdminSessionUser {
 	id: string
 	email: string
 	name: string
-	role: 'admin' | 'cskh' | 'superadmin'
+	role: AdminRole
 	createdAt: string
 }
-
-export const ADMIN_AUTH_COOKIE_NAME = 'ecocros_admin_session'
-const DEFAULT_ADMIN_SECRET = 'ecocros-admin-secret-jwt-key-2026-auth-session-ultra-secure'
-
-// Mật khẩu & Tài khoản Admin mặc định (có thể override bằng biến môi trường)
-export const DEFAULT_ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@ecocros.com'
-export const DEFAULT_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ecocros2026'
-
-function getAdminSecretKey(): string {
-	return process.env.ADMIN_JWT_SECRET || process.env.AUTH_SECRET || DEFAULT_ADMIN_SECRET
+export const ADMIN_AUTH_COOKIE_NAME = 'deanflow_admin_session'
+function secret(): string {
+	const value = getEnvVarSync('ADMIN_JWT_SECRET')
+	if (!value || Buffer.byteLength(value) < 32) throw new Error('ADMIN_JWT_SECRET must contain at least 32 bytes')
+	return value
 }
-
-// Base64URL helpers
-function base64UrlEncode(str: string): string {
-	return Buffer.from(str)
-		.toString('base64')
-		.replace(/\+/g, '-')
-		.replace(/\//g, '_')
-		.replace(/=+$/, '')
+function credentialVersion(hash: string): string {
+	return crypto.createHmac('sha256', secret()).update(hash).digest('hex')
 }
-
-function base64UrlDecode(str: string): string {
-	let base64 = str.replace(/-/g, '+').replace(/_/g, '/')
-	while (base64.length % 4) {
-		base64 += '='
-	}
-	return Buffer.from(base64, 'base64').toString('utf-8')
-}
-
-/**
- * Tạo JWT Session Token bảo mật cho Admin
- */
-export async function createAdminSessionToken(
-	payload: AdminSessionUser,
-	expiresInSeconds = 60 * 60 * 24 * 7, // 7 ngày
-): Promise<string> {
-	const header = { alg: 'HS256', typ: 'JWT' }
+export async function createAdminSessionToken(user: AdminSessionUser, expiresInSeconds = 28800): Promise<string> {
+	const current = await adminUsersDb.getById(user.id)
+	if (!current || current.status !== 'active') throw new Error('Account unavailable')
 	const now = Math.floor(Date.now() / 1000)
-	const fullPayload = {
-		...payload,
-		iat: now,
-		exp: now + expiresInSeconds,
-	}
-
-	const headerB64 = base64UrlEncode(JSON.stringify(header))
-	const payloadB64 = base64UrlEncode(JSON.stringify(fullPayload))
-	const dataToSign = `${headerB64}.${payloadB64}`
-
-	const secret = getAdminSecretKey()
-	const signature = crypto
-		.createHmac('sha256', secret)
-		.update(dataToSign)
-		.digest('base64')
-		.replace(/\+/g, '-')
-		.replace(/\//g, '_')
-		.replace(/=+$/, '')
-
-	return `${dataToSign}.${signature}`
+	const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')
+	const payload = Buffer.from(JSON.stringify({ sub: current.id, role: current.role, iat: now,
+		exp: now + Math.min(expiresInSeconds, 28800), credentials: credentialVersion(current.password_hash) })).toString('base64url')
+	const data = `${header}.${payload}`
+	return `${data}.${crypto.createHmac('sha256', secret()).update(data).digest('base64url')}`
 }
-
-/**
- * Xác thực và giải mã Admin JWT Session Token
- */
-export async function verifyAdminSessionToken(
-	token?: string | null,
-): Promise<AdminSessionUser | null> {
-	if (!token) return null
+export async function verifyAdminSessionToken(token?: string | null): Promise<AdminSessionUser | null> {
+	if (!token || token.length > 4096) return null
 	try {
 		const parts = token.split('.')
 		if (parts.length !== 3) return null
-
-		const [headerB64, payloadB64, signatureB64] = parts
-		const dataToSign = `${headerB64}.${payloadB64}`
-
-		const secret = getAdminSecretKey()
-		const expectedSignature = crypto
-			.createHmac('sha256', secret)
-			.update(dataToSign)
-			.digest('base64')
-			.replace(/\+/g, '-')
-			.replace(/\//g, '_')
-			.replace(/=+$/, '')
-
-		if (signatureB64 !== expectedSignature) {
-			return null
-		}
-
-		const payloadJson = base64UrlDecode(payloadB64)
-		const payload = JSON.parse(payloadJson)
-
+		const [header, payload, signature] = parts
+		const h = JSON.parse(Buffer.from(header, 'base64url').toString())
+		if (h.alg !== 'HS256' || h.typ !== 'JWT') return null
+		const expected = crypto.createHmac('sha256', secret()).update(`${header}.${payload}`).digest()
+		const actual = Buffer.from(signature, 'base64url')
+		if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) return null
+		const claims = JSON.parse(Buffer.from(payload, 'base64url').toString())
 		const now = Math.floor(Date.now() / 1000)
-		if (payload.exp && payload.exp < now) {
-			return null // Token hết hạn
-		}
-
-		return {
-			id: payload.id || 'admin-root',
-			email: payload.email || DEFAULT_ADMIN_EMAIL,
-			name: payload.name || 'Admin CSKH',
-			role: payload.role || 'admin',
-			createdAt: payload.createdAt || new Date().toISOString(),
-		}
-	} catch (error) {
-		console.error('Lỗi verify admin session token:', error)
-		return null
-	}
+		if (!Number.isFinite(claims.exp) || claims.exp <= now || !Number.isFinite(claims.iat) || claims.iat > now || typeof claims.sub !== 'string') return null
+		const user = await adminUsersDb.getById(claims.sub)
+		if (!user || user.status !== 'active' || !Object.hasOwn(ROLE_PERMITTED_TABS, user.role) || user.role !== claims.role || claims.credentials !== credentialVersion(user.password_hash)) return null
+		return { id: user.id, email: user.email, name: user.full_name, role: user.role, createdAt: user.created_at }
+	} catch { return null }
 }
-
-/**
- * Lấy thông tin Admin hiện tại từ Cookie trên Server Component / Route Handler
- */
 export async function getAdminSession(): Promise<AdminSessionUser | null> {
-	try {
-		const cookieStore = await cookies()
-		const token = cookieStore.get(ADMIN_AUTH_COOKIE_NAME)?.value
-		if (!token) return null
-		return await verifyAdminSessionToken(token)
-	} catch {
-		return null
-	}
+	return verifyAdminSessionToken((await cookies()).get(ADMIN_AUTH_COOKIE_NAME)?.value)
 }
-
-/**
- * Kiểm tra mật khẩu Admin
- */
-export function verifyAdminCredentials(inputPassword?: string, inputEmail?: string): boolean {
-	if (!inputPassword) return false
-
-	const validPassword = DEFAULT_ADMIN_PASSWORD
-	const isValidPass =
-		inputPassword.trim() === validPassword ||
-		inputPassword.trim() === 'ecocros2026@admin' ||
-		inputPassword.trim() === 'ecocros2026'
-
-	if (!isValidPass) return false
-
-	if (inputEmail) {
-		const cleanEmail = inputEmail.trim().toLowerCase()
-		if (
-			cleanEmail === DEFAULT_ADMIN_EMAIL.toLowerCase() ||
-			cleanEmail === 'admin' ||
-			cleanEmail.endsWith('@ecocros.com')
-		) {
-			return true
-		}
-	}
-
-	return true
+export async function requireAdminSession(roles?: AdminRole[]): Promise<
+	{ ok: true; session: AdminSessionUser } | { ok: false; error: string; status: number }
+> {
+	const session = await getAdminSession()
+	if (!session) return { ok: false, error: 'Unauthorized', status: 401 }
+	if (roles?.length && !roles.includes(session.role)) return { ok: false, error: 'Forbidden', status: 403 }
+	return { ok: true, session }
 }

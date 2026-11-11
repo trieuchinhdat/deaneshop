@@ -16,6 +16,7 @@ export default function Logo({
 	className?: string
 }) {
 	const logo = site?.logo?.image?.[style]
+	const brandName = site?.siteName || site?.title || 'Store'
 
 	const desktopH = logoHeightDesktop || 48
 	const mobileH = logoHeightMobile || 36
@@ -42,10 +43,10 @@ export default function Logo({
 							'--logo-h-desktop': `${desktopH}px`,
 						} as React.CSSProperties
 					}
-					alt={site?.title || 'Logo'}
+					alt={brandName}
 				/>
 			) : (
-				<span className="truncate text-xl font-bold">{site?.title || 'Ecocros Store'}</span>
+				<span className="truncate text-xl font-bold">{brandName}</span>
 			)}
 		</Link>
 	)

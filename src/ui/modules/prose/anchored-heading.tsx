@@ -1,26 +1,34 @@
 import type { PortableTextBlock, PortableTextComponentProps } from 'next-sanity'
 import { slug } from '@/lib/utils'
 
-export default function ({
+export default function AnchoredHeading({
 	as: Tag = 'h1',
 	children,
 	value,
 }: { as: React.ElementType } & PortableTextComponentProps<PortableTextBlock>) {
-	const id = slug(
-		value.children.reduce((acc, { text }) => acc + text, ''),
-		{ removeLeadingNumberAndHyphen: true },
-	)
+	const headingText =
+		(value?.children as any[])?.reduce(
+			(acc: string, { text }: any) => acc + (text || ''),
+			'',
+		) || ''
+
+	const id = headingText
+		? slug(headingText, { removeLeadingNumberAndHyphen: true })
+		: undefined
 
 	return (
-		<Tag className="group grid-cols-[1fr_auto] max-md:grid" id={id}>
-			{children}
+		<Tag className="group relative scroll-mt-24 sm:scroll-mt-28 break-words text-balance" id={id}>
+			<span>{children}</span>
 
-			{Tag !== 'h1' && (
+			{Tag !== 'h1' && id && (
 				<a
 					href={`#${id}`}
-					className="text-primary ml-ch inline-block pointer-fine:not-group-hover:invisible"
+					aria-label={`Link to section: ${headingText}`}
+					className="ml-2 inline-flex items-center text-muted-foreground/40 hover:text-primary transition-opacity duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus:outline-hidden"
 				>
-					#
+					<span aria-hidden="true" className="text-base font-normal select-none">
+						#
+					</span>
 				</a>
 			)}
 		</Tag>

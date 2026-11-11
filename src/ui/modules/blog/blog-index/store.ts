@@ -1,4 +1,4 @@
-import { useQueryState } from 'nuqs'
+import { parseAsString, useQueryState } from 'nuqs'
 
 export const SORT_BY_OPTIONS = [
 	{ label: 'Newest First', value: 'publishDate_desc' },
@@ -8,17 +8,20 @@ export const SORT_BY_OPTIONS = [
 ]
 
 export function useBlogIndexStore() {
-	const [categoryParam, setCategoryParam] = useQueryState('category', {
-		defaultValue: '',
-	})
+	const [categoryParam, setCategoryParam] = useQueryState(
+		'category',
+		parseAsString.withDefault(''),
+	)
 
-	const [sortBy, setSortBy] = useQueryState('sortBy', {
-		defaultValue: SORT_BY_OPTIONS[0].value,
-	})
+	const [sortBy, setSortBy] = useQueryState(
+		'sortBy',
+		parseAsString.withDefault(SORT_BY_OPTIONS[0].value),
+	)
 
-	const [searchQuery, setSearchQuery] = useQueryState('q', {
-		defaultValue: '',
-	})
+	const [searchQuery, setSearchQuery] = useQueryState(
+		'q',
+		parseAsString.withDefault(''),
+	)
 
 	return {
 		categoryParam,

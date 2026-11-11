@@ -1,3 +1,4 @@
+import { serializeJsonLd } from '@/lib/json-ld'
 import { urlFor } from '@/sanity/lib/image'
 
 export default function OrganizationJsonLd({ site }: { site: any }) {
@@ -14,9 +15,9 @@ export default function OrganizationJsonLd({ site }: { site: any }) {
 	const jsonLd = {
 		'@context': 'https://schema.org',
 		'@type': 'Organization',
-		name: site.companyName || site.title || 'Ecocros',
+		name: site.companyName || site.siteName || site.title || 'Store',
 		alternateName: site.siteName || site.title,
-		url: process.env.NEXT_PUBLIC_BASE_URL || 'https://ecocros.com',
+		url: process.env.NEXT_PUBLIC_BASE_URL || 'https://deanflow.com',
 		logo: logoUrl,
 		contactPoint: site.hotline
 			? [
@@ -42,7 +43,7 @@ export default function OrganizationJsonLd({ site }: { site: any }) {
 	return (
 		<script
 			type="application/ld+json"
-			dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+			dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
 		/>
 	)
 }

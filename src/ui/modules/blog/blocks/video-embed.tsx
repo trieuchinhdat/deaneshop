@@ -54,7 +54,7 @@ export default function VideoEmbed({
 	}[aspectRatio] || 'aspect-video'
 
 	return (
-		<figure className="my-8 space-y-2">
+		<figure className="not-prose my-8 space-y-2">
 			<div
 				className={cn(
 					'relative w-full overflow-hidden rounded-2xl bg-zinc-950 shadow-md',
@@ -125,7 +125,7 @@ export default function VideoEmbed({
 
 						{/* Video Title Header */}
 						{title && (
-							<div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-6 text-left">
+							<div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-6 text-left">
 								<span className="line-clamp-2 text-sm sm:text-base font-semibold text-white drop-shadow-xs">
 									{title}
 								</span>

@@ -1,51 +1,240 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 import {
-	EditIcon,
-	ErrorScreenIcon,
-	HomeIcon,
 	ImageIcon,
-	SearchIcon,
 } from '@sanity/icons'
-import { FiFilm, FiImage, FiPlay, FiStar } from 'react-icons/fi'
-import { VscEyeClosed } from 'react-icons/vsc'
-import VariantGeneratorInput from '../../ui/variant-generator-input'
+import { FiFilm, FiImage, FiPlay, FiPackage } from 'react-icons/fi'
 import modules from '../fragments/modules'
 
 export default defineType({
 	name: 'product',
-	title: 'Product',
+	title: 'Products',
 	type: 'document',
+	icon: FiPackage,
 
+	// 1. Optimized 3-Tab Architecture
 	groups: [
-		{ name: 'content', title: 'Content & Pricing', default: true },
-		{ name: 'variants', title: 'Variants' },
-		{ name: 'promotion', title: 'Promotions & Deals' },
-		{ name: 'metadata', title: 'SEO & Metadata' },
+		{ name: 'general', title: 'Overview & Content', default: true },
+		{ name: 'commercial', title: 'Commercial & Sales' },
+		{ name: 'specs_seo', title: 'Specs & SEO' },
 	],
 
+	// 2. Single-column layout with progressive disclosure collapsible fieldsets
 	fieldsets: [
 		{
-			name: 'priceRow',
-			title: 'Price',
-			options: { columns: 3 },
+			name: 'basicIdentity',
+			title: 'Product Identity & Taxonomy',
+			options: { collapsible: true, collapsed: false },
 		},
 		{
-			name: 'skuStockRow',
-			title: 'SKU & Stock',
-			options: { columns: 2 },
+			name: 'intentGroup',
+			title: 'Conversion Strategy & Funnel Mode',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'pricingSection',
+			title: 'Pricing & Currency Matrix',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'inventoryLogistics',
+			title: 'Inventory, SKU & Commercial Logistics',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'ctaOverrides',
+			title: 'Call-to-Action Customization',
+			options: { collapsible: true, collapsed: true },
+		},
+		{
+			name: 'promotionsGroup',
+			title: 'Product Perks & Guarantees',
+			options: { collapsible: true, collapsed: false },
+		},
+		{
+			name: 'specialDealGroup',
+			title: 'Limited-Time Deal & Scarcity Countdown',
+			options: { collapsible: true, collapsed: true },
+		},
+		{
+			name: 'technicalSpecs',
+			title: 'Technical & Physical Specifications',
+			options: { collapsible: true, collapsed: false },
 		},
 	],
+
 	fields: [
+		/* ==================== TAB 1: OVERVIEW & CONTENT ==================== */
 		defineField({
 			name: 'title',
+			title: 'Product Title',
 			type: 'string',
-			group: 'content',
+			group: 'general',
+			fieldset: 'basicIdentity',
+			placeholder: 'e.g. DeanFlow Precision Solution',
 			validation: (Rule) => Rule.required(),
 		}),
 
 		defineField({
-			name: 'description',
+			name: 'categories',
+			title: 'Product Categories',
+			description: 'Primary product taxonomy and catalog grouping.',
 			type: 'array',
+			of: [{ type: 'reference', to: [{ type: 'product.category' }] }],
+			group: 'general',
+			fieldset: 'basicIdentity',
+		}),
+
+		defineField({
+			name: 'tags',
+			title: 'Product Tags',
+			description: 'Search keywords and attribute tags.',
+			type: 'array',
+			of: [{ type: 'string' }],
+			options: {
+				layout: 'tags',
+			},
+			group: 'general',
+			fieldset: 'basicIdentity',
+		}),
+
+		defineField({
+			name: 'images',
+			title: 'Product Media (Images & Videos)',
+			description:
+				'Upload high-resolution photography and video demos (MP4/WebM or YouTube/Vimeo URLs). The first visual serves as the primary storefront image.',
+			type: 'array',
+			group: 'general',
+			of: [
+				defineArrayMember({
+					type: 'image',
+					options: {
+						hotspot: true,
+						metadata: ['lqip'],
+					},
+					preview: {
+						select: {
+							title: 'alt',
+							media: 'asset',
+						},
+						prepare({ title, media }) {
+							return {
+								title: title || 'Product Image',
+								media: media || FiImage,
+							}
+						},
+					},
+				}),
+				defineArrayMember({
+					type: 'file',
+					name: 'video',
+					title: 'Product Video (MP4 / WebM File)',
+					icon: FiFilm,
+					options: {
+						accept: 'video/*',
+					},
+					fields: [
+						defineField({
+							name: 'alt',
+							title: 'Video Title / Caption',
+							type: 'string',
+						}),
+					],
+					preview: {
+						select: {
+							title: 'alt',
+						},
+						prepare({ title }) {
+							return {
+								title: title || 'Product Video (File)',
+								media: FiFilm,
+							}
+						},
+					},
+				}),
+				defineArrayMember({
+					type: 'object',
+					name: 'videoUrl',
+					title: 'Video URL (YouTube / Vimeo / TikTok)',
+					icon: FiPlay,
+					fields: [
+						defineField({
+							name: 'url',
+							title: 'Video URL',
+							type: 'url',
+							validation: (Rule) => Rule.required(),
+						}),
+						defineField({
+							name: 'alt',
+							title: 'Video Title / Caption',
+							type: 'string',
+						}),
+					],
+					preview: {
+						select: {
+							title: 'alt',
+							subtitle: 'url',
+						},
+						prepare({ title, subtitle }) {
+							return {
+								title: title || 'Product Video (Link)',
+								subtitle,
+								media: FiPlay,
+							}
+						},
+					},
+				}),
+			],
+		}),
+
+		defineField({
+			name: 'shortPitch',
+			title: 'Value Proposition / Executive Summary',
+			description: 'A 1-2 sentence compelling summary of why buyers choose this solution.',
+			type: 'text',
+			rows: 2,
+			group: 'general',
+			placeholder: 'e.g. Industrial-grade efficiency with zero-carbon footprint.',
+		}),
+
+		defineField({
+			name: 'keyBenefits',
+			title: 'Key Selling Highlights',
+			description: 'Bulleted key customer benefits or commercial advantages.',
+			type: 'array',
+			group: 'general',
+			of: [
+				defineArrayMember({
+					type: 'object',
+					name: 'benefit',
+					fields: [
+						defineField({
+							name: 'title',
+							title: 'Benefit Title',
+							type: 'string',
+							validation: (Rule) => Rule.required(),
+						}),
+						defineField({
+							name: 'description',
+							title: 'Description',
+							type: 'text',
+							rows: 2,
+						}),
+					],
+					preview: {
+						select: {
+							title: 'title',
+							subtitle: 'description',
+						},
+					},
+				}),
+			],
+		}),
+
+		defineField({
+			name: 'description',
+			title: 'Rich Product Story & Overview',
+			type: 'array',
+			group: 'general',
 			of: [
 				{ type: 'block' },
 				defineArrayMember({
@@ -73,93 +262,211 @@ export default defineType({
 					],
 				}),
 				{ type: 'custom-html' },
-				{ type: 'affiliateLink' },
 			],
-			group: 'content',
 		}),
 
 		defineField({
-			name: 'images',
-			title: 'Product Media (Ảnh & Video)',
-			description:
-				'Tải lên danh sách hình ảnh hoặc video sản phẩm (File MP4 hoặc link YouTube/TikTok). Kích thước ảnh khuyên dùng: Vuông 1:1 (800x800px), dung lượng < 500KB.',
+			...modules(),
+			title: 'Modular Dynamic Landing Blocks',
+			description: 'Enhance this product into a full-length direct-response sales letter.',
+			group: 'general',
+		}),
+
+		/* ==================== TAB 2: COMMERCIAL & SALES ==================== */
+		defineField({
+			name: 'conversionType',
+			title: 'Primary Conversion Mode',
+			description: 'Determines customer conversion journey and primary call-to-action button.',
+			type: 'string',
+			group: 'commercial',
+			fieldset: 'intentGroup',
+			options: {
+				list: [
+					{ title: 'Request for Quotation / RFQ (B2B Export & Wholesale)', value: 'rfq' },
+					{ title: 'Consultation & Demo Booking (High-Ticket)', value: 'consultation' },
+					{ title: 'Sample Order / Direct Reserve', value: 'order_request' },
+				],
+			},
+			initialValue: 'rfq',
+			validation: (Rule) => Rule.required(),
+		}),
+
+		defineField({
+			name: 'pricingModel',
+			title: 'Pricing Model',
+			description: 'How pricing is presented to global buyers.',
+			type: 'string',
+			group: 'commercial',
+			fieldset: 'intentGroup',
+			options: {
+				list: [
+					{ title: 'Fixed Price', value: 'fixed' },
+					{ title: 'Price Range', value: 'range' },
+					{ title: 'Starting At Price', value: 'starting_at' },
+					{ title: 'Tiered / Volume Pricing (B2B)', value: 'tiered' },
+					{ title: 'Quotation Upon Request (Hidden Price)', value: 'quote_only' },
+				],
+			},
+			initialValue: 'fixed',
+			validation: (Rule) => Rule.required(),
+		}),
+
+		defineField({
+			name: 'currency',
+			title: 'Currency',
+			type: 'string',
+			group: 'commercial',
+			fieldset: 'pricingSection',
+			options: {
+				list: [
+					{ title: 'USD - US Dollar ($)', value: 'USD' },
+					{ title: 'EUR - Euro (€)', value: 'EUR' },
+					{ title: 'GBP - British Pound (£)', value: 'GBP' },
+					{ title: 'AUD - Australian Dollar ($)', value: 'AUD' },
+					{ title: 'SGD - Singapore Dollar ($)', value: 'SGD' },
+					{ title: 'VND - Vietnamese Dong (₫)', value: 'VND' },
+				],
+			},
+			initialValue: 'USD',
+			hidden: ({ parent }) => parent?.pricingModel === 'quote_only',
+		}),
+
+		defineField({
+			name: 'price',
+			title: 'Unit Price / Starting Price',
+			type: 'number',
+			group: 'commercial',
+			fieldset: 'pricingSection',
+			placeholder: '0.00',
+			validation: (Rule) =>
+				Rule.custom((value, context) => {
+					const parent = context.parent as { pricingModel?: string }
+					if (parent?.pricingModel !== 'quote_only' && (value === undefined || value < 0)) {
+						return 'Price must be 0 or higher'
+					}
+					return true
+				}),
+			hidden: ({ parent }) => parent?.pricingModel === 'quote_only',
+		}),
+
+		defineField({
+			name: 'maxPrice',
+			title: 'Maximum Price (Upper Boundary for Range)',
+			description: 'Upper boundary for price range.',
+			type: 'number',
+			group: 'commercial',
+			fieldset: 'pricingSection',
+			placeholder: '0.00',
+			hidden: ({ parent }) => parent?.pricingModel !== 'range',
+		}),
+
+		defineField({
+			name: 'compareAtPrice',
+			title: 'Compare At Price / MSRP',
+			description: 'Original list price displayed with a strikethrough for comparison.',
+			type: 'number',
+			group: 'commercial',
+			fieldset: 'pricingSection',
+			placeholder: '0.00',
+			hidden: ({ parent }) => parent?.pricingModel === 'quote_only',
+			validation: (Rule) =>
+				Rule.min(0).custom((compareAtPrice, context) => {
+					const parent = context.parent as { price?: number }
+					if (
+						typeof compareAtPrice === 'number' &&
+						typeof parent?.price === 'number' &&
+						compareAtPrice < parent.price
+					) {
+						return 'Compare at price must be higher than regular price'
+					}
+					return true
+				}),
+		}),
+
+		defineField({
+			name: 'priceNote',
+			title: 'Price Term & Shipping Disclaimer',
+			description: 'E.g. "Ex-works / FOB price. International freight calculated upon destination."',
+			type: 'string',
+			group: 'commercial',
+			fieldset: 'pricingSection',
+			initialValue: 'Ex-works export price. International shipping, insurance and customs quoted upon inquiry.',
+		}),
+
+		defineField({
+			name: 'priceTiers',
+			title: 'Volume / Tiered Pricing Matrix',
+			description: 'Configure progressive volume discounts (e.g. 10-49: $15, 50-199: $12, 200+: VIP Quote).',
 			type: 'array',
-			group: 'content',
+			group: 'commercial',
+			fieldset: 'pricingSection',
 			of: [
 				defineArrayMember({
-					type: 'image',
-					options: {
-						hotspot: true,
-						metadata: ['lqip'],
-					},
-					preview: {
-						select: {
-							title: 'alt',
-							media: 'asset',
-						},
-						prepare({ title, media }) {
-							return {
-								title: title || 'Product Image',
-								media: media || FiImage,
-							}
-						},
-					},
-				}),
-				defineArrayMember({
-					type: 'file',
-					name: 'video',
-					title: 'Video sản phẩm (File MP4/WebM)',
-					icon: FiFilm,
-					options: {
-						accept: 'video/*',
-					},
-					fields: [
-						defineField({
-							name: 'alt',
-							title: 'Tiêu đề / Chú thích Video',
-							type: 'string',
-						}),
-					],
-					preview: {
-						select: {
-							title: 'alt',
-						},
-						prepare({ title }) {
-							return {
-								title: title || 'Product Video (File)',
-								media: FiFilm,
-							}
-						},
-					},
-				}),
-				defineArrayMember({
 					type: 'object',
-					name: 'videoUrl',
-					title: 'Video từ Link (YouTube / Vimeo / TikTok)',
-					icon: FiPlay,
+					name: 'priceTier',
+					title: 'Price Tier',
 					fields: [
 						defineField({
-							name: 'url',
-							title: 'Đường dẫn Video (URL)',
-							type: 'url',
-							validation: (Rule) => Rule.required(),
+							name: 'minQty',
+							title: 'Min Quantity',
+							type: 'number',
+							validation: (Rule) => Rule.required().min(1),
 						}),
 						defineField({
-							name: 'alt',
-							title: 'Tiêu đề / Chú thích Video',
+							name: 'maxQty',
+							title: 'Max Quantity (Leave empty for ∞ / and above)',
+							type: 'number',
+						}),
+						defineField({
+							name: 'unitPrice',
+							title: 'Unit Price',
+							type: 'number',
+							validation: (Rule) => Rule.min(0),
+						}),
+						defineField({
+							name: 'incoterm',
+							title: 'Incoterm Default',
 							type: 'string',
+							options: {
+								list: [
+									{ title: 'FOB (Free On Board - VN Port)', value: 'FOB' },
+									{ title: 'EXW (Ex Works - Factory Gate)', value: 'EXW' },
+									{ title: 'CIF (Cost, Insurance & Freight)', value: 'CIF' },
+									{ title: 'DDP (Delivered Duty Paid)', value: 'DDP' },
+								],
+							},
+							initialValue: 'FOB',
+						}),
+						defineField({
+							name: 'discountPercent',
+							title: 'Discount % Badge (Optional)',
+							type: 'number',
+						}),
+						defineField({
+							name: 'badge',
+							title: 'Highlight Badge (e.g. "Most Popular", "Best Value")',
+							type: 'string',
+						}),
+						defineField({
+							name: 'isCustomQuote',
+							title: 'VIP Custom Quote (No fixed unit price)',
+							type: 'boolean',
+							initialValue: false,
 						}),
 					],
 					preview: {
 						select: {
-							title: 'alt',
-							subtitle: 'url',
+							minQty: 'minQty',
+							maxQty: 'maxQty',
+							unitPrice: 'unitPrice',
+							incoterm: 'incoterm',
+							isCustomQuote: 'isCustomQuote',
 						},
-						prepare({ title, subtitle }) {
+						prepare({ minQty, maxQty, unitPrice, incoterm, isCustomQuote }) {
+							const range = maxQty ? `${minQty} – ${maxQty} units` : `${minQty}+ units`
+							const priceStr = isCustomQuote ? 'VIP Quote' : `$${unitPrice ?? 0} (${incoterm || 'FOB'})`
 							return {
-								title: title || 'Product Video (Link)',
-								subtitle,
-								media: FiPlay,
+								title: `${range}: ${priceStr}`,
 							}
 						},
 					},
@@ -169,135 +476,107 @@ export default defineType({
 
 		defineField({
 			name: 'sku',
-			title: 'SKU',
+			title: 'SKU / Model Number',
 			type: 'string',
-			group: 'content',
-			fieldset: 'skuStockRow',
+			group: 'commercial',
+			fieldset: 'inventoryLogistics',
+			placeholder: 'e.g. ECO-CROSS-2026',
 			validation: (Rule) => Rule.required(),
 		}),
 
 		defineField({
-			name: 'sold',
-			title: 'Sold',
-			type: 'number',
-			group: 'content',
-			fieldset: 'skuStockRow',
-			initialValue: 0,
-		}),
-		defineField({
-			name: 'categories',
-			type: 'array',
-			of: [{ type: 'reference', to: [{ type: 'product.category' }] }],
-			group: 'content',
-		}),
-		defineField({
-			name: 'tags',
-			title: 'Product Tags',
-			type: 'array',
-			of: [{ type: 'string' }],
-			options: {
-				layout: 'tags',
-			},
-			group: 'content',
+			name: 'inStock',
+			title: 'Available for Order / Inquiry',
+			description: 'Toggle off to display Backorder or Out of Stock status.',
+			type: 'boolean',
+			group: 'commercial',
+			fieldset: 'inventoryLogistics',
+			initialValue: true,
 		}),
 
-		defineField({
-			name: 'price',
-			title: 'Price',
-			type: 'number',
-			group: 'content',
-			fieldset: 'priceRow',
-			validation: (Rule) => Rule.required().min(0),
-		}),
-
-		defineField({
-			name: 'compareAtPrice',
-			title: 'Compare At Price',
-			type: 'number',
-			group: 'content',
-			fieldset: 'priceRow',
-			validation: (Rule) =>
-				Rule.min(0).custom((compareAtPrice, context) => {
-					const parent = context.parent as { price?: number }
-
-					if (
-						typeof compareAtPrice === 'number' &&
-						typeof parent?.price === 'number' &&
-						compareAtPrice < parent.price
-					) {
-						return 'Compare at price must be higher than regular price'
-					}
-
-					return true
-				}),
-		}),
 		defineField({
 			name: 'stock',
-			title: 'Stock',
+			title: 'Stock Quota',
 			type: 'number',
-			group: 'content',
-			fieldset: 'priceRow',
+			group: 'commercial',
+			fieldset: 'inventoryLogistics',
 			initialValue: 0,
 		}),
+
 		defineField({
-			name: 'hasVariants',
-			title: 'Enable Variants',
-			type: 'boolean',
-			description: 'Toggle on to enable multi-option product variants (e.g. Size, Color)',
-			group: 'variants',
-			initialValue: false,
-		}),
-		defineField({
-			name: 'options',
-			title: 'Product Options',
-			type: 'array',
-			description: 'Define options such as Color, Size, Material',
-			group: 'variants',
-			hidden: ({ parent }) => !parent?.hasVariants,
-			of: [defineArrayMember({ type: 'product.option' })],
-		}),
-		defineField({
-			name: 'variants',
-			title: 'Product Variants',
-			type: 'array',
-			description: 'List of specific product variants with individual pricing, SKU, stock, and images',
-			group: 'variants',
-			components: {
-				input: VariantGeneratorInput,
-			},
-			hidden: ({ parent }) => !parent?.hasVariants,
-			of: [defineArrayMember({ type: 'product.variant' })],
-		}),
-		defineField({
-			...modules(),
-			of: [
-				{ type: 'theme-background' },
-				{ type: 'prose' },
-				{ type: 'callout' },
-				{ type: 'custom-html' },
-				{ type: 'accordion-list' },
-				{ type: 'hero.split' },
-				{ type: 'quote-list' },
-				{ type: 'step-list' },
-				{ type: 'card-list' },
-				{ type: 'product-list' },
-				{ type: 'carousel-banner-list' },
-			],
-			group: 'content',
+			name: 'sold',
+			title: 'Sold / Delivered Count',
+			type: 'number',
+			group: 'commercial',
+			fieldset: 'inventoryLogistics',
+			initialValue: 0,
 		}),
 
-		// CẤU HÌNH KHUYẾN MÃI (Bên trong Tab Promotions & Deals)
+		defineField({
+			name: 'moq',
+			title: 'Minimum Order Quantity (MOQ)',
+			description: 'Minimum units required per order request (Default: 1 unit).',
+			type: 'number',
+			group: 'commercial',
+			fieldset: 'inventoryLogistics',
+			initialValue: 1,
+			validation: (Rule) => Rule.min(1),
+		}),
+
+		defineField({
+			name: 'leadTime',
+			title: 'Dispatch & Production Lead Time',
+			description: 'E.g. "Dispatches in 2-4 business days" or "Custom production: 2-3 weeks".',
+			type: 'string',
+			group: 'commercial',
+			fieldset: 'inventoryLogistics',
+			initialValue: 'Dispatches within 2-4 business days worldwide',
+		}),
+
+		defineField({
+			name: 'specSheetPdf',
+			title: 'Technical Spec Sheet / Catalog PDF',
+			description: 'Downloadable PDF documentation for enterprise and institutional buyers.',
+			type: 'file',
+			group: 'commercial',
+			fieldset: 'inventoryLogistics',
+			options: {
+				accept: 'application/pdf',
+			},
+		}),
+
+		defineField({
+			name: 'customCtaText',
+			title: 'Custom Action Button Label (Optional)',
+			description: 'Override the default button label (e.g. "Reserve Order Now" or "Get Official Quotation").',
+			type: 'string',
+			group: 'commercial',
+			fieldset: 'ctaOverrides',
+			placeholder: 'e.g. Request Official Quotation',
+		}),
+
+		defineField({
+			name: 'customCtaSubtext',
+			title: 'Trust Subtext below Action Button',
+			description: 'Reassures buyers regarding payment and order verification.',
+			type: 'string',
+			group: 'commercial',
+			fieldset: 'ctaOverrides',
+			initialValue: 'No payment required today. Dedicated specialist confirms shipping rates within 12 hours.',
+		}),
+
 		defineField({
 			name: 'promotionMode',
-			title: 'Cấu hình Khuyến mãi',
-			description: 'Chọn chế độ hiển thị danh sách khuyến mãi cho sản phẩm này',
+			title: 'Promotions Display Mode',
+			description: 'Choose how promotional perks are displayed on this product page.',
 			type: 'string',
-			group: 'promotion',
+			group: 'commercial',
+			fieldset: 'promotionsGroup',
 			options: {
 				list: [
-					{ title: 'Sử dụng Khuyến mãi Mặc định (Từ Cài đặt chung)', value: 'default' },
-					{ title: 'Tùy chỉnh Khuyến mãi riêng cho sản phẩm này', value: 'custom' },
-					{ title: 'Tắt Khuyến mãi (Không hiển thị)', value: 'disabled' },
+					{ title: 'Use Global Default Promotions', value: 'default' },
+					{ title: 'Custom Promotions for This Product', value: 'custom' },
+					{ title: 'Disabled (Hidden)', value: 'disabled' },
 				],
 				layout: 'radio',
 			},
@@ -306,53 +585,54 @@ export default defineType({
 
 		defineField({
 			name: 'promotions',
-			title: 'Khuyến mãi riêng cho sản phẩm',
-			description: 'Nhập danh sách khuyến mãi độc quyền dành riêng cho sản phẩm này',
+			title: 'Custom Product Promotions',
+			description: 'Exclusive promotional perks and commercial guarantees for this product.',
 			type: 'object',
-			group: 'promotion',
+			group: 'commercial',
+			fieldset: 'promotionsGroup',
 			hidden: ({ parent }) => parent?.promotionMode !== 'custom',
 			fields: [
 				defineField({
 					name: 'title',
-					title: 'Tiêu đề khối',
+					title: 'Headline',
 					type: 'string',
-					initialValue: 'Khuyến mãi',
+					initialValue: 'Promotions & Perks',
 				}),
 				defineField({
 					name: 'subtitle',
-					title: 'Phụ đề / Ghi chú',
+					title: 'Subtitle / Disclaimer',
 					type: 'string',
-					initialValue: 'Giá và khuyến mãi có thể kết thúc sớm hơn dự kiến',
+					initialValue: 'Prices and promotional offers may end without prior notice',
 				}),
 				defineField({
 					name: 'items',
-					title: 'Danh sách mục khuyến mãi',
+					title: 'Promotional Items',
 					type: 'array',
 					of: [
 						{
 							type: 'object',
 							name: 'promotionItem',
-							title: 'Mục khuyến mãi',
+							title: 'Promotion Item',
 							fields: [
 								defineField({
 									name: 'text',
-									title: 'Nội dung khuyến mãi',
+									title: 'Offer Text',
 									type: 'string',
 									validation: (Rule) => Rule.required(),
 								}),
 								defineField({
 									name: 'linkText',
-									title: 'Chữ liên kết đính kèm (Ví dụ: "(Xem chi tiết tại đây)")',
+									title: 'Link Text',
 									type: 'string',
 								}),
 								defineField({
 									name: 'linkUrl',
-									title: 'Đường dẫn liên kết (Link URL)',
+									title: 'Link URL',
 									type: 'string',
 								}),
 								defineField({
 									name: 'highlight',
-									title: 'Nổi bật (In đậm chữ)',
+									title: 'Highlight (Emphasize)',
 									type: 'boolean',
 									initialValue: false,
 								}),
@@ -369,84 +649,147 @@ export default defineType({
 			],
 		}),
 
-		// CẤU HÌNH GIÁ ĐẶC BIỆT / FLASH SALE
 		defineField({
 			name: 'enableSpecialDeal',
-			title: 'Bật chương trình Giá Đặc Biệt / Flash Sale',
-			description: 'Hiển thị Banner Flash Sale màu đỏ, đồng hồ đếm ngược và khung viền nổi bật cho sản phẩm này',
+			title: 'Enable Special Deal / Limited-Time Scarcity Banner',
+			description: 'Displays urgency countdown timer, campaign badge, and highlighted border.',
 			type: 'boolean',
-			group: 'promotion',
+			group: 'commercial',
+			fieldset: 'specialDealGroup',
 			initialValue: false,
 		}),
 
 		defineField({
 			name: 'specialDealConfig',
-			title: 'Cấu hình Giá Đặc Biệt / Flash Sale',
+			title: 'Special Deal Configuration',
 			type: 'object',
-			group: 'promotion',
+			group: 'commercial',
+			fieldset: 'specialDealGroup',
 			hidden: ({ parent }) => !parent?.enableSpecialDeal,
 			fields: [
 				defineField({
 					name: 'badgeTitle',
-					title: 'Tên nhãn / Tiêu đề chương trình',
-					description: 'Ví dụ: "Online Giá Rẻ Quá", "Giá Đặc Biệt", "Flash Sale Hot"',
+					title: 'Deal Badge / Campaign Title',
+					description: 'E.g. "Limited Export Allocation", "Pilot Batch Pricing", "Early Adopter Offer"',
 					type: 'string',
-					initialValue: 'Online Giá Rẻ Quá',
+					initialValue: 'Limited Allocation Offer',
 				}),
 				defineField({
 					name: 'badgeIcon',
-					title: 'Icon nhãn / Biểu tượng chương trình',
-					description:
-						'Tải lên hình ảnh / biểu tượng hiển thị cạnh Tiêu đề (Mặc định hiển thị ngọn lửa 🔥 nếu để trống). Kích thước khuyên dùng: Vuông 1:1 (ví dụ 100x100px), PNG trong suốt, dung lượng < 100KB.',
+					title: 'Badge Icon',
+					description: 'Upload icon displayed beside the badge title. Recommended: transparent PNG.',
 					type: 'image',
 					options: { hotspot: true },
 				}),
 				defineField({
 					name: 'channelText',
-					title: 'Nhãn kênh áp dụng',
-					description: 'Ví dụ: "CHỈ BÁN ONLINE", "ÁP DỤNG MUA ONLINE & SHOWROOM"',
+					title: 'Channel Tag',
+					description: 'E.g. "EXPORT DIRECT", "LIMITED RUN"',
 					type: 'string',
-					initialValue: 'CHỈ BÁN ONLINE',
+					initialValue: 'EXPORT DIRECT',
 				}),
 				defineField({
 					name: 'endTime',
-					title: 'Thời gian kết thúc đếm ngược',
+					title: 'Countdown Expiration Date & Time',
 					type: 'datetime',
 				}),
 				defineField({
 					name: 'totalQuota',
-					title: 'Tổng số suất ưu đãi',
+					title: 'Total Allocation Units Available',
 					type: 'number',
 					initialValue: 20,
 				}),
 				defineField({
 					name: 'remainingQuota',
-					title: 'Số suất còn lại',
+					title: 'Remaining Units',
 					type: 'number',
 					initialValue: 14,
 				}),
 				defineField({
 					name: 'specialConditions',
-					title: 'Lưu ý / Điều kiện mua hàng riêng',
-					description: 'Nhập danh sách điều kiện mua hàng riêng cho sản phẩm này. Nếu để trống sẽ tự động lấy từ Cài đặt chung.',
+					title: 'Deal Terms & Conditions',
+					description: 'List special terms for this deal (Leave empty to inherit from Global Settings).',
 					type: 'array',
 					of: [{ type: 'string' }],
 				}),
 			],
 		}),
 
+		/* ==================== TAB 3: SPECS & SEO ==================== */
+		defineField({
+			name: 'specs',
+			title: 'Product Specifications',
+			description: 'Technical and physical attributes (e.g. Dimensions, Weight, Materials, Voltage, Certifications).',
+			type: 'array',
+			group: 'specs_seo',
+			fieldset: 'technicalSpecs',
+			of: [
+				defineArrayMember({
+					type: 'object',
+					name: 'specItem',
+					fields: [
+						defineField({
+							name: 'label',
+							title: 'Attribute / Label',
+							type: 'string',
+							placeholder: 'e.g. Dimensions, Weight, Materials',
+							validation: (Rule) => Rule.required(),
+						}),
+						defineField({
+							name: 'value',
+							title: 'Value',
+							type: 'string',
+							placeholder: 'e.g. 120 x 80 x 45 cm',
+							validation: (Rule) => Rule.required(),
+						}),
+					],
+					preview: {
+						select: {
+							title: 'label',
+							subtitle: 'value',
+						},
+					},
+				}),
+			],
+		}),
+
 		defineField({
 			name: 'metadata',
+			title: 'SEO & Social Metadata',
 			type: 'metadata',
-			group: 'metadata',
+			group: 'specs_seo',
 		}),
 	],
 
+	// 3. Document list view preview
 	preview: {
 		select: {
 			title: 'title',
-			subtitle: 'publishDate',
-			media: 'metadata.image',
+			sku: 'sku',
+			price: 'price',
+			currency: 'currency',
+			conversionType: 'conversionType',
+			inStock: 'inStock',
+			media: 'images.0',
+		},
+		prepare({ title, sku, price, currency, conversionType, inStock, media }) {
+			const modeLabel =
+				conversionType === 'rfq'
+					? 'RFQ'
+					: conversionType === 'consultation'
+						? 'Consultation'
+						: 'Order'
+
+			const priceDisplay =
+				price !== undefined ? `${currency || 'USD'} ${Number(price).toLocaleString('en-US')}` : 'Custom Quote'
+
+			const stockIndicator = inStock === false ? '🔴 Out of Stock' : '🟢 In Stock'
+
+			return {
+				title: title || 'Untitled Product',
+				subtitle: `[${modeLabel}] ${priceDisplay} • SKU: ${sku || 'N/A'} • ${stockIndicator}`,
+				media: media || FiPackage,
+			}
 		},
 	},
 	orderings: [

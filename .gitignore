@@ -46,3 +46,10 @@ next-env.d.ts
 
 # unlighthouse
 .unlighthouse/
+
+# cloudflare / opennext
+/.open-next/
+/.wrangler/
+.dev.vars
+.dev.vars.*
+/backups/

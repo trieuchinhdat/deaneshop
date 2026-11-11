@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { HiChevronDown } from 'react-icons/hi2'
-import Swal from 'sweetalert2'
-import { cn, formatVND } from '@/lib/utils'
+import { showSimpleToast } from '@/lib/toast'
+import { cn, formatPrice } from '@/lib/utils'
 import {
 	CartItem,
 	ProductVariant,
@@ -27,7 +27,7 @@ export default function CartVariantSelector({
 	)
 	const [isLoading, setIsLoading] = useState(false)
 
-	// Lấy danh sách biến thể từ Sanity nếu trong item chưa có
+	// Fetch variants list from Sanity if not already present on cart item
 	useEffect(() => {
 		if (item.variants && item.variants.length > 0) {
 			setVariants(item.variants)
@@ -67,10 +67,10 @@ export default function CartVariantSelector({
 		}
 	}, [item.id, item.productId, item.slug, item.variants, updateItemData])
 
-	// Nếu chỉ có 1 hoặc 0 biến thể thì chỉ hiển thị dạng text
+	// If only 1 or 0 variants exist, render plain text
 	const hasMultipleVariants = variants.length > 1
 
-	// Xác định ID biến thể hiện tại
+	// Determine current variant ID
 	const currentVariantId =
 		item.variantId ||
 		variants.find((v) => v.title === item.variantTitle)?._key ||
@@ -117,33 +117,17 @@ export default function CartVariantSelector({
 			image: selected.image || item.image,
 		})
 
-		Swal.fire({
-			toast: true,
-			position: 'top-end',
-			showConfirmButton: false,
+		showSimpleToast({
+			title: 'Variant updated',
+			subtitle: selected.title,
 			timer: 2500,
-			customClass: {
-				popup:
-					'!p-2.5 !rounded-xl !border !border-gray-200/90 !shadow-lg !bg-white !w-auto !min-w-[240px]',
-				container: 'mt-20 md:mt-24 z-[999]',
-			},
-			html: `
-				<div class="flex items-center gap-2 p-0.5 font-sans text-left">
-					<div class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-xs">
-						✓
-					</div>
-					<div class="text-xs">
-						<span class="text-gray-500">Đã đổi:</span> <strong class="text-gray-900 font-semibold">${selected.title}</strong>
-					</div>
-				</div>
-			`,
 		})
 	}
 
 	if (!hasMultipleVariants && item.variantTitle) {
 		return (
 			<div className={cn('text-xs text-gray-500 mt-0.5 truncate', className)}>
-				Phân loại:{' '}
+				Variant:{' '}
 				<span className="font-medium text-gray-700">{item.variantTitle}</span>
 			</div>
 		)
@@ -159,21 +143,21 @@ export default function CartVariantSelector({
 					disabled={isLoading}
 					onChange={(e) => handleChange(e.target.value)}
 					className="appearance-none text-xs font-medium text-gray-800 bg-neutral-50 hover:bg-neutral-100/90 border border-neutral-200/90 hover:border-neutral-300 rounded-md py-1 pl-2.5 pr-6 cursor-pointer outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all max-w-[220px] truncate shadow-2xs"
-					title="Bấm để chọn phân loại khác"
+					title="Click to select another variant"
 				>
 					{variants.map((v) => {
 						const key = v._key || v.sku || v.title || ''
 						const isOut = typeof v.stock === 'number' && v.stock <= 0
 						const priceLabel =
 							typeof v.price === 'number' && v.price > 0
-								? ` - ${formatVND(v.price)}`
+								? ` - ${formatPrice(v.price)}`
 								: ''
 
 						return (
 							<option key={key} value={key} disabled={isOut}>
 								{v.title}
 								{priceLabel}
-								{isOut ? ' (Hết hàng)' : ''}
+								{isOut ? ' (Out of stock)' : ''}
 							</option>
 						)
 					})}

@@ -1,9 +1,15 @@
 import { defineField, defineType } from 'sanity'
 import { EditIcon } from '@sanity/icons'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'blog-post-content',
-	title: 'Blog post content',
+	title: 'Blog Post Content [DEPRECATED]',
+	description:
+		'Legacy module. Blog Post Content is rendered automatically by the /blog/[slug] template.',
+	deprecated: {
+		reason: 'Blog Post Content is rendered automatically on /blog/[slug].',
+	},
 	type: 'object',
 	icon: EditIcon,
 	groups: [{ name: 'layout', default: true }, { name: 'options' }],
@@ -24,13 +30,14 @@ export default defineType({
 			group: 'layout',
 		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'blog-post-content',
+		icon: EditIcon,
 		select: {
 			uid: 'attributes.uid',
 		},
-		prepare: ({ uid }) => ({
-			title: 'Blog post content',
-			subtitle: uid && `#${uid}`,
-		}),
-	},
+		metadata: (doc) => [
+			doc.uid ? `#${doc.uid}` : null,
+		],
+	}),
 })

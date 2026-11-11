@@ -8,7 +8,7 @@ export default function ProductContent({
 }: {
 	product: PRODUCT_QUERY_RESULT
 	productSettings?: PRODUCT_SETTINGS_QUERY_RESULT
-} & ProductContent) {
+} & Partial<ProductContent>) {
 	if (!product) return null
 
 	return (
@@ -27,7 +27,12 @@ export default function ProductContent({
 					sales={product?.sold ?? 0}
 					productId={product._id}
 					approvedReviews={(product as any)?.approvedReviews}
+					reviewSummary={(product as any)?.reviewSummary}
 					stock={product.stock ?? undefined}
+					inStock={(product as any)?.inStock ?? ((product.stock ?? 1) > 0)}
+					shortPitch={(product as any)?.shortPitch}
+					keyBenefits={(product as any)?.keyBenefits}
+					specs={(product as any)?.specs}
 					productSettings={productSettings}
 					hasVariants={(product as any)?.hasVariants ?? false}
 					options={(product as any)?.options}
@@ -36,6 +41,14 @@ export default function ProductContent({
 					promotions={(product as any)?.promotions}
 					enableSpecialDeal={(product as any)?.enableSpecialDeal}
 					specialDealConfig={(product as any)?.specialDealConfig}
+					moq={(product as any)?.moq}
+					priceTiers={(product as any)?.priceTiers}
+					leadTime={(product as any)?.leadTime}
+					specSheetPdf={(product as any)?.specSheetPdf}
+					pricingModel={(product as any)?.pricingModel}
+					currency={(product as any)?.currency}
+					priceNote={(product as any)?.priceNote}
+					conversionType={(product as any)?.conversionType}
 				/>
 			</section>
 		</>

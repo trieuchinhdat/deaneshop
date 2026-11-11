@@ -3,9 +3,9 @@
 import dynamic from 'next/dynamic'
 import type { ComponentProps } from 'react'
 
-// Di chuyển logic dynamic import vào đây
+// Dynamic client-side import for chatbox
 const ChatBox = dynamic(() => import('@/ui/chatbox'), {
-	ssr: false, // Tại đây ssr: false hoạt động tốt vì file này là 'use client'
+	ssr: false, // Disabling SSR is safe here inside a client component
 })
 
 export default function ChatBoxWrapper(props: ComponentProps<typeof ChatBox>) {

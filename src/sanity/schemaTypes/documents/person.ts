@@ -20,6 +20,18 @@ export default defineType({
 			type: 'string',
 		}),
 		defineField({
+			name: 'credentials',
+			title: 'Credentials & Accreditations',
+			description: 'e.g., PhD (Oxford), MD (Board-Certified), MBA, FACS (Signals E-E-A-T authority)',
+			type: 'string',
+		}),
+		defineField({
+			name: 'department',
+			title: 'Department / Group',
+			description: 'e.g., Executive Leadership, Scientific Advisory Board, Sustainable Engineering',
+			type: 'string',
+		}),
+		defineField({
 			name: 'image',
 			title: 'Avatar / Profile Photo',
 			description:
@@ -54,6 +66,8 @@ export default defineType({
 									{ title: 'LinkedIn', value: 'linkedin' },
 									{ title: 'X (Twitter)', value: 'twitter' },
 									{ title: 'Website / Portfolio', value: 'website' },
+									{ title: 'GitHub', value: 'github' },
+									{ title: 'Email (mailto:)', value: 'email' },
 									{ title: 'Instagram', value: 'instagram' },
 									{ title: 'Facebook', value: 'facebook' },
 									{ title: 'YouTube', value: 'youtube' },

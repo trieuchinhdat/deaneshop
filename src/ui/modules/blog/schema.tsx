@@ -1,4 +1,6 @@
 import { ROUTES } from '@/lib/env'
+import { serializeJsonLd } from '@/lib/json-ld'
+import { getBlockText } from '@/lib/utils'
 import { urlFor } from '@/sanity/lib/image'
 import type { BLOG_POST_QUERY_RESULT } from '@/sanity/types'
 
@@ -18,6 +20,7 @@ interface SchemaProps {
 	}
 	siteSettings?: {
 		title?: string
+		siteName?: string
 		companyName?: string
 		logo?: {
 			image?: {
@@ -46,7 +49,7 @@ export default function BlogPostSchema({ post, siteSettings }: SchemaProps) {
 
 	// 2. Publisher info
 	const publisherName =
-		siteSettings?.companyName || siteSettings?.title || 'Ecocros'
+		siteSettings?.companyName || siteSettings?.siteName || siteSettings?.title || 'Store'
 	const publisherLogoUrl = siteSettings?.logo?.image?.default
 		? urlFor(siteSettings.logo.image.default).url()
 		: `${baseUrl}/favicon.ico`
@@ -65,7 +68,7 @@ export default function BlogPostSchema({ post, siteSettings }: SchemaProps) {
 				text:
 					typeof item.answer === 'string'
 						? item.answer
-						: item.question, // Fallback safe string
+						: getBlockText(item.answer, ' ') || item.question,
 			},
 		})) || []
 
@@ -196,7 +199,9 @@ export default function BlogPostSchema({ post, siteSettings }: SchemaProps) {
 	return (
 		<script
 			type="application/ld+json"
-			dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
+			dangerouslySetInnerHTML={{
+				__html: serializeJsonLd(schemaGraph),
+			}}
 		/>
 	)
 }

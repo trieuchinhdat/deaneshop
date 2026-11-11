@@ -1,10 +1,11 @@
 import { defineField, defineType } from 'sanity'
 import { BsBarChartSteps } from 'react-icons/bs'
-import { count } from '@/lib/utils'
+import { defineModulePreview } from '@/sanity/lib/define-module-preview'
 
 export default defineType({
 	name: 'breadcrumbs',
-	title: 'Breadcrumbs',
+	title: 'Navigation Breadcrumbs',
+	description: 'Hierarchical navigation trail assisting user orientation and internal linking.',
 	icon: BsBarChartSteps,
 	type: 'object',
 	groups: [{ name: 'content', default: true }, { name: 'options' }],
@@ -17,13 +18,14 @@ export default defineType({
 			group: 'content',
 		}),
 	],
-	preview: {
+	preview: defineModulePreview({
+		schemaName: 'breadcrumbs',
+		icon: BsBarChartSteps,
 		select: {
 			crumbs: 'crumbs',
 		},
-		prepare: ({ crumbs }) => ({
-			title: count(crumbs, 'crumb'),
-			subtitle: 'Breadcrumbs',
-		}),
-	},
+		metadata: (doc) => [
+			doc.crumbs?.length ? `${doc.crumbs.length} crumbs` : null,
+		],
+	}),
 })

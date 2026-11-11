@@ -7,7 +7,7 @@ export async function GET() {
 
 		if (!session) {
 			return NextResponse.json(
-				{ success: false, error: 'Chưa đăng nhập quyền Admin.' },
+				{ success: false, error: 'Unauthorized. Admin session required.' },
 				{ status: 401 },
 			)
 		}
@@ -17,9 +17,9 @@ export async function GET() {
 			user: session,
 		})
 	} catch (error: any) {
-		console.error('Lỗi API Admin Me:', error)
+		console.error('API Admin Me error:', error)
 		return NextResponse.json(
-			{ success: false, error: 'Lỗi kiểm tra phiên làm việc.' },
+			{ success: false, error: 'Failed to verify session.' },
 			{ status: 500 },
 		)
 	}

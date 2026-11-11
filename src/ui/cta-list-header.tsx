@@ -1,17 +1,18 @@
 'use client'
 
-import Image from 'next/image'
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { stegaClean } from 'next-sanity'
 import { useEffect, useState } from 'react'
-import { HiOutlineHeart, HiOutlinePhone, HiOutlineShoppingBag, HiOutlineUser } from 'react-icons/hi2'
+import {
+	HiOutlineDocumentText,
+	HiOutlineShoppingBag,
+	HiOutlineShoppingCart,
+	HiOutlineUser,
+} from 'react-icons/hi2'
 import { IoIosSearch } from 'react-icons/io'
 import { cn } from '@/lib/utils'
 import type { Cta } from '@/sanity/types'
-import { useAuthStore } from '@/store/use-auth-store'
 import { useCartStore } from '@/store/use-cart-store'
-import { useWishlistStore } from '@/store/use-wishlist-store'
 import SanityLink, { type SanityLinkType } from './sanity-link'
 
 type ExtendedCta = Cta & {
@@ -22,12 +23,22 @@ type ExtendedCta = Cta & {
 
 export default function CtaList({
 	ctas,
+	showSearch = true,
+	showCart = true,
+	showAccount = false,
+	cartIconType = 'rfq',
+	highlightCta,
 	className,
 	onOpenCart,
 	onOpenSearch,
-	mobileSearchDisplay = 'bar',
+	mobileSearchDisplay = 'icon',
 }: {
 	ctas?: ExtendedCta[]
+	showSearch?: boolean
+	showCart?: boolean
+	showAccount?: boolean
+	cartIconType?: 'rfq' | 'bag' | 'cart' | string
+	highlightCta?: any
 	className?: string
 	onOpenCart?: () => void
 	onOpenSearch?: () => void
@@ -38,233 +49,138 @@ export default function CtaList({
 	const items = useCartStore((state) => state.items)
 	const totalQuantity = items.reduce((total, item) => total + item.quantity, 0)
 
-	const wishlistItems = useWishlistStore((state) => state.items)
-	const wishlistCount = wishlistItems.length
-
-	const { user, isAuthenticated, checkSession } = useAuthStore()
-
 	useEffect(() => {
 		setMounted(true)
-		checkSession()
-	}, [checkSession])
+	}, [])
 
-	if (!ctas?.length) return null
+	const cleanCartIconType = stegaClean(cartIconType) || 'rfq'
+
+	const cartAriaLabel =
+		cleanCartIconType === 'bag'
+			? 'Shopping Bag'
+			: cleanCartIconType === 'cart'
+				? 'Shopping Cart'
+				: 'Wholesale Quote List (RFQ)'
+
+	const baseBtnClass =
+		'p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-header-foreground cursor-pointer select-none'
 
 	return (
-		<div
-			className={cn(
-				'flex flex-wrap items-center gap-1 sm:gap-1.5',
-				className,
+		<div className={cn('flex flex-wrap items-center gap-1 sm:gap-1.5', className)}>
+			{/* 1. Quick Search Icon Trigger */}
+			{showSearch && onOpenSearch && (
+				<button
+					type="button"
+					onClick={onOpenSearch}
+					className={cn(
+						baseBtnClass,
+						mobileSearchDisplay === 'bar' && 'max-md:hidden'
+					)}
+					aria-label="Search"
+					title="Search"
+				>
+					<span className="relative text-xl flex items-center justify-center">
+						<IoIosSearch />
+					</span>
+				</button>
 			)}
-		>
-			{ctas.map((cta, index) => {
-				const linkData = cta.link as SanityLinkType
-				const labelClean = linkData?.label?.toLowerCase().trim() || ''
-				const configuredIcon = cta.iconType || 'auto'
-				const actionType = cta.actionType || 'link'
 
-				// Determine actual icon type with fallback
-				let effectiveIcon = configuredIcon
-				if (configuredIcon === 'auto') {
-					if (labelClean === 'giỏ hàng' || labelClean === 'cart') {
-						effectiveIcon = 'cart'
-					} else if (labelClean === 'tìm kiếm' || labelClean === 'search') {
-						effectiveIcon = 'search'
-					} else if (labelClean === 'tài khoản' || labelClean === 'account' || labelClean === 'user') {
-						effectiveIcon = 'user'
-					} else if (labelClean === 'yêu thích' || labelClean === 'wishlist') {
-						effectiveIcon = 'wishlist'
-					} else if (labelClean === 'điện thoại' || labelClean === 'phone' || labelClean === 'hotline') {
-						effectiveIcon = 'phone'
-					} else {
-						effectiveIcon = 'none'
-					}
-				}
+			{/* 2. User Account Icon */}
+			{showAccount && (
+				<a
+					href="/account"
+					className={cn(baseBtnClass, 'max-md:hidden')}
+					aria-label="Customer Account / Sign In"
+					title="Customer Account / Sign In"
+				>
+					<span className="relative text-xl flex items-center justify-center">
+						<HiOutlineUser />
+					</span>
+				</a>
+			)}
 
-				// Check if item triggers drawer/modal
-				const shouldOpenCart =
-					onOpenCart && (effectiveIcon === 'cart' || actionType === 'cart-drawer')
-				const shouldOpenSearch =
-					onOpenSearch && (effectiveIcon === 'search' || actionType === 'search-modal')
-
-				// Render icon content
-				let content: React.ReactNode = linkData?.label
-
-				if (effectiveIcon !== 'none') {
-					content = (
-						<span className="flex items-center justify-center" title={linkData?.label}>
-							<span className="relative text-xl flex items-center justify-center">
-								{effectiveIcon === 'search' && <IoIosSearch />}
-								{effectiveIcon === 'cart' && <HiOutlineShoppingBag />}
-								{effectiveIcon === 'user' && (
-									mounted && isAuthenticated ? (
-										<span className="relative w-7 h-7 rounded-full overflow-hidden border border-primary/50 flex items-center justify-center bg-primary/10">
-											{user?.avatar ? (
-												<Image
-													src={user.avatar}
-													alt={user.name || 'User'}
-													fill
-													sizes="28px"
-													unoptimized
-													className="object-cover"
-												/>
-											) : (
-												<span className="text-[11px] font-bold text-primary">
-													{(user?.name || user?.email || 'U').substring(0, 1).toUpperCase()}
-												</span>
-											)}
-										</span>
-									) : (
-										<HiOutlineUser />
-									)
+			{/* 3. Cart / Wholesale RFQ Quote List Drawer Trigger with Real-Time Badge */}
+			{showCart && (
+				<button
+					type="button"
+					onClick={onOpenCart}
+					className={baseBtnClass}
+					aria-label={cartAriaLabel}
+					title={cartAriaLabel}
+				>
+					<span className="relative text-xl flex items-center justify-center">
+						{cleanCartIconType === 'bag' ? (
+							<HiOutlineShoppingBag className="text-2xl" />
+						) : cleanCartIconType === 'cart' ? (
+							<HiOutlineShoppingCart className="text-2xl" />
+						) : (
+							<HiOutlineDocumentText className="text-2xl" />
+						)}
+						{mounted && (
+							<span
+								className={cn(
+									'absolute -top-1 -right-2 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white shadow-xs transition-all duration-300',
+									totalQuantity > 0 ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
 								)}
-								{effectiveIcon === 'wishlist' && (
-									<>
-										<HiOutlineHeart />
-										{mounted && (
-											<span
-												className={cn(
-													'absolute -top-1 -right-2 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-xs transition-all duration-300',
-													wishlistCount > 0 ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
-												)}
-											>
-												{wishlistCount > 9 ? '9+' : wishlistCount}
-											</span>
-										)}
-									</>
-								)}
-								{effectiveIcon === 'phone' && <HiOutlinePhone />}
-
-								{/* Badge số lượng cho Cart với smooth transition */}
-								{effectiveIcon === 'cart' && mounted && (
-									<span
-										className={cn(
-											'absolute -top-1 -right-2 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-xs transition-all duration-300',
-											totalQuantity > 0 ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
-										)}
-									>
-										{totalQuantity > 9 ? '9+' : totalQuantity}
-									</span>
-								)}
-							</span>
-						</span>
-					)
-				}
-
-				const isMobileHiddenIcon =
-					effectiveIcon === 'user' ||
-					(effectiveIcon === 'search' && mobileSearchDisplay !== 'icon')
-
-				const baseBtnClass = cn(
-					stegaClean(cta.style),
-					'p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-header-foreground cursor-pointer select-none',
-					isMobileHiddenIcon && 'max-md:hidden',
-				)
-
-				const ctaKey = cta._key || `cta-${index}`
-
-				if (shouldOpenCart) {
-					return (
-						<button
-							key={ctaKey}
-							type="button"
-							onClick={onOpenCart}
-							className={baseBtnClass}
-							aria-label={linkData?.label || 'Giỏ hàng'}
-							title={linkData?.label || 'Giỏ hàng'}
-						>
-							{content}
-						</button>
-					)
-				}
-
-				if (shouldOpenSearch) {
-					return (
-						<button
-							key={ctaKey}
-							type="button"
-							onClick={onOpenSearch}
-							className={baseBtnClass}
-							aria-label={linkData?.label || 'Tìm kiếm'}
-							title={linkData?.label || 'Tìm kiếm'}
-						>
-							{content}
-						</button>
-					)
-				}
-
-				// Xử lý icon User chuyển hướng thông minh
-				if (effectiveIcon === 'user') {
-					if (mounted && isAuthenticated && user) {
-						const displayName = user.name || user.email?.split('@')[0] || 'Tài khoản'
-
-						return (
-							<Link
-								key={ctaKey}
-								href="/account"
-								className={baseBtnClass}
-								aria-label={`Tài khoản của ${displayName}`}
-								title={`Tài khoản của ${displayName}`}
 							>
-								<span className="relative w-7 h-7 rounded-full overflow-hidden border border-primary/50 flex items-center justify-center bg-primary/10 shrink-0">
-									{user.avatar ? (
-										<Image
-											src={user.avatar}
-											alt={displayName}
-											fill
-											sizes="28px"
-											unoptimized
-											className="object-cover"
-										/>
-									) : (
-										<span className="text-[11px] font-bold text-primary">
-											{displayName.substring(0, 1).toUpperCase()}
-										</span>
-									)}
-								</span>
-							</Link>
-						)
+								{totalQuantity > 9 ? '9+' : totalQuantity}
+							</span>
+						)}
+					</span>
+				</button>
+			)}
+
+			{/* 4. Optional Highlight Action Button (Desktop Only) */}
+			{highlightCta?.link && (
+				<div className="hidden lg:flex items-center ml-1">
+					<SanityLink
+						link={highlightCta.link as SanityLinkType}
+						className={cn(
+							highlightCta.style
+								? stegaClean(highlightCta.style)
+								: 'bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs',
+							'px-3.5 py-1.5 rounded-xl text-xs transition-all active:scale-95 inline-flex items-center justify-center min-h-[36px]'
+						)}
+					>
+						<span>{highlightCta.link.label || 'Explore'}</span>
+					</SanityLink>
+				</div>
+			)}
+
+			{/* 5. Legacy CTAs Fallback (if any remaining configured) */}
+			{ctas &&
+				ctas.map((cta, index) => {
+					const linkData = cta.link as SanityLinkType
+					const labelClean = linkData?.label?.toLowerCase().trim() || ''
+					const configuredIcon = cta.iconType || 'auto'
+
+					// Skip items already handled by primary utility toggles
+					if (
+						configuredIcon === 'cart' ||
+						configuredIcon === 'search' ||
+						labelClean === 'cart' ||
+						labelClean === 'search'
+					) {
+						return null
 					}
 
-					return (
-						<Link
-							key={ctaKey}
-							href={`/account/login?redirect=${encodeURIComponent(pathname || '/')}`}
-							className={baseBtnClass}
-							aria-label={linkData?.label || 'Đăng nhập'}
-							title={linkData?.label || 'Đăng nhập'}
-						>
-							<HiOutlineUser className="text-xl" />
-						</Link>
+					const ctaKey = cta._key || `cta-legacy-${index}`
+					const customBtnClass = cn(
+						stegaClean(cta.style),
+						'p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-header-foreground cursor-pointer select-none text-xs font-semibold'
 					)
-				}
 
-				// Xử lý icon Wishlist chuyển hướng mặc định tới /wishlist
-				if (effectiveIcon === 'wishlist' && !linkData?.internal && !linkData?.external) {
 					return (
-						<Link
+						<SanityLink
+							link={linkData}
+							className={customBtnClass}
 							key={ctaKey}
-							href="/wishlist"
-							className={baseBtnClass}
-							aria-label={linkData?.label || 'Danh sách yêu thích'}
-							title={linkData?.label || 'Danh sách yêu thích'}
+							aria-label={linkData?.label}
 						>
-							{content}
-						</Link>
+							{linkData?.label}
+						</SanityLink>
 					)
-				}
-
-				return (
-					<SanityLink
-						link={linkData}
-						className={baseBtnClass}
-						key={ctaKey}
-						aria-label={linkData?.label}
-					>
-						{content}
-					</SanityLink>
-				)
-			})}
+				})}
 		</div>
 	)
 }

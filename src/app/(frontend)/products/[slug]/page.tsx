@@ -2,12 +2,19 @@ import type { Metadata } from 'next'
 import { groq } from 'next-sanity'
 import { notFound } from 'next/navigation'
 import { ROUTES } from '@/lib/env'
+import { serializeJsonLd } from '@/lib/json-ld'
+import { getApprovedReviewsForProduct, type PublicProductReview } from '@/lib/reviews'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import { sanityFetchLive } from '@/sanity/lib/live'
 import { GLOBAL_MODULE_PATH_QUERY, MODULES_QUERY, getProductSettings } from '@/sanity/lib/queries'
 import type { PRODUCT_QUERY_RESULT } from '@/sanity/types'
+import Breadcrumbs from '@/ui/modules/breadcrumbs'
+import ProductContent from '@/ui/modules/product/product-content'
 import ModulesResolver from '@/ui/modules'
+
+// D1 is bound to Worker requests and must not be queried during static builds.
+export const dynamic = 'force-dynamic'
 
 type Props = {
 	params: Promise<{ slug: string }>
@@ -22,20 +29,68 @@ export default async function ProductPage({ params }: Props) {
 
 	if (!product) notFound()
 
-	const jsonLd = generateProductJsonLd(product, slug)
+	const d1Reviews = await getApprovedReviewsForProduct(product._id, { limit: 50, offset: 0 })
+	const productWithReviews = {
+		...product,
+		approvedReviews: d1Reviews.reviews,
+		reviewSummary: { count: d1Reviews.total, avgRating: d1Reviews.averageRating },
+	} as unknown as NonNullable<PRODUCT_QUERY_RESULT>
+
+	const jsonLd = generateProductJsonLd(productWithReviews as any, slug, d1Reviews)
+
+	const globalBefore = (productWithReviews as any).globalBefore || []
+	const customModules = (productWithReviews as any).customModules || (productWithReviews.modules || [])
+	const globalAfter = (productWithReviews as any).globalAfter || []
+
+	const bottomModules = [
+		...customModules.filter(
+			(m: any) => m?._type !== 'product-content' && m?._type !== 'breadcrumbs',
+		),
+		...globalAfter,
+	]
 
 	return (
 		<>
 			<script
 				type="application/ld+json"
-				dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+				dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
 			/>
-			<ModulesResolver product={product} productSettings={productSettings} />
+
+			{/* 1. Breadcrumbs Navigation */}
+			<Breadcrumbs currentPage={productWithReviews} />
+
+			{/* 2. Top Global Modules (Urgency banners, sitewide notices) */}
+			{globalBefore.length > 0 && (
+				<ModulesResolver
+					modules={globalBefore}
+					product={productWithReviews}
+					productSettings={productSettings}
+				/>
+			)}
+
+			{/* 3. Fixed Core Entity View: PDP Gallery, Pricing, Options & Reviews */}
+			<ProductContent
+				product={productWithReviews}
+				productSettings={productSettings}
+			/>
+
+			{/* 4. Bottom CRO Modules (Tiered pricing, Compliance vault, Related products) */}
+			{bottomModules.length > 0 && (
+				<ModulesResolver
+					modules={bottomModules}
+					product={productWithReviews}
+					productSettings={productSettings}
+				/>
+			)}
 		</>
 	)
 }
 
-function generateProductJsonLd(product: NonNullable<PRODUCT_QUERY_RESULT>, slug: string) {
+function generateProductJsonLd(
+	product: NonNullable<PRODUCT_QUERY_RESULT>,
+	slug: string,
+	d1Reviews?: { reviews: PublicProductReview[]; total: number; averageRating: number },
+) {
 	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || ''
 	const productUrl = `${baseUrl}/${ROUTES.products}/${slug}`
 
@@ -55,10 +110,16 @@ function generateProductJsonLd(product: NonNullable<PRODUCT_QUERY_RESULT>, slug:
 		})
 		.filter(Boolean) as string[]
 
-	const approvedReviews = (product as any)?.approvedReviews || []
-	const totalReviews = approvedReviews.length
-	const totalRating = approvedReviews.reduce((sum: number, r: any) => sum + (r.rating || 5), 0)
-	const avgRating = totalReviews > 0 ? (totalRating / totalReviews).toFixed(1) : undefined
+	const approvedReviews = d1Reviews?.reviews || (product as any)?.approvedReviews || []
+	const totalReviews = d1Reviews?.total ?? approvedReviews.length
+	const avgRating =
+		totalReviews > 0
+			? (
+					d1Reviews?.averageRating ??
+					approvedReviews.reduce((sum: number, r: any) => sum + (r.rating || 5), 0) /
+						Math.max(1, approvedReviews.length)
+				).toFixed(1)
+			: undefined
 
 	const jsonLd: Record<string, any> = {
 		'@context': 'https://schema.org',
@@ -67,16 +128,51 @@ function generateProductJsonLd(product: NonNullable<PRODUCT_QUERY_RESULT>, slug:
 		image: images.length > 0 ? images : undefined,
 		description: product.metadata?.description || product.title,
 		sku: product.sku || product._id,
-		offers: {
+	}
+
+	const tiers = ((product as any)?.priceTiers || []).filter(
+		(t: any) => typeof t.unitPrice === 'number' && t.unitPrice > 0,
+	)
+
+	if (tiers.length > 0) {
+		const tierPrices = tiers.map((t: any) => t.unitPrice)
+		const lowPrice = Math.min(...tierPrices)
+		const highPrice = Math.max(...tierPrices, product.price || lowPrice)
+
+		jsonLd.offers = {
+			'@type': 'AggregateOffer',
+			url: productUrl,
+			priceCurrency: (product as any)?.currency || 'USD',
+			lowPrice,
+			highPrice,
+			offerCount: tiers.length,
+			offers: tiers.map((t: any) => ({
+				'@type': 'Offer',
+				price: t.unitPrice,
+				priceCurrency: (product as any)?.currency || 'USD',
+				eligibleQuantity: {
+					'@type': 'QuantitativeValue',
+					minValue: t.minQty,
+					maxValue: t.maxQty || undefined,
+					unitCode: 'C62',
+				},
+				availability:
+					(product.stock ?? 1) > 0
+						? 'https://schema.org/InStock'
+						: 'https://schema.org/OutOfStock',
+			})),
+		}
+	} else {
+		jsonLd.offers = {
 			'@type': 'Offer',
 			url: productUrl,
-			priceCurrency: 'VND',
+			priceCurrency: (product as any)?.currency || 'USD',
 			price: product.price || 0,
 			availability:
 				(product.stock ?? 1) > 0
 					? 'https://schema.org/InStock'
 					: 'https://schema.org/OutOfStock',
-		},
+		}
 	}
 
 	if (totalReviews > 0 && avgRating) {
@@ -91,7 +187,7 @@ function generateProductJsonLd(product: NonNullable<PRODUCT_QUERY_RESULT>, slug:
 			'@type': 'Review',
 			author: {
 				'@type': 'Person',
-				name: r.author || 'Khách hàng',
+				name: r.author || 'Customer',
 			},
 			reviewRating: {
 				'@type': 'Rating',
@@ -147,46 +243,13 @@ export async function generateStaticParams() {
 }
 
 async function getProduct(slug: string) {
-	const product = await sanityFetchLive<PRODUCT_QUERY_RESULT>({
+	return await sanityFetchLive<PRODUCT_QUERY_RESULT>({
 		query: PRODUCT_QUERY,
 		params: {
 			slug,
 			productDir: `${ROUTES.products}/`,
 		},
 	})
-
-	if (!product) return null
-
-	const globalBefore = (product as any).globalBefore || []
-	const customModules = (product as any).customModules || []
-	const globalAfter = (product as any).globalAfter || []
-
-	const hasBreadcrumbs = [...globalBefore, ...customModules, ...globalAfter].some(
-		(m: any) => m?._type === 'breadcrumbs',
-	)
-
-	const hasProductContent = [...globalBefore, ...customModules, ...globalAfter].some(
-		(m: any) => m?._type === 'product-content',
-	)
-
-	let finalCustomModules = [...customModules]
-	if (!hasProductContent) {
-		finalCustomModules.unshift({
-			_type: 'product-content',
-			_key: 'default-product-content',
-		})
-	}
-
-	if (!hasBreadcrumbs) {
-		finalCustomModules.unshift({
-			_type: 'breadcrumbs',
-			_key: 'default-breadcrumbs',
-		})
-	}
-
-	product.modules = [...globalBefore, ...finalCustomModules, ...globalAfter] as any
-
-	return product
 }
 
 const PRODUCT_QUERY = groq`
@@ -211,6 +274,24 @@ const PRODUCT_QUERY = groq`
 	compareAtPrice,
 	stock,
 	sold,
+	inStock,
+	shortPitch,
+	keyBenefits,
+	specs,
+	moq,
+	leadTime,
+	pricingModel,
+	conversionType,
+	currency,
+	priceNote,
+	priceTiers,
+	specSheetPdf{
+		asset->{
+			url,
+			originalFilename,
+			size
+		}
+	},
 
 	hasVariants,
 	options[]{
@@ -240,23 +321,6 @@ const PRODUCT_QUERY = groq`
 	categories[]->{
 		title,
 		slug
-	},
-
-	"approvedReviews": *[_type == "review" && references(^._id) && isApproved == true] | order(createdAt desc) {
-		_id,
-		author,
-		rating,
-		comment,
-		response,
-		createdAt,
-		images[]{
-			...,
-			asset->
-		},
-		videos[]{
-			...,
-			asset->
-		}
 	},
 
 	'globalBefore': (

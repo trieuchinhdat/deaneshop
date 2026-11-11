@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { useQueryState } from 'nuqs'
+import { parseAsString, useQueryState } from 'nuqs'
 import { useCallback, useEffect } from 'react'
 import { IoIosSearch } from 'react-icons/io'
 import { debounce } from '@/lib/utils'
@@ -13,15 +13,24 @@ import { useSearchStore } from './store'
 
 export default function SearchPage({ scope }: Partial<SearchModule>) {
 	const searchParams = useSearchParams()
-	const [query, setQuery] = useQueryState('query', {
-		defaultValue: '',
-		shallow: true,
-		clearOnDefault: true,
-	})
+	const [query, setQuery] = useQueryState(
+		'query',
+		parseAsString.withDefault('').withOptions({
+			shallow: true,
+			clearOnDefault: true,
+		}),
+	)
 
-	const { loading } = useSearchStore()
+	const { loading, clearResults } = useSearchStore()
 
-	// Fallback nếu người dùng truy cập qua ?q= thay vì ?query=
+	// Clear stale results when query becomes empty
+	useEffect(() => {
+		if (!query.trim()) {
+			clearResults()
+		}
+	}, [query, clearResults])
+
+	// Fallback if accessed via ?q= instead of ?query=
 	useEffect(() => {
 		const qParam = searchParams.get('q')
 		if (!query && qParam) {
@@ -29,8 +38,7 @@ export default function SearchPage({ scope }: Partial<SearchModule>) {
 		}
 	}, [searchParams, query, setQuery])
 
-	// 👇 TỐI ƯU: Sử dụng useCallback để tạo hàm debounce một lần duy nhất
-	// Tăng thời gian lên 600ms hoặc 800ms để chờ người dùng gõ xong hẳn mới chạy
+	// Debounced query updater
 	const debouncedSetQuery = useCallback(
 		debounce((value: string) => {
 			setQuery(value || null)
@@ -40,7 +48,7 @@ export default function SearchPage({ scope }: Partial<SearchModule>) {
 
 	return (
 		<div className="mx-auto w-full max-w-4xl">
-			{/* 1. FORM TÌM KIẾM */}
+			{/* 1. SEARCH INPUT FORM */}
 			<search className="relative mb-8">
 				<label className="input input-bordered focus-within:ring-primary/20 flex items-center gap-2 rounded-xl py-2 shadow-sm focus-within:ring-2">
 					<IoIosSearch className="text-xl" />
@@ -56,7 +64,7 @@ export default function SearchPage({ scope }: Partial<SearchModule>) {
 				</label>
 			</search>
 
-			{/* 2. KẾT QUẢ HIỂN THỊ */}
+			{/* 2. RESULTS DISPLAY */}
 			{query && (
 				<output
 					htmlFor="query"
@@ -70,11 +78,7 @@ export default function SearchPage({ scope }: Partial<SearchModule>) {
 							</p>
 						</div>
 
-						{/* 🔴 QUAN TRỌNG: Không dùng toán tử 3 ngôi (loading ? : ) để ẩn hiện component này.
-                            Vì nếu unmount, useEffect bên trong sẽ chạy lại gây vòng lặp.
-                            
-                            👉 Dùng CSS class để ẩn hiện.
-                        */}
+						{/* Keep component mounted to prevent re-triggering effects */}
 
 						{loading && (
 							<div className="flex justify-center py-12">
@@ -83,7 +87,6 @@ export default function SearchPage({ scope }: Partial<SearchModule>) {
 						)}
 
 						<div className={loading ? 'hidden' : 'space-y-6'}>
-							{/* 👇 FIX: Truyền thêm scope */}
 							<SearchResults query={query} scope={scope} />
 
 							<div className="mt-8 border-t pt-8">

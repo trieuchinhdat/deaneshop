@@ -1,20 +1,108 @@
+/**
+ * Logo Marquee Module Styles
+ * GPU-accelerated infinite loop with subpixel precision
+ * Supports Pause/Resume, LTR/RTL flow, Touch, and WCAG 2.2 AA Reduced Motion
+ */
+
+.marqueeWrapper {
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+	/* Cross-browser edge fading (WebKit + Standards) */
+	-webkit-mask-image: linear-gradient(
+		to right,
+		transparent 0%,
+		black 8%,
+		black 92%,
+		transparent 100%
+	);
+	mask-image: linear-gradient(
+		to right,
+		transparent 0%,
+		black 8%,
+		black 92%,
+		transparent 100%
+	);
+}
+
 .track {
-	&>* {
-		--xi: calc((var(--count) - var(--index)) * 100%);
-		--xf: calc((var(--index) + 1) * -100%);
+	display: flex;
+	width: max-content;
+	user-select: none;
+	touch-action: pan-y;
+}
 
-		translate: var(--xi) 0;
-		animation: scroll var(--duration) linear infinite;
-		animation-delay: calc(var(--duration) / var(--count) * var(--index) - var(--count) * 2s);
+.group {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	gap: var(--marquee-gap, 3rem);
+	padding-right: var(--marquee-gap, 3rem);
+	will-change: transform;
+	backface-visibility: hidden;
+	transform-style: preserve-3d;
+	animation: scrollLeft var(--marquee-duration, 25s) linear infinite;
+}
+
+.groupReverse {
+	animation-name: scrollRight;
+}
+
+/* Pause triggers: manual toggle, hover, or keyboard focus-within */
+.track[data-paused="true"] .group {
+	animation-play-state: paused !important;
+}
+
+.track[data-pause-on-hover="true"]:hover .group {
+	animation-play-state: paused;
+}
+
+.track:focus-within .group {
+	animation-play-state: paused;
+}
+
+@keyframes scrollLeft {
+	from {
+		transform: translate3d(0, 0, 0);
 	}
-
-	&:hover>* {
-		animation-play-state: paused;
+	to {
+		transform: translate3d(-100%, 0, 0);
 	}
 }
 
-@keyframes scroll {
+@keyframes scrollRight {
+	from {
+		transform: translate3d(-100%, 0, 0);
+	}
 	to {
-		translate: var(--xf) 0;
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+/* WCAG 2.2 AA: Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+	.group {
+		animation: none !important;
+		transform: none !important;
+	}
+
+	.marqueeWrapper {
+		-webkit-mask-image: none !important;
+		mask-image: none !important;
+		overflow-x: auto;
+		scrollbar-width: thin;
+	}
+
+	.track {
+		width: 100%;
+		justify-content: center;
+		flex-wrap: wrap;
+		gap: var(--marquee-gap, 2rem);
+		padding: 0.5rem 1rem;
+	}
+
+	/* Hide the duplicated visual loop set to avoid confusion */
+	.group[data-duplicate="true"] {
+		display: none !important;
 	}
 }

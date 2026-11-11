@@ -9,7 +9,7 @@ type ProductCategoryDocument = {
 
 export default defineType({
 	name: 'product.category',
-	title: 'Product (category)',
+	title: 'Product Category',
 	type: 'document',
 	icon: TagIcon,
 	fields: [

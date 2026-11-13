@@ -84,7 +84,7 @@ export default function CartCheckoutClient({
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const [isSubmitting, setIsSubmitting] = useState(false)
-	const [checkoutType, setCheckoutType] = useState<CheckoutType>('direct')
+	const [checkoutType, setCheckoutType] = useState<CheckoutType>('rfq')
 
 	const {
 		items,
@@ -295,7 +295,9 @@ export default function CartCheckoutClient({
 
 			if (!res.ok || !result.success) {
 				throw new Error(
-					result.message || 'Failed to submit order or quotation request',
+					result.message ||
+						result.error ||
+						'Failed to submit order or quotation request',
 				)
 			}
 

@@ -25,31 +25,15 @@ test('assertOrdersApiEnabled blocks execution with HTTP 410 when ENABLE_COMMERCE
 	assert.equal(body.error, 'Orders API is disabled in B2B RFQ mode')
 })
 
-test('assertOrdersApiEnabled permits wholesale_rfq and sample modes, but blocks direct retail mode', async () => {
-	const guard = load('src/lib/orders-guard.ts', {}, {
-		process: { env: { ENABLE_COMMERCE_ORDERS: 'false' } },
-	})
-	assert.equal(guard.assertOrdersApiEnabled('wholesale_rfq'), null)
-	assert.equal(guard.assertOrdersApiEnabled('sample'), null)
-
-	const resDirect = guard.assertOrdersApiEnabled('direct')
-	assert.ok(resDirect)
-	assert.equal(resDirect.status, 410)
-	const bodyDirect = await resDirect.json()
-	assert.equal(bodyDirect.code, 'ORDERS_DISABLED')
-	assert.equal(bodyDirect.error, 'Direct retail checkout is disabled in B2B RFQ mode')
-})
-
 test('assertOrdersApiEnabled permits execution when ENABLE_COMMERCE_ORDERS is true', async () => {
 	const guard = load('src/lib/orders-guard.ts', {}, {
 		process: { env: { ENABLE_COMMERCE_ORDERS: 'true' } },
 	})
 	assert.equal(guard.isOrdersApiEnabled(), true)
 	assert.equal(guard.assertOrdersApiEnabled(), null)
-	assert.equal(guard.assertOrdersApiEnabled('direct'), null)
 })
 
-test('All 9 /api/orders/* route handlers return 410 Gone and never touch D1 when commerce is disabled', async () => {
+test('All 8 non-checkout /api/orders/* route handlers return 410 Gone and never touch D1 when commerce is disabled', async () => {
 	let dbTouched = false
 	const d1Trap = new Proxy({}, {
 		get() {
@@ -69,7 +53,6 @@ test('All 9 /api/orders/* route handlers return 410 Gone and never touch D1 when
 	}
 
 	const routes = [
-		{ path: 'src/app/(frontend)/api/orders/create/route.ts', method: 'POST', url: 'https://test/api/orders/create', body: { mode: 'direct' } },
 		{ path: 'src/app/(frontend)/api/orders/list/route.ts', method: 'GET', url: 'https://test/api/orders/list' },
 		{ path: 'src/app/(frontend)/api/orders/update-status/route.ts', method: 'POST', url: 'https://test/api/orders/update-status' },
 		{ path: 'src/app/(frontend)/api/orders/record-payment/route.ts', method: 'POST', url: 'https://test/api/orders/record-payment' },

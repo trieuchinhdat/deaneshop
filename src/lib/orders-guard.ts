@@ -7,18 +7,12 @@ export function isOrdersApiEnabled(): boolean {
 	return process.env.ENABLE_COMMERCE_ORDERS === 'true'
 }
 
-export function assertOrdersApiEnabled(mode?: string): NextResponse | null {
-	if (mode === 'wholesale_rfq' || mode === 'sample') {
-		return null
-	}
+export function assertOrdersApiEnabled(): NextResponse | null {
 	if (!isOrdersApiEnabled()) {
 		return NextResponse.json(
 			{
 				success: false,
-				error:
-					mode === 'direct'
-						? 'Direct retail checkout is disabled in B2B RFQ mode'
-						: ORDERS_DISABLED_MESSAGE,
+				error: ORDERS_DISABLED_MESSAGE,
 				code: ORDERS_DISABLED_CODE,
 			},
 			{

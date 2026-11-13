@@ -34,7 +34,7 @@ export function priceOrder(items: RequestedItem[], products: CatalogProduct[], m
 	let customQuote = false
 	const lines = items.map(item => {
 		const p = products.find(p => p._id === item.productId)
-		if (!p || p.inStock === false) throw new CommerceError('Product unavailable')
+		if (!p) throw new CommerceError('Product unavailable')
 		if ((p.currency || 'USD') !== 'USD') throw new CommerceError('Unsupported currency; request consultation')
 		if (p.conversionType === 'consultation' || (p.conversionType === 'rfq' && mode === 'direct')) throw new CommerceError('This product requires an inquiry or sample request')
 		const variant = item.variantId ? p.variants?.find(v => v._key === item.variantId) : undefined

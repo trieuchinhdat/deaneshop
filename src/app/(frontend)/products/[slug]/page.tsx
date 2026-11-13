@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { groq } from 'next-sanity'
 import { notFound } from 'next/navigation'
+import { connection } from 'next/server'
+import { isStaticStorefront } from '@/lib/deployment-profile'
 import { ROUTES } from '@/lib/env'
 import { serializeJsonLd } from '@/lib/json-ld'
 import { getApprovedReviewsForProduct, type PublicProductReview } from '@/lib/reviews'
@@ -12,9 +14,6 @@ import type { PRODUCT_QUERY_RESULT } from '@/sanity/types'
 import Breadcrumbs from '@/ui/modules/breadcrumbs'
 import ProductContent from '@/ui/modules/product/product-content'
 import ModulesResolver from '@/ui/modules'
-
-// D1 is bound to Worker requests and must not be queried during static builds.
-export const dynamic = 'force-dynamic'
 
 type Props = {
 	params: Promise<{ slug: string }>
@@ -243,6 +242,7 @@ export async function generateStaticParams() {
 }
 
 async function getProduct(slug: string) {
+	if (!isStaticStorefront) await connection()
 	return await sanityFetchLive<PRODUCT_QUERY_RESULT>({
 		query: PRODUCT_QUERY,
 		params: {

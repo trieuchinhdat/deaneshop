@@ -17,7 +17,10 @@ function walkFiles(dir, result = []) {
 	return result
 }
 
-const chunksDir = path.resolve('.next/static/chunks')
+const clientBuildDir = fs.existsSync('.open-next/free-static-manifest.json')
+	? '.static-storefront-build/.next'
+	: '.next'
+const chunksDir = path.resolve(clientBuildDir, 'static/chunks')
 if (!fs.existsSync(chunksDir)) {
 	if (strictCi) {
 		console.error('FAIL: .next/static/chunks not built yet (CI / --ci requires npm run build first)')
@@ -33,29 +36,6 @@ if (jsFiles.length === 0) {
 	process.exit(1)
 }
 
-// Identify chunks referenced exclusively by /studio so Sanity Studio editor libraries
-// do not skew storefront client JS budgets.
-const studioExclusiveChunks = new Set()
-const rlmPath = path.resolve('.next/react-loadable-manifest.json')
-if (fs.existsSync(rlmPath)) {
-	try {
-		const rlm = JSON.parse(fs.readFileSync(rlmPath, 'utf8'))
-		const studioSet = new Set()
-		const nonStudioSet = new Set()
-		for (const [key, entry] of Object.entries(rlm)) {
-			const bucket = key.startsWith('app/(studio)/') ? studioSet : nonStudioSet
-			for (const file of entry?.files || []) {
-				if (typeof file === 'string' && file.endsWith('.js')) {
-					bucket.add(path.basename(file))
-				}
-			}
-		}
-		for (const name of studioSet) {
-			if (!nonStudioSet.has(name)) studioExclusiveChunks.add(name)
-		}
-	} catch {}
-}
-
 let rawBytes = 0
 let gzipBytes = 0
 const storefrontLargest = []
@@ -66,21 +46,20 @@ for (const file of jsFiles) {
 	rawBytes += buf.length
 	gzipBytes += gz
 	const rel = path.relative(chunksDir, file)
-	if (!studioExclusiveChunks.has(path.basename(file))) {
-		storefrontLargest.push({
-			file: rel,
-			rawKb: Math.round(buf.length / 1024),
-			gzipKb: Math.round(gz / 1024),
-		})
-	}
+	storefrontLargest.push({
+		file: rel,
+		rawKb: Math.round(buf.length / 1024),
+		gzipKb: Math.round(gz / 1024),
+	})
 }
 
 storefrontLargest.sort((a, b) => b.gzipKb - a.gzipKb)
 
-console.log(`Client JS chunks: ${jsFiles.length} total (${studioExclusiveChunks.size} Studio-only), raw ${(rawBytes / 1024).toFixed(1)} KB, gzip ${(gzipBytes / 1024).toFixed(1)} KB`)
-console.log('Top 5 largest non-Studio chunks (gzip):', storefrontLargest.slice(0, 5))
+console.log(`Client build: ${clientBuildDir}`)
+console.log(`Client JS chunks: ${jsFiles.length} total, raw ${(rawBytes / 1024).toFixed(1)} KB, gzip ${(gzipBytes / 1024).toFixed(1)} KB`)
+console.log('Top 5 largest website chunks (gzip):', storefrontLargest.slice(0, 5))
 
-const manifestPath = path.resolve('.next/build-manifest.json')
+const manifestPath = path.resolve(clientBuildDir, 'build-manifest.json')
 let rootMainFiles = []
 if (fs.existsSync(manifestPath)) {
 	try {
@@ -88,7 +67,7 @@ if (fs.existsSync(manifestPath)) {
 		rootMainFiles = Array.isArray(manifest.rootMainFiles) ? manifest.rootMainFiles : []
 		let sharedGzipKb = 0
 		for (const rel of rootMainFiles) {
-			const abs = path.resolve('.next', rel)
+			const abs = path.resolve(clientBuildDir, rel)
 			if (fs.existsSync(abs) && abs.endsWith('.js')) {
 				sharedGzipKb += zlib.gzipSync(fs.readFileSync(abs)).length / 1024
 			}
@@ -102,7 +81,7 @@ if (fs.existsSync(manifestPath)) {
 }
 
 // Per-route storefront JS budget check
-const frontendAppDir = path.resolve('.next/server/app/(frontend)')
+const frontendAppDir = path.resolve(clientBuildDir, 'server/app/(frontend)')
 if (fs.existsSync(frontendAppDir)) {
 	const routeManifests = walkFiles(frontendAppDir).filter((f) =>
 		f.endsWith('page_client-reference-manifest.js'),
@@ -112,7 +91,7 @@ if (fs.existsSync(frontendAppDir)) {
 		const chunkRefs = new Set((raw.match(/static\/chunks\/[^"']+\.js/g) || []).concat(rootMainFiles))
 		let routeGzKb = 0
 		for (const rel of chunkRefs) {
-			const abs = path.resolve('.next', rel)
+			const abs = path.resolve(clientBuildDir, rel)
 			if (fs.existsSync(abs)) {
 				routeGzKb += zlib.gzipSync(fs.readFileSync(abs)).length / 1024
 			}
@@ -128,7 +107,7 @@ if (fs.existsSync(frontendAppDir)) {
 
 const maxStorefrontChunkKb = storefrontLargest[0]?.gzipKb ?? 0
 if (maxStorefrontChunkKb > 250) {
-	console.error(`FAIL: Largest non-Studio client JS chunk (${maxStorefrontChunkKb} KB gzip) exceeds 250 KB limit`)
+	console.error(`FAIL: Largest website client JS chunk (${maxStorefrontChunkKb} KB gzip) exceeds 250 KB limit`)
 	process.exitCode = 1
 }
 
@@ -172,7 +151,7 @@ if (fs.existsSync(openNextWorker)) {
 
 	if (gzMb > 8.5 || totalWorkerGzipKib > 10000) {
 		console.error(
-			`FAIL: Compressed Worker bundle (handler=${gzMb.toFixed(2)} MB, upload=${totalWorkerGzipKib.toFixed(2)} KiB) nears Cloudflare Workers 10 MiB (10240 KiB) paid limit`,
+			`FAIL: Compressed Worker bundle (handler=${gzMb.toFixed(2)} MB, upload=${totalWorkerGzipKib.toFixed(2)} KiB) exceeds repository budgets (8.5 MiB handler / 10000 KiB upload); this is not a Cloudflare plan or CPU readiness check`,
 		)
 		process.exitCode = 1
 	}

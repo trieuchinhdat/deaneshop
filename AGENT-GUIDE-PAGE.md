@@ -101,8 +101,8 @@ Hệ thống module trong **DeanFlow** được thiết kế theo mô hình **Co
 Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến khi người dùng tương tác:
 
 1. **Khởi tạo & Cấu hình (Sanity Studio)**:
-   - Schema được định nghĩa tại `src/sanity/schemaTypes/modules/<name>.ts`.
-   - Sử dụng tiện ích `defineModulePreview()` từ `src/sanity/lib/define-module-preview.ts` kết hợp với `MODULE_FRIENDLY_NAMES` trong `src/sanity/lib/module-preview-config.ts` để hiển thị tên thân thiện, icon và thumbnail SVG trong Studio Insert Menu.
+   - Schema được định nghĩa tại `studio/src/sanity/schemaTypes/modules/<name>.ts`.
+   - Sử dụng tiện ích `defineModulePreview()` từ `studio/src/sanity/lib/define-module-preview.ts` kết hợp với `MODULE_FRIENDLY_NAMES` trong `studio/src/sanity/lib/module-preview-config.ts` để hiển thị tên thân thiện, icon và thumbnail SVG trong Studio Insert Menu.
    - Trường dùng chung `module-attributes` cung cấp HTML Anchor ID (`uid`) và nút gạt ẩn/hiện (`hidden`).
 
 2. **Truy vấn & Bóc tách Dữ liệu (GROQ Resolution)**:
@@ -144,7 +144,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 1. `lead-capture-form`
 - **Friendly Name trong Studio**: `Lead Capture Form`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/lead-capture-form.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/lead-capture-form.ts`
   - Server Wrapper: `src/ui/modules/lead-capture-form/index.tsx`
   - Client Logic: `src/ui/modules/lead-capture-form/lead-capture-form-client.tsx`
 - **Định vị phễu**: B2B Wholesale & RFQ, High-Ticket Consultation.
@@ -188,7 +188,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 2. `tiered-pricing`
 - **Friendly Name trong Studio**: `Tiered Volume Pricing`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/tiered-pricing.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/tiered-pricing.ts`
   - UI Component: `src/ui/modules/tiered-pricing/index.tsx`
 - **Định vị phễu**: B2B Wholesale & RFQ, High-Ticket Volume Purchasing.
 - **Mục đích nghiệp vụ**: Minh bạch hóa ma trận giá bán sỉ theo cấp bậc số lượng (Economies of Scale), tích hợp chuẩn điều kiện thương mại quốc tế Incoterms 2020 (FOB, CIF, EXW, DDP).
@@ -231,7 +231,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 3. `compliance-vault`
 - **Friendly Name trong Studio**: `Compliance Vault`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/compliance-vault.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/compliance-vault.ts`
   - UI Component: `src/ui/modules/compliance-vault/index.tsx`
 - **Định vị phễu**: B2B Export Sourcing, High-Ticket Enterprise Trust.
 - **Mục đích nghiệp vụ**: Số hóa hồ sơ năng lực nhà máy, chứng chỉ quốc tế (FDA, ISO 9001, BSCI, CE) và tài liệu kỹ thuật (TDS, MSDS) theo mô hình **Gated Content** nhằm thu thập thông tin người phụ trách mua hàng.
@@ -272,7 +272,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 4. `countdown-banner`
 - **Friendly Name trong Studio**: `Countdown Banner`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/countdown-banner.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/countdown-banner.ts`
   - Server Wrapper: `src/ui/modules/countdown-banner/index.tsx`
   - Client Logic: `src/ui/modules/countdown-banner/countdown-banner-client.tsx`
 - **Định vị phễu**: D2C Flash Sale, Promo Launch Campaign.
@@ -313,7 +313,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 5. `sticky-mobile-cta`
 - **Friendly Name trong Studio**: `Sticky Buy Bar`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/sticky-mobile-cta.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/sticky-mobile-cta.ts`
   - Server Wrapper: `src/ui/modules/sticky-mobile-cta/index.tsx`
   - Client Logic: `src/ui/modules/sticky-mobile-cta/sticky-mobile-cta-client.tsx`
 - **Định vị phễu**: D2C Mobile Funnel, Hero 1-Page Funnel.
@@ -357,7 +357,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 6. `comparison-table`
 - **Friendly Name trong Studio**: `Comparison Table`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/comparison-table.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/comparison-table.ts`
   - UI Component: `src/ui/modules/comparison-table.tsx`
 - **Định vị phễu**: D2C Hero Product, High-Ticket Differentiation.
 - **Mục đích nghiệp vụ**: Định hình nhận thức người mua về sự vượt trội của sản phẩm chủ lực so với các giải pháp thông thường hoặc hàng trôi nổi ngoài thị trường.
@@ -379,7 +379,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 7. `social-proof`
 - **Friendly Name trong Studio**: `Verified Reviews`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/social-proof.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/social-proof.ts`
   - Server Wrapper: `src/ui/modules/social-proof/index.tsx`
   - Client Logic: `src/ui/modules/social-proof/social-proof-client.tsx` & `social-proof-card.tsx`
 - **Định vị phễu**: Cả 3 mô hình (D2C, High-Ticket, B2B).
@@ -401,7 +401,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 8. `hero.split`
 - **Friendly Name trong Studio**: `Hero Split`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/hero.split.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/hero.split.ts`
   - UI Component: `src/ui/modules/hero.split.tsx`
 - **Định vị phễu**: Landing Page Header, Product Introduction.
 - **Mục đích nghiệp vụ**: Tạo ấn tượng đầu tiên mạnh mẽ ngay khi tải trang (Above the Fold) với tỷ lệ phân chia màn hình tối ưu, kết hợp giữa thông điệp chuyển đổi và hình ảnh/video chất lượng cao.
@@ -421,7 +421,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 9. `hero-slider`
 - **Friendly Name trong Studio**: `Hero Slider`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/hero-slider.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/hero-slider.ts`
   - Server Wrapper: `src/ui/modules/hero-slider/index.tsx`
   - Client Logic: `src/ui/modules/hero-slider/hero-slider-client.tsx`
 - **Định vị phễu**: Trang chủ thương hiệu (Brand Homepage), Chiến dịch mùa vụ (Seasonal Collection).
@@ -443,7 +443,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 10. `media-grid`
 - **Friendly Name trong Studio**: `Media Gallery Grid`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/media-grid.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/media-grid.ts`
   - UI Component: `src/ui/modules/media-grid/index.tsx`
 - **Định vị phễu**: High-Ticket Showcase, Factory & Facility Tours.
 - **Mục đích nghiệp vụ**: Trực quan hóa quy trình sản xuất, công nghệ đóng gói, kiểm thử sản phẩm hoặc thư viện ảnh chụp thực tế từ các góc nhìn khác nhau.
@@ -463,7 +463,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 11. `carousel-banner-list`
 - **Friendly Name trong Studio**: `Banner Carousel`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/carousel-banner-list.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/carousel-banner-list.ts`
   - Server Wrapper: `src/ui/modules/carousel-banner-list.tsx`
   - Client Logic: `src/ui/modules/carousel-banner-list-client.tsx`
 - **Định vị phễu**: Mid-Page Banners, Promotional Interstitial.
@@ -479,7 +479,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 12. `card-list`
 - **Friendly Name trong Studio**: `Feature Cards`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/card-list.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/card-list.ts`
   - Server Wrapper: `src/ui/modules/card-list.tsx`
   - Client Carousel: `src/ui/modules/card-list-carousel.tsx`
 - **Định vị phễu**: Cả 3 mô hình (D2C, High-Ticket, B2B).
@@ -499,7 +499,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 13. `step-list`
 - **Friendly Name trong Studio**: `Process Steps`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/step-list.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/step-list.ts`
   - Server Wrapper: `src/ui/modules/step-list.tsx`
   - Client Timeline: `src/ui/modules/step-list-client.tsx`
 - **Định vị phễu**: B2B Sourcing Process, Custom Order Onboarding.
@@ -518,7 +518,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 14. `prose`
 - **Friendly Name trong Studio**: `Editorial Story`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/prose.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/prose.ts`
   - UI Component: `src/ui/modules/prose/index.tsx`
 - **Định vị phễu**: Brand Storytelling, Deep Technical Specs, Editorial Articles.
 - **Mục đích nghiệp vụ**: Xây dựng các khối nội dung dạng văn bản biên tập tạp chí phong phú (Rich Text) kết hợp mục lục tự động (TOC), định dạng mã nguồn (Code syntax highlighting) và nhúng khối tương tác.
@@ -535,7 +535,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 15. `callout`
 - **Friendly Name trong Studio**: `Promo Callout`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/callout.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/callout.ts`
   - UI Component: `src/ui/modules/callout.tsx`
 - **Định vị phễu**: Mid-Page Conversion Interruption, Crucial Alerts.
 - **Mục đích nghiệp vụ**: Tạo điểm ngắt thị giác nổi bật giữa bài để thu hút sự chú ý vào một ưu đãi chớp nhoáng, thông báo quan trọng hoặc cam kết độc quyền.
@@ -555,7 +555,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 16. `custom-html`
 - **Friendly Name trong Studio**: `Code & App Embed`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/custom-html.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/custom-html.ts`
   - UI Component: `src/ui/modules/custom-html/index.tsx`
 - **Định vị phễu**: Mở rộng ứng dụng bên thứ ba (Third-Party Integrations).
 - **Mục đích nghiệp vụ**: Nhúng an toàn các đoạn mã HTML, CSS tùy biến, ứng dụng bên ngoài như lịch hẹn Calendly, máy tính báo giá tùy chỉnh, form Typeform, bản đồ Google Maps hoặc video nhúng đặc thù.
@@ -574,7 +574,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 17. `product-list`
 - **Friendly Name trong Studio**: `Product Showcase`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/product-list.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/product-list.ts`
   - Server Wrapper: `src/ui/modules/product/product-list.tsx`
   - Client Logic: `src/ui/modules/product/product-list-client.tsx`
 - **Định vị phễu**: Product Discovery, Cross-Sell, Collection Filtering.
@@ -597,7 +597,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 18. `quote-list`
 - **Friendly Name trong Studio**: `Wall of Love (Testimonials)`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/quote-list.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/quote-list.ts`
   - Server Wrapper: `src/ui/modules/quote-list.tsx`
   - Client Logic: `src/ui/modules/quote-list-client.tsx` & `quote-card.tsx`
 - **Định vị phễu**: B2B Trust, High-Ticket Authority.
@@ -618,7 +618,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 19. `logo-list`
 - **Friendly Name trong Studio**: `Logo Marquee`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/logo-list.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/logo-list.ts`
   - Server Wrapper: `src/ui/modules/logo-list.tsx`
   - Client Logic: `src/ui/modules/logo-list-client.tsx`
 - **Định vị phễu**: Brand Credibility, Export Partner Validation.
@@ -637,7 +637,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 20. `stat-list`
 - **Friendly Name trong Studio**: `Impact Metrics`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/stat-list.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/stat-list.ts`
   - Server Wrapper: `src/ui/modules/stat-list.tsx`
   - Client Counter: `src/ui/modules/stat-list-client.tsx`
 - **Định vị phễu**: High-Ticket Enterprise, Factory Capabilities.
@@ -657,7 +657,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 21. `accordion-list`
 - **Friendly Name trong Studio**: `FAQ Drawer`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/accordion-list.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/accordion-list.ts`
   - Server Wrapper: `src/ui/modules/accordion-list.tsx`
   - Client Logic: `src/ui/modules/accordion-list-client.tsx`
 - **Định vị phễu**: Cả 3 mô hình (D2C, High-Ticket, B2B).
@@ -676,7 +676,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 22. `person-list`
 - **Friendly Name trong Studio**: `Leadership & Experts`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/person-list.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/person-list.ts`
   - Server Wrapper: `src/ui/modules/person-list.tsx`
   - Client Logic: `src/ui/modules/person-list-client.tsx`
 - **Định vị phễu**: High-Ticket Authority, Google E-E-A-T Signals.
@@ -696,7 +696,7 @@ Mỗi module trải qua chu trình 5 giai đoạn từ khi cấu hình đến kh
 ### 23. `blog-post-list`
 - **Friendly Name trong Studio**: `Content Hub / Insights`
 - **Vị trí tệp**:
-  - Schema: `src/sanity/schemaTypes/modules/blog-post-list.ts`
+  - Schema: `studio/src/sanity/schemaTypes/modules/blog-post-list.ts`
   - Server Wrapper: `src/ui/modules/blog/blog-post-list.tsx`
   - Client Carousel: `src/ui/modules/blog/blog-post-list-carousel.tsx`
 - **Định vị phễu**: Inbound Traffic, Internal Linking, Thought Leadership.
@@ -720,7 +720,7 @@ Các module dưới đây là **các thành phần cấu trúc trang cốt lõi*
 ---
 
 ### 24. `breadcrumbs`
-- **File**: `src/ui/modules/breadcrumbs.tsx` (Schema: `src/sanity/schemaTypes/modules/breadcrumbs.ts`)
+- **File**: `src/ui/modules/breadcrumbs.tsx` (Schema: `studio/src/sanity/schemaTypes/modules/breadcrumbs.ts`)
 - **Vị trí hiển thị**: Đầu trang PDP, Trang Chi Tiết Bài Viết, Trang Bộ Sưu Tập, Trang Tìm Kiếm.
 - **Luồng hoạt động**:
   1. Nhận prop `currentPage` (Product, Collection, BlogPost, hoặc Page).
@@ -827,43 +827,43 @@ Các khối nhúng này được chèn trực tiếp vào giữa các đoạn v�
 ---
 
 ### 31. `callout-box`
-- **Schema**: `src/sanity/schemaTypes/objects/callout-box.ts`
+- **Schema**: `studio/src/sanity/schemaTypes/objects/callout-box.ts`
 - **Component**: `src/ui/modules/blog/blocks/callout-box.tsx`
 - **Đặc điểm**: Khung hộp nhấn mạnh trong bài viết với 4 phong cách: `info` (thông tin xanh dương), `tip` (mẹo hay xanh lá), `warning` (lưu ý vàng cam), `quote` (trích dẫn xám).
 
 ---
 
 ### 32. `cta-banner`
-- **Schema**: `src/sanity/schemaTypes/objects/cta-banner.ts`
+- **Schema**: `studio/src/sanity/schemaTypes/objects/cta-banner.ts`
 - **Component**: `src/ui/modules/blog/blocks/cta-banner.tsx`
 - **Đặc điểm**: Băng rôn kêu gọi hành động giữa bài với tiêu đề, phụ đề, nút bấm liên kết và ảnh nền tùy biến.
 
 ---
 
 ### 33. `faq-accordion`
-- **Schema**: `src/sanity/schemaTypes/objects/faq-accordion.ts`
+- **Schema**: `studio/src/sanity/schemaTypes/objects/faq-accordion.ts`
 - **Component**: `src/ui/modules/blog/blocks/faq-accordion.tsx`
 - **Đặc điểm**: Cụm câu hỏi thường gặp dạng đóng/mở (Accordion) nhúng ngay trong bài viết để giải đáp thắc mắc liên quan trực tiếp đến nội dung đang đọc.
 
 ---
 
 ### 34. `image-gallery`
-- **Schema**: `src/sanity/schemaTypes/objects/image-gallery.ts`
+- **Schema**: `studio/src/sanity/schemaTypes/objects/image-gallery.ts`
 - **Component**: `src/ui/modules/blog/blocks/image-gallery.tsx`
 - **Đặc điểm**: Bộ sưu tập 2–8 hình ảnh hiển thị dạng lưới (Grid) hoặc so le (Masonry), nhấp vào để mở trình xem ảnh phóng to toàn màn hình (Lightbox zoom).
 
 ---
 
 ### 35. `product-embed`
-- **Schema**: `src/sanity/schemaTypes/objects/product-embed.ts`
+- **Schema**: `studio/src/sanity/schemaTypes/objects/product-embed.ts`
 - **Component**: `src/ui/modules/blog/blocks/product-embed.tsx`
 - **Đặc điểm**: Thẻ sản phẩm sống động (Shoppable Product Card) nhúng giữa bài viết. Tự động cập nhật giá từ Sanity, tự động gắn tham số UTM (`?utm_source=blog&utm_medium=product_embed`) và hỗ trợ **nút bấm Thêm vào giỏ hàng ngay tại chỗ**.
 
 ---
 
 ### 36. `video-embed` & `affiliateLink`
-- **`video-embed`** (`src/sanity/schemaTypes/objects/video-embed.ts` & `video-embed.tsx`): Nhúng video YouTube, Vimeo hoặc file MP4 trực tiếp với ảnh thumbnail tùy biến và trình phát Lightbox.
-- **`affiliateLink`** (`src/sanity/schemaTypes/objects/affiliate-link.ts` & `src/ui/modules/affiliate-link.tsx`): Khối thẻ giới thiệu sản phẩm liên kết tiếp thị (Affiliate Marketing Card) hiển thị giá, mã giảm giá (Coupon copy-to-clipboard), đánh giá biên tập viên (Editor's Verdict) và nút chuyển hướng tiếp thị với thuộc tính `rel="sponsored noopener noreferrer"`.
+- **`video-embed`** (`studio/src/sanity/schemaTypes/objects/video-embed.ts` & `video-embed.tsx`): Nhúng video YouTube, Vimeo hoặc file MP4 trực tiếp với ảnh thumbnail tùy biến và trình phát Lightbox.
+- **`affiliateLink`** (`studio/src/sanity/schemaTypes/objects/affiliate-link.ts` & `src/ui/modules/affiliate-link.tsx`): Khối thẻ giới thiệu sản phẩm liên kết tiếp thị (Affiliate Marketing Card) hiển thị giá, mã giảm giá (Coupon copy-to-clipboard), đánh giá biên tập viên (Editor's Verdict) và nút chuyển hướng tiếp thị với thuộc tính `rel="sponsored noopener noreferrer"`.
 
 ---
 
@@ -915,7 +915,7 @@ Các module trong DeanFlow không hoạt động cô lập mà phối hợp ch�
 Khi bổ sung module mới vào hệ thống DeanFlow, lập trình viên **phải tuân thủ nghiêm ngặt chu trình 6 bước** sau để đảm bảo tính đồng nhất kiến trúc:
 
 ### Bước 1: Đăng ký Tên Thân Thiện (Friendly Name)
-Mở tệp `src/sanity/lib/module-preview-config.ts` và thêm tên thương mại hiển thị trong Sanity Studio vào đối tượng `MODULE_FRIENDLY_NAMES`:
+Mở tệp `studio/src/sanity/lib/module-preview-config.ts` và thêm tên thương mại hiển thị trong Sanity Studio vào đối tượng `MODULE_FRIENDLY_NAMES`:
 ```ts
 export const MODULE_FRIENDLY_NAMES = {
   // ...
@@ -924,7 +924,7 @@ export const MODULE_FRIENDLY_NAMES = {
 ```
 
 ### Bước 2: Định Nghĩa Schema với `defineModulePreview()`
-Tạo tệp schema tại `src/sanity/schemaTypes/modules/<module-name>.ts`. Sử dụng hàm chuẩn hóa `defineModulePreview()`:
+Tạo tệp schema tại `studio/src/sanity/schemaTypes/modules/<module-name>.ts`. Sử dụng hàm chuẩn hóa `defineModulePreview()`:
 ```ts
 import { defineField, defineType } from 'sanity'
 import { defineModulePreview } from '@/sanity/lib/define-module-preview'
@@ -946,8 +946,8 @@ export default defineType({
 ```
 
 ### Bước 3: Đăng Ký Schema vào Danh Mục Studio
-- Mở `src/sanity/schemaTypes/index.ts`: Import schema và đưa vào mảng `pure dynamic modules` (sử dụng hàm `withModuleHidden`).
-- Mở `src/sanity/schemaTypes/fragments/modules.ts`: Đưa `{ type: '<module-name>' }` vào mảng `of: [...]` và chỉ định nhóm hiển thị (`groups`).
+- Mở `studio/src/sanity/schemaTypes/index.ts`: Import schema và đưa vào mảng `pure dynamic modules` (sử dụng hàm `withModuleHidden`).
+- Mở `studio/src/sanity/schemaTypes/fragments/modules.ts`: Đưa `{ type: '<module-name>' }` vào mảng `of: [...]` và chỉ định nhóm hiển thị (`groups`).
 
 ### Bước 4: Mở Rộng GROQ Fragment Query
 Mở `src/sanity/lib/queries.ts` và thêm logic trích xuất các trường dữ liệu tham chiếu trong `MODULES_QUERY`:

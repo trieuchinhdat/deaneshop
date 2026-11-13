@@ -6,14 +6,28 @@ import { ArrowRight, Loader2, Lock, Mail, ShieldCheck } from 'lucide-react'
 export default function AdminLoginForm({
 	brandName = 'DeanFlow',
 	logoUrl,
+	authMode = 'password',
+	loginExpired = false,
 }: {
 	brandName?: string
 	logoUrl?: string
+	authMode?: 'password' | 'sanity'
+	loginExpired?: boolean
 }) {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [pending, setPending] = useState(false)
 	const [error, setError] = useState('')
+	if (authMode === 'sanity') return (
+		<main className="flex min-h-screen items-center justify-center bg-slate-50 p-6 text-slate-900">
+			<div className="w-full max-w-md space-y-5 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+				<h1 className="text-xl font-bold">{brandName} Workspace</h1>
+				<p className="text-sm text-slate-600">Sign in with the Sanity account approved for your workspace.</p>
+				{loginExpired && <p role="alert" className="text-sm text-amber-800">Your sign-in expired or could not be verified. Please start again.</p>}
+				<a href="/api/admin/auth/sanity/start" className="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white">Continue with Sanity</a>
+			</div>
+		</main>
+	)
 
 	return (
 		<main className="flex min-h-screen items-center justify-center bg-slate-50/70 p-4 sm:p-6 text-slate-900 font-sans">
@@ -52,9 +66,19 @@ export default function AdminLoginForm({
 								headers: { 'Content-Type': 'application/json' },
 								body: JSON.stringify({ email, password }),
 							})
-							const result = await response.json()
+							const result: unknown = await response.json().catch(() => {
+								throw new Error(
+									`Sign-in service unavailable (HTTP ${response.status}). Please try again later.`,
+								)
+							})
+							if (!result || typeof result !== 'object' || !('success' in result))
+								throw new Error('Sign-in service returned an unexpected response. Please try again later.')
 							if (!response.ok || !result.success)
-								throw new Error(result.error || 'Sign-in failed')
+								throw new Error(
+									'error' in result && typeof result.error === 'string'
+										? result.error
+										: 'Sign-in failed',
+								)
 							window.location.assign('/admin')
 						} catch (error) {
 							setError(

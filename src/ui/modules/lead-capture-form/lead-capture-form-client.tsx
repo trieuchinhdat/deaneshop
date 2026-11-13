@@ -1,6 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { isStaticStorefront } from '@/lib/deployment-profile'
+import { isRuntimePath } from '@/lib/static-runtime-routes'
 import { useEffect, useId, useRef, useState } from 'react'
 import {
 	FiArrowRight,
@@ -16,9 +18,9 @@ import {
 	FiUser,
 	FiX,
 } from 'react-icons/fi'
-import { parseAttributionCookie } from '@/lib/attribution'
-import { getSessionJourney, recordPageVisit } from '@/lib/journey-tracker'
+import { recordPageVisit } from '@/lib/journey-tracker'
 import { leadSubmissionKey, retireLeadSubmission } from '@/lib/lead-submission'
+import { buildTrackingPayload } from '@/lib/tracking-payload'
 import { cn } from '@/lib/utils'
 
 export interface LeadCaptureFormClientProps {
@@ -117,13 +119,6 @@ export default function LeadCaptureFormClient({
 	const [consent, setConsent] = useState(false)
 	const [selectedTierSpec, setSelectedTierSpec] = useState<string | null>(null)
 
-	const [utmParams, setUtmParams] = useState<{
-		utm_source?: string
-		utm_medium?: string
-		utm_campaign?: string
-		landing_page_url?: string
-	}>({})
-
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [isSuccess, setIsSuccess] = useState(false)
 	const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -137,23 +132,10 @@ export default function LeadCaptureFormClient({
 		}
 	}, [])
 
-	// Grab UTM params & current URL on mount + record journey with first-party cookie fallback
+	// Record mount visit and listen for Tiered Volume Pricing RFQ prefill selections
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
 			recordPageVisit('Lead Consultation Request')
-			const urlParams = new URLSearchParams(window.location.search)
-			const cookieAttr = parseAttributionCookie(document.cookie)
-			setUtmParams({
-				utm_source:
-					urlParams.get('utm_source') || cookieAttr?.utm_source || undefined,
-				utm_medium:
-					urlParams.get('utm_medium') || cookieAttr?.utm_medium || undefined,
-				utm_campaign:
-					urlParams.get('utm_campaign') ||
-					cookieAttr?.utm_campaign ||
-					undefined,
-				landing_page_url: window.location.href,
-			})
 
 			// Listen for Tiered Volume Pricing RFQ prefill selections
 			const handleTierSelect = (e: any) => {
@@ -231,7 +213,7 @@ export default function LeadCaptureFormClient({
 		setIsSubmitting(true)
 
 		try {
-			const journey = getSessionJourney()
+			const tracking = buildTrackingPayload()
 			const internalNotesArray: string[] = []
 			if (company.trim()) {
 				internalNotesArray.push(`Company: ${company.trim()}`)
@@ -241,6 +223,7 @@ export default function LeadCaptureFormClient({
 			}
 
 			const payload = {
+				...tracking,
 				consent,
 				name: name.trim() || 'Prospective Client',
 				email: email.trim() || undefined,
@@ -252,13 +235,6 @@ export default function LeadCaptureFormClient({
 					? `[Company: ${company.trim()}]\n\n${message.trim()}`
 					: message.trim(),
 				source: leadSource || 'lead_capture_form',
-				landing_page_url:
-					utmParams.landing_page_url ||
-					(typeof window !== 'undefined' ? window.location.href : ''),
-				utm_source: utmParams.utm_source,
-				utm_medium: utmParams.utm_medium,
-				utm_campaign: utmParams.utm_campaign,
-				journey_json: journey.length > 0 ? JSON.stringify(journey) : undefined,
 				internal_notes:
 					internalNotesArray.length > 0
 						? internalNotesArray.join(' | ')
@@ -292,7 +268,7 @@ export default function LeadCaptureFormClient({
 			) {
 				const dest = successBehavior.redirectUrl
 				redirectTimeoutRef.current = setTimeout(() => {
-					if (dest.startsWith('/')) {
+					if (dest.startsWith('/') && !(isStaticStorefront && isRuntimePath(new URL(dest, window.location.href).pathname))) {
 						router.push(dest)
 					} else {
 						window.location.assign(dest)

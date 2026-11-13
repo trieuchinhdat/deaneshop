@@ -701,6 +701,7 @@ function ChannelButton({
 			target={channel.target}
 			rel={channel.rel}
 			aria-label={channel.ariaLabel}
+			data-track-cta={`chat_channel:${btn.type || channel.title}`}
 			className={cn(
 				'group relative flex items-center gap-3 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 p-1.5 shadow-lg shadow-black/8 transition-all duration-200 hover:shadow-xl hover:border-slate-300 dark:hover:border-slate-700 hover:scale-102 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-98 motion-reduce:transition-none',
 				isLeft ? 'flex-row pr-4' : 'flex-row-reverse pl-4',

@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOMServer from 'react-dom/server'
 import type { CustomHtml } from '../src/sanity/types'
 import CustomHTMLModule from '../src/ui/modules/custom-html'
-import customHtmlSchema from '../src/sanity/schemaTypes/modules/custom-html'
+import customHtmlSchema from '../studio/src/sanity/schemaTypes/modules/custom-html'
 
 function assert(condition: boolean, message: string) {
 	if (!condition) {

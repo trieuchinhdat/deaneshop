@@ -1,6 +1,12 @@
 # Trạng thái review dự án
 
-Cập nhật tài liệu: **2026-11-11**. Phạm vi: đối chiếu tài liệu với working tree. Kết quả kiểm tra bên dưới được kế thừa từ báo cáo remediation, không phải lần chạy lại trong lượt dọn tài liệu. Tài liệu này không phải chứng nhận production.
+Cập nhật tài liệu: **2026-11-12**. Tài liệu này không phải chứng nhận production. Các kết quả cũ được giữ theo đợt; kết quả local mới nhất về static storefront được ghi riêng bên dưới.
+
+## Static storefront Free — 2026-11-12
+
+Đã build OpenNext Worker và public static export: 30 HTML, navigation payload, sitemap/RSS/robots. Có 94/94 tests pass, typecheck, security lint, Studio boundary, migration verification, production artifact gate và Wrangler dry-run pass. Chrome local xác nhận Link từ home sang blog/landing dùng static payload, không tải lại document, không có local request lỗi hoặc JavaScript exception. Link sang admin dùng document `/admin`, không gọi `/admin.txt`.
+
+HTTP smoke local xác nhận HTML/payload/sitemap/RSS trả 200 không có `x-opennext` hoặc Set-Cookie; URL public thiếu trả 404. API admin không có phiên trả 401; payload lead/search không hợp lệ trả 400; Studio redirect 307. Preview dùng D1 tạm, không ghi production. Chưa nghiệm thu submit thành công với D1/email thật, chưa deploy bản sửa và chưa đo lại CPU production. Các API/admin/cron vẫn chịu quota Free. Xem [hướng dẫn triển khai](STATIC_STOREFRONT_DEPLOYMENT.md) và [bằng chứng 1102](reviews/WORKER_1102_2026_11_12.md).
 
 ## Hướng sản phẩm hiện hành
 
@@ -36,3 +42,12 @@ Cập nhật sửa code mới nhất: [Production readiness và kết quả reme
 ## Cách cập nhật
 
 Ghi mỗi lần xác minh theo mẫu: **ngày — môi trường — phiên bản/commit — bước hoặc lệnh — kết quả — bằng chứng — giới hạn**. Chỉ chuyển mục sang “đã xác nhận” khi đã chạy trên môi trường cần kết luận. Bắt đầu từ [checklist review](REVIEW_CHECKLIST.md).
+
+## Đăng nhập Sanity — code cập nhật 2026-11-12
+
+Đã thêm [Sanity sign-in](SANITY_ADMIN_SIGN_IN.md) xác minh token/membership đúng project rồi liên kết `sanity_user_id` với staff D1. Cần migration `0011` và liên kết tài khoản trước khi deploy chuyển auth mode. Không còn cần host backend bcrypt khi dùng mode này. Test local 78/78, typecheck, migrations, security lint và build Free PASS; chưa deploy, migrate D1 remote hoặc nghiệm thu browser/CPU bằng phiên Sanity thật. D1 runtime mặc định local trong dev, các lệnh remote dùng `--remote` rõ ràng.
+
+
+## Studio độc lập — 2026-11-12
+
+Đã tách Studio sang `studio/`, thêm bridge đăng nhập CRM giữa hai origin và migration 0014. Xem [báo cáo kiểm tra local](reviews/SANITY_STUDIO_SEPARATION_2026_11_12.md) và [runbook phát hành](SANITY_STUDIO_DEPLOYMENT.md). Static assets Cloudflare giảm khoảng 62.4%, Worker upload gzip giảm khoảng 3.1%. Website 88 tests, Studio 5 tests, TypeGen/typecheck/build/dry-run và các repository gates PASS ở local. Chưa migrate/deploy remote hoặc nghiệm thu browser bằng tài khoản thật; hostname đích là `deanflow.sanity.studio`.

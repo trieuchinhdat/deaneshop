@@ -50,6 +50,15 @@ next-env.d.ts
 # cloudflare / opennext
 /.open-next/
 /.wrangler/
+/.static-storefront-build/
+/wrangler.free.generated.json
 .dev.vars
 .dev.vars.*
 /backups/
+
+# Standalone Sanity Studio
+/studio/node_modules/
+/studio/dist/
+/studio/.sanity/
+/studio/schema.json
+!studio/.env.example

@@ -37,10 +37,23 @@ npm run verify:release
 | Khu vực | Vị trí |
 | --- | --- |
 | Routes frontend, API, admin, Studio | `src/app/` |
-| Schema, GROQ, Live Content, typegen | `src/sanity/` |
+| GROQ, Live Content, generated types | `src/sanity/` |
+| Studio, schema, editor, importer | `studio/` ([runbook](docs/SANITY_STUDIO_DEPLOYMENT.md)) |
 | Dynamic modules và giao diện | `src/ui/` |
 | D1, lead, quyền, nghiệp vụ | `src/lib/` |
 | Migrations và schema | `migrations/`, `schema.sql` |
 | Kiểm thử và release gates | `tests/`, `scripts/`, `.github/workflows/` |
 
 Ba file `AGENT-GUIDE-*.md` ở thư mục gốc được API của Sanity Studio tải trực tiếp. Chúng là tài liệu đầu vào cho công cụ import; cần đối chiếu schema trước khi dùng làm đặc tả kỹ thuật hiện hành.
+
+## Sanity Studio độc lập
+
+Website chạy bằng `npm run dev`; Studio chạy riêng:
+
+```bash
+npm --prefix studio ci
+cp studio/.env.example studio/.env.development.local
+npm run dev:studio
+```
+
+Studio ở localhost:3333. Khi phát triển, đặt website `NEXT_PUBLIC_BASE_URL=http://localhost:3000`, `NEXT_PUBLIC_SANITY_STUDIO_URL=http://localhost:3333`, `SANITY_STUDIO_ORIGIN=http://localhost:3333`; không đổi env production để chạy local. `npm run typegen` cần dependencies Studio, còn web build không cần cài Studio. Xem [cấu hình và phát hành](docs/SANITY_STUDIO_DEPLOYMENT.md).

@@ -16,7 +16,7 @@ const checks = [
 	['src/app/(frontend)/api/orders/create/route.ts', /fetch\(webhookUrl|webhook_url:\s*webhookUrl/, 'Public webhook destination is forbidden'],
 	['src/ui/modules/cart-checkout/cart-checkout-client.tsx', /webhookUrl:\s*webhookUrl/, 'Checkout client must not transmit webhookUrl'],
 	['src/ui/modules/custom-html/sandboxed-frame.tsx', /allow-same-origin/, 'Scriptable srcdoc must not have same-origin privileges'],
-	['src/app/(frontend)/api/admin/auth/sanity-verify/route.ts', /createAdminSessionToken/, 'Unverified Studio identity must not mint sessions'],
+	['src/app/(frontend)/api/admin/auth/sanity-verify/route.ts', /sanityUser|req\.json\(|request\.json\(|getByEmail/, 'Sanity exchange must not trust client profiles or bypass verified identity with direct email lookup'],
 	['src/lib/dossier-email.ts', /simulated_fallback|simulated_no_api_key/, 'Simulated email delivery must not report success'],
 	['src/sanity/lib/live.ts', /^['"]use server['"]/m, 'src/sanity/lib/live.ts must never expose a Server Action directive'],
 	['src/ui/modules/compliance-vault/index.tsx', /DEFAULT_CERTS|DEFAULT_DOCS/, 'Compliance Vault must not invent fake fallback certifications'],

@@ -1,4 +1,5 @@
 import { d1Query, reviewsDb, type D1Review } from '@/lib/d1'
+import { isStaticStorefront } from './deployment-profile'
 
 export interface PublicReviewMediaItem {
 	url: string
@@ -104,6 +105,7 @@ export async function getApprovedReviewAggregates(
 	productIds: string[],
 ): Promise<Map<string, ProductReviewAggregate>> {
 	const map = new Map<string, ProductReviewAggregate>()
+	if (isStaticStorefront) return map
 	const uniqueIds = Array.from(
 		new Set(productIds.map((id) => (typeof id === 'string' ? id.trim() : '')).filter(Boolean)),
 	)
@@ -154,6 +156,7 @@ export async function getApprovedReviewsForProduct(
 	total: number
 	averageRating: number
 }> {
+	if (isStaticStorefront) return { reviews: [], total: 0, averageRating: 0 }
 	const limit = Math.min(100, Math.max(1, Math.floor(Number(options?.limit) || 50)))
 	const offset = Math.max(0, Math.floor(Number(options?.offset) || 0))
 	const cleanProductId = productId && productId.trim() ? productId.trim() : undefined

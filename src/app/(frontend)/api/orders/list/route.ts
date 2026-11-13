@@ -5,7 +5,7 @@ import { PersistenceError, ordersDb } from '@/lib/d1'
 
 export async function GET(request: Request) {
 	try {
-		const auth = await requireAdminSession(['superadmin', 'admin', 'cskh'])
+		const auth = await requireAdminSession(['superadmin', 'admin'])
 		if (!auth.ok) return NextResponse.json({ success: false }, { status: auth.status })
 		const { searchParams } = new URL(request.url)
 		const status = searchParams.get('status') || 'ALL'

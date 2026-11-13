@@ -4,7 +4,7 @@ import { d1Query, ordersDb } from '@/lib/d1'
 import { issueQuoteAccess } from '@/lib/quote-access'
 
 export async function POST(req: Request) {
-	const auth = await requireAdminSession(['superadmin', 'admin', 'cskh'])
+	const auth = await requireAdminSession(['superadmin', 'admin'])
 	if (!auth.ok) return NextResponse.json({ success: false }, { status: auth.status })
 	try {
 		const { orderId, revoke } = await req.json()

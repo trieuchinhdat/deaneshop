@@ -1,3 +1,8 @@
+import { vitalsSampleRate } from './deployment-profile'
+
+// Make one sampling decision per document, shared by navigation and checkout beacons.
+let sampled: boolean | undefined
+
 export type WebVitalsSnapshot = {
 	lcp?: number
 	inp?: number
@@ -29,6 +34,8 @@ export function updateVitalsSnapshot(patch: Partial<WebVitalsSnapshot>): WebVita
 
 export function sendVitalsBeacon(snapshot: WebVitalsSnapshot): void {
 	if (typeof navigator === 'undefined' || typeof window === 'undefined') return
+	if (sampled === undefined) sampled = Math.random() < vitalsSampleRate()
+	if (!sampled) return
 	try {
 		const payload = JSON.stringify(snapshot)
 		if (typeof navigator.sendBeacon === 'function') {

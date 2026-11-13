@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 import { commentsDb, d1Query, PersistenceError } from '@/lib/d1'
 import { takeRateLimit } from '@/lib/rate-limit'
+import { isStaticStorefront } from '@/lib/deployment-profile'
 
 export async function POST(req: Request) {
+	if (isStaticStorefront) return NextResponse.json({ error: 'Comments are unavailable on this deployment.' }, { status: 403 })
 	try {
 		const body = await req.json().catch(() => ({}))
 		const {

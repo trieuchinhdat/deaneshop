@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 import { broadcastAdminEvent } from '@/lib/admin-events'
-import { parseAttributionCookie } from '@/lib/attribution'
-import { scheduleBackgroundTask } from '@/lib/cf-env'
 import { CommerceError, textField } from '@/lib/commerce'
 import { lookupPublishedComplianceAsset } from '@/lib/compliance-assets'
 import { d1Query, leadsDb } from '@/lib/d1'
@@ -14,8 +12,11 @@ import {
 	leadSubmissionIdentity,
 	replayLeadSubmission,
 } from '@/lib/lead-submission-store'
-import { drainOutbox } from '@/lib/outbox'
 import { takeRateLimit } from '@/lib/rate-limit'
+import {
+	resolveRequestTrackingContext,
+	trackServerConversion,
+} from '@/lib/request-tracking'
 import { client } from '@/sanity/lib/client'
 
 export async function POST(req: Request) {
@@ -119,88 +120,35 @@ export async function POST(req: Request) {
 			budget_range,
 			budgetRange,
 			source,
-			landing_page_url,
-			landingPageUrl,
 			message,
-			journey_json,
-			journeyJson,
-			utm_source,
-			utm_medium,
-			utm_campaign,
-			utmSource,
-			utmMedium,
-			utmCampaign,
 			internal_notes,
 		} = body
 
-		const cfCountry = req.headers.get('cf-ipcountry') || null
-		const cfCity = req.headers.get('cf-ipcity') || null
-		const referer = req.headers.get('referer') || null
+		const rawSource = (source || (req.headers.get('referer') ? 'web_referral' : 'landing_page')).trim()
+		const tracking = resolveRequestTrackingContext(req, body, {
+			formSource: rawSource,
+			policyVersion: '2026-11-10',
+			strictJourney: true,
+		})
 
 		const cleanName = (name || '').trim()
 		const cleanEmail = (email || '').trim()
 		const cleanPhone = (phone || '').trim()
-		const cleanCountry = (country || cfCountry || '').trim()
+		const cleanCountry = (country || tracking.cfCountry || '').trim()
 		const cleanCompany = (company_name || companyName || '').trim()
 		const cleanCompanySize = (company_size || companySize || '').trim()
 		const cleanBudget = (budget_range || budgetRange || '').trim()
-		const cleanSource = (
-			source || (referer ? 'web_referral' : 'landing_page')
-		).trim()
-		const cleanUrl = (
-			landing_page_url ||
-			landingPageUrl ||
-			referer ||
-			''
-		).trim()
+		const cleanSource = rawSource
+		const cleanUrl = tracking.landingPageUrl || ''
 		const cleanMessage = (message || '').trim()
-		const rawUtmSource = (utm_source || utmSource || '').trim()
-		const rawUtmMedium = (utm_medium || utmMedium || '').trim()
-		const rawUtmCampaign = (utm_campaign || utmCampaign || '').trim()
-		const cookieAttr = parseAttributionCookie(req.headers.get('cookie'))
-		const finalUtmSource = rawUtmSource || cookieAttr?.utm_source || null
-		const finalUtmMedium = rawUtmMedium || cookieAttr?.utm_medium || null
-		const finalUtmCampaign = rawUtmCampaign || cookieAttr?.utm_campaign || null
-		const finalUtmTerm =
-			(body.utm_term || cookieAttr?.utm_term || '').trim() || null
-		const finalUtmContent =
-			(body.utm_content || cookieAttr?.utm_content || '').trim() || null
-		const finalClickId =
-			(body.click_id || cookieAttr?.click_id || '').trim() || null
+		const finalUtmSource = tracking.utmSource
+		const finalUtmMedium = tracking.utmMedium
+		const finalUtmCampaign = tracking.utmCampaign
+		const finalUtmTerm = tracking.utmTerm
+		const finalUtmContent = tracking.utmContent
+		const finalClickId = tracking.clickId
 		const cleanNotes = (internal_notes || '').trim()
-		const rawJourney = journey_json || journeyJson || []
-		const journey =
-			typeof rawJourney === 'string' ? JSON.parse(rawJourney) : rawJourney
-		if (!Array.isArray(journey) || journey.length > 40)
-			throw new CommerceError('Invalid journey')
-		if (
-			journey.some(
-				(step) =>
-					!step ||
-					typeof step !== 'object' ||
-					typeof step.path !== 'string' ||
-					!step.path.startsWith('/') ||
-					typeof step.timestamp !== 'string' ||
-					!Number.isFinite(Date.parse(step.timestamp)),
-			)
-		)
-			throw new CommerceError('Invalid journey entry')
-		const cleanJourney = JSON.stringify(
-			journey.map((step) => ({
-				path: textField(step.path, 'journey path', true, 2000).split('?')[0],
-				title: textField(step.title, 'journey title', false, 200),
-				timestamp: textField(step.timestamp, 'journey timestamp', true, 40),
-				event: [
-					'page_view',
-					'form_start',
-					'cta_click',
-					'contact_click',
-					'catalog_download',
-				].includes(step.event)
-					? step.event
-					: 'page_view',
-			})),
-		)
+		const cleanJourney = tracking.journeyJson
 
 		if (!cleanName && !cleanEmail && !cleanPhone) {
 			return NextResponse.json(
@@ -287,15 +235,8 @@ export async function POST(req: Request) {
 							brandName,
 						})
 					: null,
-				attribution_json: JSON.stringify(cookieAttr || {}),
-				consent_json: JSON.stringify({
-					marketing: body.consent === true,
-					dossierCommunication:
-						body.dossierConsent === true ||
-						(cleanSource === 'compliance_vault_gated' && body.consent === true),
-					policyVersion: '2026-11-10',
-					capturedAt: new Date().toISOString(),
-				}),
+				attribution_json: tracking.attributionJson,
+				consent_json: tracking.consentJson,
 				name: cleanName || 'Prospect',
 				email: cleanEmail || null,
 				phone: cleanPhone || null,
@@ -312,8 +253,8 @@ export async function POST(req: Request) {
 				ai_summary: aiSummary,
 				ai_pitch_draft: aiPitchDraft,
 				journey_json: cleanJourney,
-				ip_country: cfCountry,
-				ip_city: cfCity,
+				ip_country: tracking.cfCountry,
+				ip_city: tracking.cfCity,
 				assigned_to: null,
 				last_contacted_at: null,
 				utm_source: finalUtmSource,
@@ -340,8 +281,12 @@ export async function POST(req: Request) {
 			company_name: lead.company_name,
 		})
 
-		// Durable background drain; if interrupted, Cloudflare Cron recovers from outbox (DF-029)
-		scheduleBackgroundTask(() => drainOutbox(5))
+		await trackServerConversion(tracking, {
+			placement: cleanSource,
+			label: resolvedAsset ? resolvedAsset.title : cleanSource,
+		})
+
+		// Delivery is handled by the scheduled outbox processor after the durable commit.
 
 		return NextResponse.json(submissionResult)
 	} catch (error: any) {

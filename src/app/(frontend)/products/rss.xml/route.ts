@@ -6,7 +6,7 @@ import { urlFor } from '@/sanity/lib/image'
 import { sanityFetchLive } from '@/sanity/lib/live'
 import type { PRODUCT_RSS_QUERY_RESULT } from '@/sanity/types'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_UR
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://example.com'
 export async function GET() {
 	const { page, products } = await sanityFetchLive<PRODUCT_RSS_QUERY_RESULT>({
 		query: PRODUCT_RSS_QUERY,

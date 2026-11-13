@@ -58,6 +58,7 @@ export default function LeadPipelineFunnelChart({
 				label: 'Total Inbound Captured',
 				count: totalLeads,
 				pctOfTotal: totalLeads > 0 ? 100 : 0,
+				stepRate: null as string | null,
 				color: 'bg-blue-600',
 				barColor: 'from-blue-500 to-blue-600',
 				textColor: 'text-blue-700',
@@ -70,6 +71,10 @@ export default function LeadPipelineFunnelChart({
 				count: assessedCount,
 				pctOfTotal:
 					totalLeads > 0 ? Math.round((assessedCount / total) * 100) : 0,
+				stepRate:
+					totalLeads > 0
+						? `${Math.round((assessedCount / total) * 100)}% triaged`
+						: null,
 				color: 'bg-indigo-600',
 				barColor: 'from-indigo-500 to-indigo-600',
 				textColor: 'text-indigo-700',
@@ -82,6 +87,10 @@ export default function LeadPipelineFunnelChart({
 				count: qualifiedCount,
 				pctOfTotal:
 					totalLeads > 0 ? Math.round((qualifiedCount / total) * 100) : 0,
+				stepRate:
+					assessedCount > 0
+						? `${Math.round((qualifiedCount / assessedCount) * 100)}% of assessed`
+						: null,
 				color: 'bg-emerald-600',
 				barColor: 'from-emerald-500 to-emerald-600',
 				textColor: 'text-emerald-700',
@@ -94,6 +103,10 @@ export default function LeadPipelineFunnelChart({
 				count: contactedCount,
 				pctOfTotal:
 					totalLeads > 0 ? Math.round((contactedCount / total) * 100) : 0,
+				stepRate:
+					totalLeads > 0
+						? `${Math.round((contactedCount / total) * 100)}% of inbound`
+						: null,
 				color: 'bg-amber-600',
 				barColor: 'from-amber-500 to-amber-600',
 				textColor: 'text-amber-700',
@@ -105,6 +118,10 @@ export default function LeadPipelineFunnelChart({
 				label: 'Closed Won (legacy)',
 				count: wonCount,
 				pctOfTotal: totalLeads > 0 ? Math.round((wonCount / total) * 100) : 0,
+				stepRate:
+					contactedCount > 0
+						? `${Math.round((wonCount / contactedCount) * 100)}% of engaged`
+						: null,
 				color: 'bg-purple-600',
 				barColor: 'from-purple-500 to-purple-600',
 				textColor: 'text-purple-700',
@@ -171,6 +188,11 @@ export default function LeadPipelineFunnelChart({
 								</div>
 
 								<div className="flex items-center gap-2 font-mono">
+									{step.stepRate && (
+										<span className="hidden rounded bg-slate-100 px-1.5 py-0.5 font-sans text-[10px] font-medium text-slate-500 sm:inline-block">
+											{step.stepRate}
+										</span>
+									)}
 									<span className="text-xs font-bold text-slate-900">
 										{step.count.toLocaleString('en-US')}
 									</span>

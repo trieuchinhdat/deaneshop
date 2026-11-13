@@ -1,27 +1,44 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "deanflow-engine",
+	"account_id": "76be9493eae48589bb7829b0be782472",
+	"workers_dev": true,
 	"main": "./worker.ts",
 	"compatibility_date": "2026-11-10",
 	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
 	"assets": {
 		"directory": ".open-next/assets",
-		"binding": "ASSETS"
+		"binding": "ASSETS",
 	},
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "deanflow-db",
-			"database_id": "00000000-0000-0000-0000-000000000000",
-			"migrations_dir": "migrations"
-		}
+			"database_id": "e68fa21a-325a-412a-a140-4e0a61b26457",
+			"migrations_dir": "migrations",
+		},
+	],
+	"analytics_engine_datasets": [
+		{
+			"binding": "ANALYTICS",
+			"dataset": "deanflow_analytics",
+		},
 	],
 	"triggers": {
-		"crons": ["* * * * *"]
+		"crons": ["* * * * *"],
 	},
 	"vars": {
+		"NEXT_PUBLIC_BASE_URL": "https://deanflow-engine.chinhdat78.workers.dev",
+		"NEXT_PUBLIC_SANITY_PROJECT_ID": "jy7u0ikv",
+		"NEXT_PUBLIC_SANITY_DATASET": "production",
+		"NEXT_PUBLIC_SANITY_STUDIO_URL": "https://deanflow.sanity.studio",
+		"SANITY_STUDIO_ORIGIN": "https://deanflow.sanity.studio",
 		"D1_ALLOW_MEMORY": "false",
-		"ALLOW_TRUSTED_CUSTOM_HTML": "false"
-	}
+		"ALLOW_TRUSTED_CUSTOM_HTML": "false",
+		"OUTBOX_MAX_JOBS_PER_INVOCATION": "1",
+		"D1_LOG_METRICS": "false",
+		"NEXT_PUBLIC_ADMIN_AUTH_MODE": "password",
+		"NEXT_PUBLIC_DEPLOYMENT_PROFILE": "free",
+		"ANALYTICS_DATASET": "deanflow_analytics",
+	},
 }
-

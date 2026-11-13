@@ -10,6 +10,7 @@ import {
 	FiUser,
 } from 'react-icons/fi'
 import ResponsiveImage from '@/ui/responsiveImage'
+import { buildTrackingPayload } from '@/lib/tracking-payload'
 import PopupSuccess from './popup-success'
 
 type PopupFormProps = {
@@ -77,16 +78,16 @@ export default function PopupForm({ settings, onClose }: PopupFormProps) {
 		setLoading(true)
 
 		try {
+			const tracking = buildTrackingPayload()
 			const res = await fetch('/api/popup/lead', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
+					...tracking,
 					name: name.trim() || undefined,
 					email: email.trim() || undefined,
 					phone: phone.trim() || undefined,
 					couponGiven: rewardCouponCode || undefined,
-					pageUrl:
-						typeof window !== 'undefined' ? window.location.href : undefined,
 					source: 'popup',
 					consent: true,
 					consentText:

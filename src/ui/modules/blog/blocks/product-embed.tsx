@@ -4,7 +4,6 @@ import { ArrowRight, Check, ShoppingBag, Star } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { cn, formatPrice } from '@/lib/utils'
-import { appendUtm } from '@/lib/utm'
 import { urlFor } from '@/sanity/lib/image'
 import { useCartStore } from '@/store/use-cart-store'
 import Img from '@/ui/img'
@@ -44,11 +43,9 @@ export default function ProductEmbed({
 
 	const slug = product.metadata?.slug?.current || product._id
 	const baseProductUrl = `/products/${slug}`
-	const productUrl = appendUtm(baseProductUrl, {
-		source: 'blog',
-		medium: 'product_embed',
-		campaign: slug,
-	})
+	// Use an internal reference query parameter instead of utm_* so blog embeds
+	// never overwrite an active external ad campaign attribution.
+	const productUrl = `${baseProductUrl}?ref_embed=${encodeURIComponent(`blog_product_embed:${slug}`)}`
 	const primaryImage = product.images?.[0]
 	const price = product.salePrice ?? product.price ?? 0
 	const originalPrice =

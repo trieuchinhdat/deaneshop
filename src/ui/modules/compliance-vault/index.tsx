@@ -16,6 +16,7 @@ import {
 	HiXMark,
 } from 'react-icons/hi2'
 import { leadSubmissionKey, retireLeadSubmission } from '@/lib/lead-submission'
+import { buildTrackingPayload } from '@/lib/tracking-payload'
 import { cn } from '@/lib/utils'
 import { urlFor } from '@/sanity/lib/image'
 import { moduleAttributes, type ModuleProps } from '../module-utils'
@@ -292,7 +293,9 @@ export default function ComplianceVault({
 		setFormError(null)
 
 		try {
+			const tracking = buildTrackingPayload()
 			const payload = {
+				...tracking,
 				name: leadForm.name.trim() || 'Procurement Partner',
 				email: cleanEmail,
 				phone: leadForm.phone.trim() || undefined,
@@ -301,8 +304,6 @@ export default function ComplianceVault({
 				assetId,
 				dossierConsent: Boolean(leadForm.consent),
 				consent: false,
-				landing_page_url:
-					typeof window !== 'undefined' ? window.location.href : undefined,
 				message: `[Compliance Vault Request]\nAsset ID: ${assetId}\nRequested Asset: ${activeModalDoc.title || 'Technical Document'}`,
 			}
 			const submissionKey = await leadSubmissionKey(payload)

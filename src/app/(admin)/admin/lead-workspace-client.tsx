@@ -1,5 +1,10 @@
 'use client'
 
+import { sanityStudioUrl } from '@/lib/sanity-studio-url'
+
+const EVENT_POLL_INTERVAL_MS = 15_000
+const VISIBILITY_THROTTLE_MS = 5_000
+
 import { AnimatePresence, motion } from 'framer-motion'
 import {
 	Activity,
@@ -56,9 +61,9 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { AdminSessionUser } from '@/lib/admin-auth'
+import { canAccessTab, getDefaultTabForRole } from '@/lib/admin-roles'
 import {
-	ATTRIBUTION_COOKIE_NAME,
-	parseAttributionCookie,
+	parseAttributionFromObject,
 } from '@/lib/attribution'
 import type { D1AdminUser, D1LeadNote } from '@/lib/d1'
 import {
@@ -71,6 +76,7 @@ import {
 import CustomersClient from './customers-client'
 import LeadContactClient from './lead-contact-client'
 import StaffManagement from './staff/staff-management'
+import EdgeTelemetryCard from './overview/edge-telemetry-card'
 import LeadPipelineFunnelChart from './overview/lead-pipeline-funnel-chart'
 import LeadSourceDistributionChart from './overview/lead-source-distribution-chart'
 import LeadVolumeTrendChart from './overview/lead-volume-trend-chart'
@@ -82,6 +88,28 @@ type SourceRow = {
 	assessed: number
 	qualified: number
 	spam: number
+}
+
+type CampaignRow = {
+	campaign: string
+	source: string
+	medium: string
+	total: number
+	qualified: number
+	avg_score: number
+}
+
+type PlacementRow = {
+	placement: string
+	total: number
+	qualified: number
+	avg_score: number
+}
+
+type CountryRow = {
+	country: string
+	total: number
+	qualified: number
 }
 
 const formatDate = (value?: string | null) => {
@@ -162,17 +190,15 @@ function getSlaStatus(createdAt?: string | null, status?: string) {
 
 const ROLE_LABELS: Record<string, string> = {
 	superadmin: 'Super Admin',
-	admin: 'Administrator',
-	sales: 'Sales Representative',
-	cskh: 'Customer Support',
-	marketing: 'Growth Marketing',
+	admin: 'Admin',
+	sales: 'Sale',
+	marketing: 'Marketing',
 }
 
 const ROLE_COLORS: Record<string, string> = {
 	superadmin: 'bg-rose-50 text-rose-700 border-rose-200',
 	admin: 'bg-purple-50 text-purple-700 border-purple-200',
 	sales: 'bg-blue-50 text-blue-700 border-blue-200',
-	cskh: 'bg-emerald-50 text-emerald-700 border-emerald-200',
 	marketing: 'bg-amber-50 text-amber-700 border-amber-200',
 }
 
@@ -181,17 +207,26 @@ export default function LeadWorkspaceClient({
 	initialStaff,
 	brandLogoUrl,
 	brandName = 'DeanFlow',
+	authMode = 'password',
 }: {
 	user: AdminSessionUser
 	initialStaff: Omit<D1AdminUser, 'password_hash'>[]
 	brandLogoUrl?: string
 	brandName?: string
+	authMode?: 'password' | 'sanity'
 }) {
 	const detailRequest = useRef(0)
-	const prevTotalRef = useRef<number | null>(null)
+	const lastEventIdRef = useRef<number | null>(null)
+	const lastCheckAtRef = useRef(0)
+	const checkingEventsRef = useRef(false)
 
-	const [view, setView] = useState('overview')
+	const defaultView = getDefaultTabForRole(user.role)
+	const canViewCustomers = canAccessTab(user.role, 'customers')
+	const [view, setView] = useState<string>(defaultView)
 	const [filter, setFilter] = useState('all')
+	const [utmSource, setUtmSource] = useState('')
+	const [utmMedium, setUtmMedium] = useState('')
+	const [utmCampaign, setUtmCampaign] = useState('')
 	const [dateRange, setDateRange] = useState('all')
 	const [followupCounts, setFollowupCounts] = useState({ total: 0, overdue: 0 })
 	const [search, setSearch] = useState('')
@@ -199,10 +234,21 @@ export default function LeadWorkspaceClient({
 	const [items, setItems] = useState<IntelligenceLead[]>([])
 	const [total, setTotal] = useState(0)
 	const [sources, setSources] = useState<SourceRow[]>([])
+	const [campaigns, setCampaigns] = useState<CampaignRow[]>([])
+	const [placements, setPlacements] = useState<PlacementRow[]>([])
+	const [countries, setCountries] = useState<CountryRow[]>([])
+	const [insightTab, setInsightTab] = useState<'sources' | 'campaigns' | 'placements' | 'countries'>('sources')
+	const [externalEmailDraft, setExternalEmailDraft] = useState<{
+		key: number
+		subject: string
+		body: string
+	} | null>(null)
 	const [staff, setStaff] = useState<{ id: string; name: string }[]>([])
+	const [overviewUrgent, setOverviewUrgent] = useState<IntelligenceLead[]>([])
 	const [overviewFollowups, setOverviewFollowups] = useState<
 		IntelligenceLead[]
 	>([])
+	const [overviewLoaded, setOverviewLoaded] = useState(false)
 	const [selected, setSelected] = useState<IntelligenceLead | null>(null)
 	const [notes, setNotes] = useState<D1LeadNote[]>([])
 	const [trends, setTrends] = useState<
@@ -233,16 +279,69 @@ export default function LeadWorkspaceClient({
 	const [error, setError] = useState('')
 	const [notice, setNotice] = useState('')
 	const [revision, setRevision] = useState(0)
+	const [customersRevision, setCustomersRevision] = useState(0)
+	const [customersBusy, setCustomersBusy] = useState(false)
+	const [customersSelected, setCustomersSelected] = useState<{
+		key: string
+		name: string
+	} | null>(null)
+	const [customersSearchJump, setCustomersSearchJump] = useState<string | null>(
+		null,
+	)
+	const [detailUpdateNotice, setDetailUpdateNotice] = useState<
+		'new_lead' | 'updated' | null
+	>(null)
 	const [mobileNavOpen, setMobileNavOpen] = useState(false)
 	const [copiedField, setCopiedField] = useState<string | null>(null)
 	const [reportCopied, setReportCopied] = useState(false)
 
+	const selectedRef = useRef<IntelligenceLead | null>(selected)
+	selectedRef.current = selected
+	const viewRef = useRef(view)
+	viewRef.current = view
+	const soundEnabledRef = useRef(soundEnabled)
+	soundEnabledRef.current = soundEnabled
+	const prevRevisionRef = useRef(revision)
+	const prevSearchRef = useRef(search)
+	const overviewCacheRef = useRef(
+		new Map<
+			string,
+			{
+				sources: SourceRow[]
+				trends: {
+					bucket: string
+					total: number
+					qualified: number
+					urgent?: number
+				}[]
+				stages: { status: string; count: number }[]
+				qualifications: { qualification: string; count: number }[]
+				priorities: { priority: string; count: number }[]
+				followups: { total: number; overdue: number }
+				total: number
+				urgentItems: IntelligenceLead[]
+				followupItems: IntelligenceLead[]
+			}
+		>(),
+	)
+
 	const canEdit = user.role !== 'marketing'
 	const canManage = ['superadmin', 'admin'].includes(user.role)
 
+	function recordLatestEventId(latestEventId: unknown) {
+		if (
+			typeof latestEventId === 'number' &&
+			Number.isSafeInteger(latestEventId) &&
+			latestEventId >= 0
+		) {
+			lastEventIdRef.current = latestEventId
+			lastCheckAtRef.current = Date.now()
+		}
+	}
+
 	// Web Audio Inbound Lead Chime (Crystal Bell: 587Hz -> 880Hz)
 	function playInboundChime() {
-		if (!soundEnabled || typeof window === 'undefined') return
+		if (!soundEnabledRef.current || typeof window === 'undefined') return
 		try {
 			const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
 			if (!AudioCtx) return
@@ -304,14 +403,17 @@ export default function LeadWorkspaceClient({
 		const restore = () => {
 			const q = new URLSearchParams(location.search)
 			const targetView = q.get('view')
-			if (
-				['overview', 'leads', 'followups', 'insights', 'customers'].includes(
-					targetView || '',
-				)
-			) {
-				setView(targetView!)
+			const allowedViews = [
+				'overview',
+				'leads',
+				'followups',
+				'insights',
+				...(canViewCustomers ? ['customers'] : []),
+			]
+			if (targetView && allowedViews.includes(targetView)) {
+				setView(targetView)
 			} else {
-				setView('overview')
+				setView(defaultView)
 			}
 			const id = q.get('lead')
 			if (id) void openLead(id)
@@ -320,74 +422,88 @@ export default function LeadWorkspaceClient({
 		restore()
 		window.addEventListener('popstate', restore)
 		return () => window.removeEventListener('popstate', restore)
-	}, [])
+	}, [canViewCustomers, defaultView])
 
 	useEffect(() => {
 		if (view === 'team' || view === 'customers') return
 		const controller = new AbortController()
+		if (prevRevisionRef.current !== revision) {
+			prevRevisionRef.current = revision
+			overviewCacheRef.current.clear()
+		}
+		const searchChanged = prevSearchRef.current !== search
+		prevSearchRef.current = search
+
+		if (view === 'overview') {
+			const cached = overviewCacheRef.current.get(dateRange)
+			if (cached) {
+				setSources(cached.sources)
+				setTrends(cached.trends)
+				setStages(cached.stages)
+				setQualifications(cached.qualifications)
+				setPriorities(cached.priorities)
+				setFollowupCounts(cached.followups)
+				setTotal(cached.total)
+				setOverviewUrgent(cached.urgentItems)
+				setOverviewFollowups(cached.followupItems)
+				setOverviewLoaded(true)
+			}
+		}
+
 		setBusy(true)
 		setError('')
+		const delayMs =
+			(view === 'leads' || view === 'followups') && searchChanged ? 250 : 0
 		const timer = setTimeout(async () => {
 			try {
 				if (view === 'overview') {
-					const [analyticsRes, leadsRes, followupsRes] = await Promise.all([
-						fetch(
-							`/api/admin/intelligence?view=analytics&dateRange=${dateRange}`,
-							{
-								signal: controller.signal,
-							},
-						),
-						fetch(
-							`/api/admin/intelligence?view=leads&page=1&dateRange=${dateRange}`,
-							{
-								signal: controller.signal,
-							},
-						),
-						fetch(
-							`/api/admin/intelligence?view=followups&filter=followups&page=1&dateRange=${dateRange}`,
-							{
-								signal: controller.signal,
-							},
-						),
-					])
-
-					const [analyticsData, leadsData, followupsData] = await Promise.all([
-						analyticsRes.json(),
-						leadsRes.json(),
-						followupsRes.json(),
-					])
-
+					const analyticsRes = await fetch(
+						`/api/admin/intelligence?view=analytics&dateRange=${dateRange}`,
+						{
+							signal: controller.signal,
+							cache: 'no-store',
+						},
+					)
+					const analyticsData = await analyticsRes.json()
 					if (!analyticsRes.ok) throw new Error(analyticsData.error)
-					if (!leadsRes.ok) throw new Error(leadsData.error)
-					if (!followupsRes.ok) throw new Error(followupsData.error)
 
-					// Trigger sound chime if new lead was ingested
-					if (
-						prevTotalRef.current !== null &&
-						leadsData.total > prevTotalRef.current
-					) {
-						playInboundChime()
+					recordLatestEventId(analyticsData.latestEventId)
+
+					const nextOverview = {
+						sources: analyticsData.sources || [],
+						trends: analyticsData.trends || [],
+						stages: analyticsData.stages || [],
+						qualifications: analyticsData.qualifications || [],
+						priorities: analyticsData.priorities || [],
+						followups: analyticsData.followups || { total: 0, overdue: 0 },
+						total: Number(analyticsData.total) || 0,
+						urgentItems: analyticsData.urgentItems || [],
+						followupItems: analyticsData.followupItems || [],
 					}
-					prevTotalRef.current = leadsData.total
+					overviewCacheRef.current.set(dateRange, nextOverview)
 
-					setSources(analyticsData.sources || [])
-					setTrends(analyticsData.trends || [])
-					setStages(analyticsData.stages || [])
-					setQualifications(analyticsData.qualifications || [])
-					setPriorities(analyticsData.priorities || [])
-						setFollowupCounts(analyticsData.followups || { total: 0, overdue: 0 })
-					setItems(leadsData.items || [])
-					setTotal(leadsData.total || 0)
-					setStaff(leadsData.staff || [])
-					setOverviewFollowups(followupsData.items || [])
+					setSources(nextOverview.sources)
+					setTrends(nextOverview.trends)
+					setStages(nextOverview.stages)
+					setQualifications(nextOverview.qualifications)
+					setPriorities(nextOverview.priorities)
+					setFollowupCounts(nextOverview.followups)
+					setTotal(nextOverview.total)
+					setOverviewUrgent(nextOverview.urgentItems)
+					setOverviewFollowups(nextOverview.followupItems)
+					setOverviewLoaded(true)
 				} else if (view === 'insights') {
 					const response = await fetch(
 						`/api/admin/intelligence?view=insights&dateRange=${dateRange}`,
-						{ signal: controller.signal },
+						{ signal: controller.signal, cache: 'no-store' },
 					)
 					const data = await response.json()
 					if (!response.ok) throw new Error(data.error)
+					recordLatestEventId(data.latestEventId)
 					setSources(data.sources || [])
+					setCampaigns(data.campaigns || [])
+					setPlacements(data.placements || [])
+					setCountries(data.countries || [])
 				} else {
 					const params = new URLSearchParams({
 						view,
@@ -396,19 +512,23 @@ export default function LeadWorkspaceClient({
 						search,
 						page: String(page),
 					})
+					if (view === 'leads' && utmSource) {
+						params.set('utmSource', utmSource)
+					}
+					if (view === 'leads' && utmMedium) {
+						params.set('utmMedium', utmMedium)
+					}
+					if (view === 'leads' && utmCampaign) {
+						params.set('utmCampaign', utmCampaign)
+					}
 					const response = await fetch(`/api/admin/intelligence?${params}`, {
 						signal: controller.signal,
+						cache: 'no-store',
 					})
 					const data = await response.json()
 					if (!response.ok) throw new Error(data.error)
 
-					if (
-						prevTotalRef.current !== null &&
-						data.total > prevTotalRef.current
-					) {
-						playInboundChime()
-					}
-					prevTotalRef.current = data.total
+					recordLatestEventId(data.latestEventId)
 
 					setItems(data.items || [])
 					setTotal(data.total || 0)
@@ -425,21 +545,23 @@ export default function LeadWorkspaceClient({
 			} finally {
 				if (!controller.signal.aborted) setBusy(false)
 			}
-		}, 250)
+		}, delayMs)
 		return () => {
 			clearTimeout(timer)
 			controller.abort()
 		}
-	}, [view, filter, dateRange, search, page, revision])
+	}, [view, filter, utmSource, utmMedium, utmCampaign, dateRange, search, page, revision])
 
 	async function openLead(id: string) {
 		const requestId = ++detailRequest.current
 		setError('')
+		setDetailUpdateNotice(null)
 		setSelected(null)
 		setNotes([])
 		try {
 			const response = await fetch(
 				`/api/admin/intelligence?id=${encodeURIComponent(id)}`,
+				{ cache: 'no-store' },
 			)
 			const data = await response.json()
 			if (!response.ok) throw new Error(data.error)
@@ -455,11 +577,21 @@ export default function LeadWorkspaceClient({
 		}
 	}
 
-	function navigate(next: string) {
+	function navigate(
+		next: string,
+		options?: { keepUtmSource?: boolean },
+	) {
 		detailRequest.current++
 		setView(next)
 		setPage(1)
+		if (!options?.keepUtmSource) {
+			setUtmSource('')
+			setUtmMedium('')
+			setUtmCampaign('')
+		}
 		setSelected(null)
+		setCustomersSelected(null)
+		setDetailUpdateNotice(null)
 		setSelectedIds([])
 		setMobileNavOpen(false)
 		const url = new URL(location.href)
@@ -492,6 +624,8 @@ export default function LeadWorkspaceClient({
 				...selected,
 				assessment_version: selected.assessment_version + 1,
 			})
+			setDetailUpdateNotice(null)
+			lastCheckAtRef.current = Date.now()
 			setNotice('Assessment and follow-up saved.')
 			setRevision((n) => n + 1)
 			setTimeout(() => setNotice(''), 4000)
@@ -503,11 +637,96 @@ export default function LeadWorkspaceClient({
 	}
 
 	useEffect(() => {
+		const checkEvents = async () => {
+			if (document.hidden || checkingEventsRef.current) return
+			const now = Date.now()
+			if (now - lastCheckAtRef.current < VISIBILITY_THROTTLE_MS) return
+
+			checkingEventsRef.current = true
+			lastCheckAtRef.current = now
+			try {
+				const after = lastEventIdRef.current
+				const url =
+					after === null
+						? '/api/admin/intelligence?view=events'
+						: `/api/admin/intelligence?view=events&after=${after}`
+				const response = await fetch(url, { cache: 'no-store' })
+				if (response.status === 401) {
+					window.location.assign('/admin')
+					return
+				}
+				const data = await response.json().catch(() => null)
+				if (!response.ok || !data) return
+
+				if (
+					typeof data.latestEventId === 'number' &&
+					Number.isSafeInteger(data.latestEventId) &&
+					data.latestEventId >= 0
+				) {
+					lastEventIdRef.current = data.latestEventId
+				}
+
+				if (data.hasNewLead) {
+					playInboundChime()
+				}
+
+				if (data.hasNewLead || data.hasLeadUpdated) {
+					if (selectedRef.current !== null) {
+						setDetailUpdateNotice(data.hasNewLead ? 'new_lead' : 'updated')
+					}
+					if (viewRef.current === 'customers') {
+						setCustomersRevision((n) => n + 1)
+					} else if (viewRef.current !== 'team') {
+						setRevision((n) => n + 1)
+					}
+				}
+			} catch {
+				// Transient network errors retry on the next tick or tab resume
+			} finally {
+				checkingEventsRef.current = false
+			}
+		}
+
 		const timer = setInterval(() => {
-			if (!document.hidden) setRevision((n) => n + 1)
-		}, 60000)
-		return () => clearInterval(timer)
+			void checkEvents()
+		}, EVENT_POLL_INTERVAL_MS)
+
+		const handleResume = () => {
+			if (!document.hidden) {
+				void checkEvents()
+			}
+		}
+
+		document.addEventListener('visibilitychange', handleResume)
+		window.addEventListener('focus', handleResume)
+		return () => {
+			clearInterval(timer)
+			document.removeEventListener('visibilitychange', handleResume)
+			window.removeEventListener('focus', handleResume)
+		}
 	}, [])
+
+	async function syncLatestEventIdFromResponses(
+		results: PromiseSettledResult<Response>[],
+	) {
+		const payloads = await Promise.all(
+			results.map(async (r) => {
+				if (r.status !== 'fulfilled' || !r.value.ok) return null
+				return r.value.json().catch(() => null)
+			}),
+		)
+		const ids = payloads
+			.map((d) => d?.latestEventId)
+			.filter(
+				(n): n is number =>
+					typeof n === 'number' && Number.isSafeInteger(n) && n >= 0,
+			)
+		if (ids.length > 0) {
+			recordLatestEventId(Math.max(...ids))
+		} else {
+			lastCheckAtRef.current = Date.now()
+		}
+	}
 
 	// Bulk Actions Handlers
 	function toggleSelectAll() {
@@ -528,7 +747,7 @@ export default function LeadWorkspaceClient({
 		if (!selectedIds.length) return
 		setBulkBusy(true)
 		try {
-			await Promise.allSettled(
+			const results = await Promise.allSettled(
 				selectedIds.map((id) => {
 					const lead = items.find((x) => x.id === id)
 					return fetch('/api/admin/leads/update', {
@@ -542,6 +761,7 @@ export default function LeadWorkspaceClient({
 					})
 				}),
 			)
+			await syncLatestEventIdFromResponses(results)
 			setNotice(
 				`Updated status to "${newStatus}" for ${selectedIds.length} leads.`,
 			)
@@ -556,7 +776,7 @@ export default function LeadWorkspaceClient({
 		if (!selectedIds.length || !repId) return
 		setBulkBusy(true)
 		try {
-			await Promise.allSettled(
+			const results = await Promise.allSettled(
 				selectedIds.map((id) => {
 					const lead = items.find((x) => x.id === id)
 					return fetch('/api/admin/leads/update', {
@@ -570,6 +790,7 @@ export default function LeadWorkspaceClient({
 					})
 				}),
 			)
+			await syncLatestEventIdFromResponses(results)
 			setNotice(`Assigned ${selectedIds.length} leads successfully.`)
 			setSelectedIds([])
 			setBulkAssignee('')
@@ -599,6 +820,7 @@ export default function LeadWorkspaceClient({
 					})
 				}),
 			)
+			lastCheckAtRef.current = Date.now()
 			setNotice(`Marked ${selectedIds.length} leads as spam.`)
 			setSelectedIds([])
 			setRevision((n) => n + 1)
@@ -650,10 +872,17 @@ export default function LeadWorkspaceClient({
 	}
 
 	const attr = selected?.attribution_json
-		? parseAttributionCookie(
-				`${ATTRIBUTION_COOKIE_NAME}=${encodeURIComponent(selected.attribution_json)}`,
-			)
+		? parseAttributionFromObject(selected.attribution_json)
 		: null
+	const consentInfo = (() => {
+		if (!selected?.consent_json) return null
+		try {
+			const parsed = JSON.parse(selected.consent_json)
+			return parsed && typeof parsed === 'object' ? (parsed as Record<string, any>) : null
+		} catch {
+			return null
+		}
+	})()
 	const activity = readJourney(selected?.journey_json)
 
 	// Metrics calculations
@@ -669,13 +898,21 @@ export default function LeadWorkspaceClient({
 	const overdueFollowups = overviewFollowups.filter(
 		(l) => l.follow_up_at && Date.parse(l.follow_up_at) < Date.now(),
 	)
-	const urgentInquiries = items.filter(
-		(l) => l.priority === 'high' || l.status === 'new',
-	)
+	const urgentInquiries = overviewUrgent
 	const overdueCount = followupCounts.overdue
 	const highPriorityCount = priorities.find(p => p.priority === 'high')?.count || 0
 	const newInquiryCount = stages.find(s => s.status === 'new')?.count || 0
 	const topSource = sources.length > 0 ? sources[0] : null
+	const topConvertingSource =
+		sources
+			.filter((s) => s.assessed > 0)
+			.sort(
+				(a, b) =>
+					b.qualified / b.assessed - a.qualified / a.assessed ||
+					b.qualified - a.qualified,
+			)[0] || null
+	const formatSourceName = (src?: string | null) =>
+		!src || src === 'Unknown' ? 'Direct / Unknown' : src
 
 	function copyQuickReport() {
 		const dateStr = new Date().toLocaleDateString('en-US', {
@@ -722,7 +959,9 @@ DeanFlow Lead Intelligence Console`
 	const navItems = [
 		{ id: 'overview', label: 'Executive Overview', icon: LayoutDashboard },
 		{ id: 'leads', label: 'Leads Directory', icon: Inbox },
-		{ id: 'customers', label: 'Customers', icon: Users },
+		...(canViewCustomers
+			? [{ id: 'customers', label: 'Customers', icon: Users }]
+			: []),
 		{ id: 'followups', label: 'Scheduled Follow-ups', icon: Clock },
 		{ id: 'insights', label: 'Source Analytics', icon: BarChart3 },
 		...(canManage
@@ -744,7 +983,7 @@ DeanFlow Lead Intelligence Console`
 	return (
 		<div className="min-h-screen bg-slate-50/70 font-sans text-slate-900 antialiased">
 			{/* DESKTOP SIDEBAR */}
-			<aside className="hidden border-r border-slate-200/90 bg-white md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:w-64 md:flex-col">
+			<aside className="hidden border-r border-slate-200/90 bg-white md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:w-64 md:flex-col print:hidden">
 				{/* Workspace Brand / Header: Dark logo only */}
 				<div className="flex h-16 shrink-0 items-center justify-center border-b border-slate-200/80 bg-white px-4">
 					{brandLogoUrl ? (
@@ -832,7 +1071,7 @@ DeanFlow Lead Intelligence Console`
 							</p>
 							<div className="space-y-1">
 								<a
-									href="/studio"
+									href={sanityStudioUrl}
 									target="_blank"
 									rel="noopener noreferrer"
 									className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100/80 hover:text-slate-900"
@@ -1101,6 +1340,26 @@ DeanFlow Lead Intelligence Console`
 												No matching leads found.
 											</p>
 										)}
+										{canViewCustomers && (
+											<button
+												onClick={() => {
+													const q = commandQuery.trim()
+													setCommandPaletteOpen(false)
+													setCustomersSearchJump(q)
+													navigate('customers')
+												}}
+												className="mt-1.5 flex w-full cursor-pointer items-center justify-between rounded-lg border border-slate-200/80 bg-slate-50/70 p-2 text-left text-slate-700 transition-colors hover:bg-slate-100"
+											>
+												<span className="flex items-center gap-2">
+													<Users className="h-4 w-4 text-slate-500" />
+													Search Customers for &ldquo;{commandQuery.trim()}
+													&rdquo;
+												</span>
+												<span className="font-mono text-[10px] text-slate-400">
+													Directory
+												</span>
+											</button>
+										)}
 									</div>
 								)}
 
@@ -1185,9 +1444,9 @@ DeanFlow Lead Intelligence Console`
 			</AnimatePresence>
 
 			{/* MAIN CONTENT WRAPPER */}
-			<div className="flex min-h-screen flex-col md:pl-64">
+			<div className="flex min-h-screen flex-col md:pl-64 print:pl-0">
 				{/* TOP APPLICATION BAR */}
-				<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-slate-200/90 bg-white/95 px-4 backdrop-blur-sm sm:px-8">
+				<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-slate-200/90 bg-white/95 px-4 backdrop-blur-sm sm:px-8 print:hidden">
 					<div className="flex items-center gap-3">
 						<button
 							onClick={() => setMobileNavOpen(true)}
@@ -1210,9 +1469,20 @@ DeanFlow Lead Intelligence Console`
 										const url = new URL(location.href)
 										url.searchParams.delete('lead')
 										history.pushState({}, '', url)
+									} else if (view === 'customers' && customersSelected) {
+										setCustomersSelected(null)
+										const url = new URL(location.href)
+										url.searchParams.delete('customer')
+										url.searchParams.delete('dpage')
+										history.pushState({}, '', url)
+										window.dispatchEvent(new PopStateEvent('popstate'))
 									}
 								}}
-								className={`hover:text-slate-900 ${!selected ? 'font-semibold text-slate-900' : ''}`}
+								className={`cursor-pointer hover:text-slate-900 ${
+									!selected && !(view === 'customers' && customersSelected)
+										? 'font-semibold text-slate-900'
+										: ''
+								}`}
 							>
 								{view === 'overview' && 'Executive Overview'}
 								{view === 'leads' && 'Leads Directory'}
@@ -1221,11 +1491,13 @@ DeanFlow Lead Intelligence Console`
 								{view === 'customers' && 'Customers'}
 								{view === 'team' && 'Team Governance'}
 							</button>
-							{selected && (
+							{(selected || (view === 'customers' && customersSelected)) && (
 								<>
 									<ChevronRight className="h-3 w-3 text-slate-400" />
 									<span className="max-w-[140px] truncate font-semibold text-slate-900 sm:max-w-[200px]">
-										{selected.name}
+										{selected
+											? selected.name
+											: customersSelected?.name}
 									</span>
 								</>
 							)}
@@ -1269,7 +1541,7 @@ DeanFlow Lead Intelligence Console`
 
 						<div
 							className="hidden items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600 sm:flex"
-							title="Live auto-refresh every 60s"
+							title={`Checks for new leads every ${EVENT_POLL_INTERVAL_MS / 1000}s while active`}
 						>
 							<span className="relative flex h-2 w-2">
 								<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -1280,12 +1552,22 @@ DeanFlow Lead Intelligence Console`
 
 						<motion.button
 							whileTap={{ scale: 0.95 }}
-							disabled={busy}
-							onClick={() => setRevision((n) => n + 1)}
-							className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50"
+							disabled={view === 'customers' ? customersBusy : busy}
+							onClick={() => {
+								if (view === 'customers') {
+									setCustomersRevision((n) => n + 1)
+								} else {
+									setRevision((n) => n + 1)
+								}
+							}}
+							className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							<RefreshCw
-								className={`h-3.5 w-3.5 text-slate-500 ${busy ? 'animate-spin' : ''}`}
+								className={`h-3.5 w-3.5 text-slate-500 ${
+									(view === 'customers' ? customersBusy : busy)
+										? 'animate-spin'
+										: ''
+								}`}
 							/>
 							<span className="hidden sm:inline">Refresh</span>
 						</motion.button>
@@ -1344,19 +1626,43 @@ DeanFlow Lead Intelligence Console`
 							>
 								{/* Back Button & Dossier Hero Banner */}
 								<div className="space-y-4">
-									<motion.button
-										whileTap={{ scale: 0.97 }}
-										className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs transition-colors hover:bg-slate-50"
-										onClick={() => {
-											setSelected(null)
-											const url = new URL(location.href)
-											url.searchParams.delete('lead')
-											history.pushState({}, '', url)
-										}}
-									>
-										<ArrowLeft className="h-3.5 w-3.5 text-slate-500" />
-										Back to list
-									</motion.button>
+									<div className="flex flex-wrap items-center justify-between gap-2">
+										<motion.button
+											whileTap={{ scale: 0.97 }}
+											className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs transition-colors hover:bg-slate-50"
+											onClick={() => {
+												setSelected(null)
+												setDetailUpdateNotice(null)
+												const url = new URL(location.href)
+												url.searchParams.delete('lead')
+												history.pushState({}, '', url)
+											}}
+										>
+											<ArrowLeft className="h-3.5 w-3.5 text-slate-500" />
+											Back to list
+										</motion.button>
+
+										{detailUpdateNotice && (
+											<div
+												role="status"
+												className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 shadow-2xs"
+											>
+												<Bell className="h-3.5 w-3.5 text-amber-600" />
+												<span>
+													{detailUpdateNotice === 'new_lead'
+														? 'New lead arrived (list updated).'
+														: 'Lead changes detected (list updated).'}
+												</span>
+												<button
+													type="button"
+													onClick={() => void openLead(selected.id)}
+													className="rounded border border-amber-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-amber-900 transition-colors hover:bg-amber-100"
+												>
+													Reload dossier
+												</button>
+											</div>
+										)}
+									</div>
 
 									{/* Hero Lead Dossier Card */}
 									<div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs">
@@ -1394,6 +1700,18 @@ DeanFlow Lead Intelligence Console`
 														>
 															{selected.priority} priority
 														</span>
+														<span
+															className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+																(selected.ai_score ?? 0) >= 75
+																	? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+																	: (selected.ai_score ?? 0) >= 50
+																		? 'border-amber-200 bg-amber-50 text-amber-700'
+																		: 'border-slate-200 bg-slate-100 text-slate-600'
+															}`}
+														>
+															<Sparkles className="h-3 w-3" />
+															AI Score: {selected.ai_score ?? 0}/100
+														</span>
 													</div>
 
 													<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
@@ -1405,6 +1723,15 @@ DeanFlow Lead Intelligence Console`
 														<span className="flex items-center gap-1.5">
 															<Globe className="h-3.5 w-3.5 text-slate-400" />
 															{selected.country || 'Global / Not Specified'}
+															{(selected.ip_city || selected.ip_country) && (
+																<span className="font-mono text-[11px] text-slate-400">
+																	(IP:{' '}
+																	{[selected.ip_city, selected.ip_country]
+																		.filter(Boolean)
+																		.join(', ')}
+																	)
+																</span>
+															)}
 														</span>
 														<span className="flex items-center gap-1.5 text-slate-400">
 															<Clock className="h-3.5 w-3.5" />
@@ -1649,6 +1976,53 @@ DeanFlow Lead Intelligence Console`
 											)}
 										</article>
 
+										{/* AI Lead Intelligence & Outreach Brief */}
+										{(selected.ai_summary || selected.ai_pitch_draft) && (
+											<article className="rounded-xl border border-indigo-200/70 bg-linear-to-br from-indigo-50/50 via-white to-white p-5 shadow-xs">
+												<div className="mb-3 flex items-center justify-between gap-2 border-b border-indigo-100 pb-3">
+													<h2 className="flex items-center gap-2 text-sm font-semibold tracking-wider text-indigo-900 uppercase">
+														<Sparkles className="h-4 w-4 text-indigo-600" />
+														AI Intent Brief &amp; Pitch Draft
+													</h2>
+													<span className="rounded-full border border-indigo-200 bg-white px-2.5 py-0.5 text-[11px] font-bold text-indigo-700">
+														Score {selected.ai_score ?? 0}/100
+													</span>
+												</div>
+												{selected.ai_summary && (
+													<p className="rounded-lg border border-indigo-100/80 bg-white/90 p-3 text-xs leading-relaxed whitespace-pre-wrap text-slate-700">
+														{selected.ai_summary}
+													</p>
+												)}
+												{selected.ai_pitch_draft && (
+													<div className="mt-3 rounded-lg border border-slate-200/80 bg-white p-3">
+														<div className="mb-2 flex items-center justify-between gap-2">
+															<span className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
+																Recommended First-Touch Email
+															</span>
+															{canEdit && (
+																<button
+																	type="button"
+																	onClick={() =>
+																		setExternalEmailDraft({
+																			key: Date.now(),
+																			subject: `Following up on your ${selected.company_name || 'inquiry'} request`,
+																			body: selected.ai_pitch_draft || '',
+																		})
+																	}
+																	className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-indigo-700"
+																>
+																	Use AI Pitch in Email
+																</button>
+															)}
+														</div>
+														<p className="text-xs leading-relaxed whitespace-pre-wrap text-slate-600">
+															{selected.ai_pitch_draft}
+														</p>
+													</div>
+												)}
+											</article>
+										)}
+
 										{/* Contact & Activity Box with Quick Templates */}
 										<div id="contact-activity">
 											<LeadContactClient
@@ -1657,7 +2031,14 @@ DeanFlow Lead Intelligence Console`
 												canEdit={canEdit}
 												canAssign={canManage}
 												staff={staff}
-												onSaved={() => {
+												externalDraft={externalEmailDraft}
+												onSaved={(latestEventId) => {
+													if (latestEventId !== undefined) {
+														recordLatestEventId(latestEventId)
+													} else {
+														lastCheckAtRef.current = Date.now()
+													}
+													setDetailUpdateNotice(null)
 													void openLead(selected.id)
 													setRevision((n) => n + 1)
 												}}
@@ -1727,9 +2108,10 @@ DeanFlow Lead Intelligence Console`
 												</div>
 
 												<div className="flex items-center justify-between py-2.5">
-													<dt className="text-slate-500">UTM Source</dt>
+													<dt className="text-slate-500">UTM Source / Medium</dt>
 													<dd className="font-mono text-slate-800">
-														{selected.utm_source || '—'}
+														{selected.utm_source || '—'} /{' '}
+														{selected.utm_medium || '—'}
 													</dd>
 												</div>
 
@@ -1737,6 +2119,26 @@ DeanFlow Lead Intelligence Console`
 													<dt className="text-slate-500">Campaign</dt>
 													<dd className="font-mono text-slate-800">
 														{selected.utm_campaign || '—'}
+													</dd>
+												</div>
+
+												{(selected.utm_content || selected.utm_term) && (
+													<div className="flex items-center justify-between py-2.5">
+														<dt className="text-slate-500">
+															Content / Term
+														</dt>
+														<dd className="max-w-[60%] truncate font-mono text-slate-800">
+															{[selected.utm_content, selected.utm_term]
+																.filter(Boolean)
+																.join(' · ')}
+														</dd>
+													</div>
+												)}
+
+												<div className="flex items-center justify-between py-2.5">
+													<dt className="text-slate-500">Ad Click ID</dt>
+													<dd className="max-w-[60%] truncate font-mono text-slate-800">
+														{selected.click_id || '—'}
 													</dd>
 												</div>
 
@@ -1748,9 +2150,20 @@ DeanFlow Lead Intelligence Console`
 												</div>
 
 												<div className="flex items-center justify-between py-2.5">
-													<dt className="text-slate-500">First Touch Source</dt>
+													<dt className="text-slate-500">GeoIP Location</dt>
 													<dd className="font-mono text-slate-800">
-														{attr?.first_touch?.utm_source || '—'}
+														{[selected.ip_city, selected.ip_country]
+															.filter(Boolean)
+															.join(', ') || '—'}
+													</dd>
+												</div>
+
+												<div className="flex items-center justify-between py-2.5">
+													<dt className="text-slate-500">First Touch</dt>
+													<dd className="font-mono text-slate-800">
+														{attr?.first_touch?.utm_source
+															? `${attr.first_touch.utm_source} / ${attr.first_touch.utm_medium || '—'}`
+															: '—'}
 													</dd>
 												</div>
 
@@ -1759,7 +2172,55 @@ DeanFlow Lead Intelligence Console`
 														Latest Recorded Touch
 													</dt>
 													<dd className="font-mono text-slate-800">
-														{attr?.last_touch?.utm_source || '—'}
+														{attr?.last_touch?.utm_source
+															? `${attr.last_touch.utm_source} / ${attr.last_touch.utm_medium || '—'}`
+															: '—'}
+													</dd>
+												</div>
+
+												{(attr?.referrer || attr?.internal_ref) && (
+													<div className="flex items-center justify-between py-2.5">
+														<dt className="text-slate-500">
+															Referrer / Internal Ref
+														</dt>
+														<dd className="max-w-[60%] truncate font-mono text-slate-700">
+															{[attr.referrer, attr.internal_ref]
+																.filter(Boolean)
+																.join(' · ')}
+														</dd>
+													</div>
+												)}
+
+												<div className="py-2.5">
+													<dt className="mb-1.5 text-slate-500">
+														Consent Signals
+													</dt>
+													<dd className="flex flex-wrap gap-1.5">
+														<span
+															className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+																consentInfo?.marketing
+																	? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+																	: 'border-slate-200 bg-slate-50 text-slate-500'
+															}`}
+														>
+															Form Marketing:{' '}
+															{consentInfo?.marketing ? 'Yes' : 'No'}
+														</span>
+														<span
+															className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+																consentInfo?.marketingCookie
+																	? 'border-blue-200 bg-blue-50 text-blue-700'
+																	: 'border-slate-200 bg-slate-50 text-slate-500'
+															}`}
+														>
+															Marketing Cookie:{' '}
+															{consentInfo?.marketingCookie ? 'Yes' : 'No'}
+														</span>
+														{consentInfo?.dossierCommunication && (
+															<span className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+																Dossier Consent: Yes
+															</span>
+														)}
 													</dd>
 												</div>
 
@@ -1873,11 +2334,21 @@ DeanFlow Lead Intelligence Console`
 										</p>
 									</div>
 
-									<div className="flex flex-wrap items-center gap-2">
+									<div className="flex flex-wrap items-center gap-2 print:hidden">
+										{busy && overviewLoaded && (
+											<span
+												role="status"
+												className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-500 shadow-2xs"
+											>
+												<Loader2 className="h-3 w-3 animate-spin text-slate-500" />
+												Updating…
+											</span>
+										)}
 										{/* Date Range Selector */}
 										<div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-1 text-xs shadow-2xs">
 											<Calendar className="ml-1.5 h-3.5 w-3.5 text-slate-400" />
 											<select
+												aria-label="Reporting date range"
 												value={dateRange}
 												onChange={(e) => setDateRange(e.target.value)}
 												className="cursor-pointer bg-transparent py-1 pr-2 text-xs font-medium text-slate-700 focus:outline-none"
@@ -1894,7 +2365,7 @@ DeanFlow Lead Intelligence Console`
 										<motion.button
 											whileTap={{ scale: 0.96 }}
 											onClick={copyQuickReport}
-											className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-medium text-white shadow-2xs transition-colors hover:bg-slate-800"
+											className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-medium text-white shadow-2xs transition-colors hover:bg-slate-800"
 										>
 											{reportCopied ? (
 												<>
@@ -1911,7 +2382,7 @@ DeanFlow Lead Intelligence Console`
 										<motion.button
 											whileTap={{ scale: 0.96 }}
 											onClick={() => window.print()}
-											className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-2xs transition-colors hover:bg-slate-50"
+											className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-2xs transition-colors hover:bg-slate-50"
 										>
 											<Printer className="h-3.5 w-3.5 text-slate-500" />
 											Print / PDF
@@ -1919,356 +2390,441 @@ DeanFlow Lead Intelligence Console`
 									</div>
 								</div>
 
-								{/* EXECUTIVE SNAPSHOT BRIEF */}
-								<div className="rounded-2xl border border-emerald-200/80 bg-linear-to-r from-emerald-50/50 via-white to-slate-50/50 p-5 shadow-xs sm:p-6">
-									<div className="flex flex-col justify-between gap-4 border-b border-slate-200/60 pb-4 lg:flex-row lg:items-center">
-										<div>
-											<div className="flex items-center gap-2">
-												<span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
-													<Zap className="h-3 w-3 text-emerald-600" />
-													Today's Executive Digest
-												</span>
-												<span className="text-xs text-slate-500">
-													{new Date().toLocaleDateString('en-US', {
-														weekday: 'short',
-														month: 'short',
-														day: 'numeric',
-													})}
-												</span>
+								{!overviewLoaded && busy ? (
+									/* SKELETON LOADING STATE (prevents 0-value & empty-chart flash) */
+									<div
+										role="status"
+										aria-label="Loading Executive Overview"
+										className="space-y-6"
+									>
+										<div className="h-28 animate-pulse rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs" />
+										<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+											{Array.from({ length: 4 }).map((_, i) => (
+												<div
+													key={i}
+													className="h-24 animate-pulse rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs"
+												/>
+											))}
+										</div>
+										<div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+											<div className="h-80 animate-pulse rounded-2xl border border-slate-200/80 bg-white xl:col-span-7 2xl:col-span-8" />
+											<div className="h-80 animate-pulse rounded-2xl border border-slate-200/80 bg-white xl:col-span-5 2xl:col-span-4" />
+										</div>
+										<div className="h-64 animate-pulse rounded-2xl border border-slate-200/80 bg-white" />
+									</div>
+								) : (
+									<div
+										className={`space-y-6 transition-opacity duration-200 ${
+											busy ? 'opacity-75' : 'opacity-100'
+										}`}
+									>
+										{/* EXECUTIVE SNAPSHOT BRIEF */}
+										<div className="rounded-2xl border border-emerald-200/80 bg-linear-to-r from-emerald-50/50 via-white to-slate-50/50 p-5 shadow-xs sm:p-6">
+											<div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+												<div>
+													<div className="flex flex-wrap items-center gap-2">
+														<span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+															<Zap className="h-3 w-3 text-emerald-600" />
+															Today&apos;s Executive Digest
+														</span>
+														<span className="text-xs text-slate-500">
+															{new Date().toLocaleDateString('en-US', {
+																weekday: 'short',
+																month: 'short',
+																day: 'numeric',
+															})}
+														</span>
+														{topSource && (
+															<span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
+																Top Volume:{' '}
+																<strong className="text-slate-900">
+																	{formatSourceName(topSource.source)}
+																</strong>
+															</span>
+														)}
+														{topConvertingSource && (
+															<span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/80 bg-white px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
+																Best Qual Rate:{' '}
+																<strong>
+																	{formatSourceName(
+																		topConvertingSource.source,
+																	)}{' '}
+																	(
+																	{Math.round(
+																		(topConvertingSource.qualified /
+																			topConvertingSource.assessed) *
+																			100,
+																	)}
+																	%)
+																</strong>
+															</span>
+														)}
+													</div>
+													<p className="mt-2 max-w-3xl text-xs leading-relaxed text-slate-700">
+														Currently tracking{' '}
+														<strong className="text-slate-900">
+															{total.toLocaleString('en-US')} inquiries
+														</strong>{' '}
+														{dateRange === 'all'
+															? 'across all time'
+															: `in selected period [${dateRange}]`}
+														. Overall qualified rate is{' '}
+														<strong className="text-emerald-700">
+															{insightAvgQualRate}%
+														</strong>
+														.
+														{overdueCount > 0 ? (
+															<span className="ml-1 font-semibold text-rose-700">
+																Immediate action required on {overdueCount}{' '}
+																overdue follow-up tasks.
+															</span>
+														) : (
+															<span className="ml-1 font-semibold text-emerald-700">
+																All scheduled follow-ups are currently on track.
+															</span>
+														)}
+													</p>
+												</div>
+
+												<div className="flex shrink-0 items-center gap-2 print:hidden">
+													<motion.button
+														whileTap={{ scale: 0.96 }}
+														onClick={() => navigate('leads')}
+														className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs transition-colors hover:bg-slate-50"
+													>
+														View All Leads
+														<ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+													</motion.button>
+												</div>
 											</div>
-											<p className="mt-2 max-w-3xl text-xs leading-relaxed text-slate-700">
-												Currently tracking{' '}
-												<strong className="text-slate-900">
-													{total} inquiries
-												</strong>{' '}
-												{dateRange === 'all'
-													? 'across all time'
-													: `in selected period [${dateRange}]`}
-												. Overall qualified rate is{' '}
-												<strong className="text-emerald-700">
-													{insightAvgQualRate}%
-												</strong>
-												.
-												{overdueCount > 0 ? (
-													<span className="ml-1 font-semibold text-rose-700">
-														Immediate action required on{' '}
-														{overdueCount} overdue follow-up tasks.
-													</span>
-												) : (
-													<span className="ml-1 font-semibold text-emerald-700">
-														All scheduled follow-ups are currently on track.
-													</span>
-												)}
-											</p>
 										</div>
 
-										<div className="flex shrink-0 items-center gap-2">
-											<motion.button
-												whileTap={{ scale: 0.96 }}
-												onClick={() => navigate('leads')}
-												className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-50"
+										{/* KPI SUMMARY CARDS */}
+										<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+											<button
+												type="button"
+												onClick={() => {
+													setFilter('all')
+													setSearch('')
+													navigate('leads')
+												}}
+												className="group cursor-pointer rounded-xl border border-slate-200/90 bg-white p-5 text-left shadow-xs transition-all hover:border-slate-300 hover:shadow-sm"
 											>
-												View All Leads
-												<ChevronRight className="h-3.5 w-3.5 text-slate-400" />
-											</motion.button>
-										</div>
-									</div>
+												<div className="flex items-center justify-between text-xs text-slate-500">
+													<span>Inbound Inquiries</span>
+													<Inbox className="h-4 w-4 text-blue-500" />
+												</div>
+												<p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 group-hover:text-blue-600">
+													{total.toLocaleString('en-US')}
+												</p>
+												<span className="mt-1 block text-[11px] text-slate-400">
+													{newInquiryCount} new in inbox
+												</span>
+											</button>
 
-									{/* Quick Report Metric Chips */}
-									<div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-										<div className="rounded-xl border border-slate-200/80 bg-white p-3 text-center">
-											<span className="block text-[11px] text-slate-500">
-												Total Pipeline Leads
-											</span>
-											<span className="mt-0.5 block text-xl font-bold text-slate-900">
-												{total}
-											</span>
-										</div>
-										<div className="rounded-xl border border-slate-200/80 bg-white p-3 text-center">
-											<span className="block text-[11px] text-slate-500">
-												Qualified Rate
-											</span>
-											<span className="mt-0.5 block text-xl font-bold text-emerald-600">
-												{insightAvgQualRate}%
-											</span>
-										</div>
-										<div className="rounded-xl border border-slate-200/80 bg-white p-3 text-center">
-											<span className="block text-[11px] text-slate-500">
-												Overdue Follow-ups
-											</span>
-											<span
-												className={`mt-0.5 block text-xl font-bold ${overdueCount > 0 ? 'text-rose-600' : 'text-slate-800'}`}
+											<button
+												type="button"
+												onClick={() => {
+													setFilter('all')
+													setSearch('')
+													navigate('leads')
+												}}
+												className="group cursor-pointer rounded-xl border border-slate-200/90 bg-white p-5 text-left shadow-xs transition-all hover:border-slate-300 hover:shadow-sm"
 											>
-												{overdueCount}
-											</span>
-										</div>
-										<div className="rounded-xl border border-slate-200/80 bg-white p-3 text-center">
-											<span className="block text-[11px] text-slate-500">
-												Top Converting Source
-											</span>
-											<span className="mt-1 block truncate text-xs font-semibold text-slate-800">
-												{topSource ? topSource.source : 'Organic'}
-											</span>
-										</div>
-									</div>
-								</div>
-
-								{/* KPI SUMMARY CARDS */}
-								<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-									<div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-xs">
-										<div className="flex items-center justify-between text-xs text-slate-500">
-											<span>Inbound Inquiries</span>
-											<Inbox className="h-4 w-4 text-blue-500" />
-										</div>
-										<p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
-											{total}
-										</p>
-										<span className="mt-1 block text-[11px] text-slate-400">
-											{newInquiryCount} new in
-											inbox
-										</span>
-									</div>
-
-									<div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-xs">
-										<div className="flex items-center justify-between text-xs text-slate-500">
-											<span>High Priority Inquiries</span>
-											<Flame className="h-4 w-4 text-rose-500" />
-										</div>
-										<p className="mt-2 text-2xl font-bold tracking-tight text-rose-600">
-											{highPriorityCount}
-										</p>
-										<span className="mt-1 block text-[11px] text-slate-400">
-											High priority in selected period
-										</span>
-									</div>
-
-									<div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-xs">
-										<div className="flex items-center justify-between text-xs text-slate-500">
-											<span>Scheduled Follow-ups</span>
-											<Clock className="h-4 w-4 text-amber-500" />
-										</div>
-										<p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
-											{followupCounts.total}
-										</p>
-										<span className="mt-1 block text-[11px] font-medium text-rose-600">
-											{overdueCount > 0
-												? `${overdueCount} overdue actions`
-												: 'All follow-ups on track'}
-										</span>
-									</div>
-
-									<div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-xs">
-										<div className="flex items-center justify-between text-xs text-slate-500">
-											<span>Overall Qual Rate</span>
-											<TrendingUp className="h-4 w-4 text-emerald-500" />
-										</div>
-										<p className="mt-2 text-2xl font-bold tracking-tight text-emerald-600">
-											{insightAvgQualRate}%
-										</p>
-										<span className="mt-1 block text-[11px] text-slate-400">
-											{insightQualified} leads qualified
-										</span>
-									</div>
-								</div>
-
-								{/* VISUAL ANALYTICS ROW 1: Lead Velocity Curve & Conversion Funnel */}
-								<div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-12">
-									<div className="flex flex-col xl:col-span-7 2xl:col-span-8">
-										<LeadVolumeTrendChart
-											trends={trends}
-											items={items}
-											timeframe={dateRange}
-											totalLeads={total}
-											qualifiedLeads={insightQualified}
-										/>
-									</div>
-									<div className="flex flex-col xl:col-span-5 2xl:col-span-4">
-										<LeadPipelineFunnelChart
-											stages={stages}
-											qualifications={qualifications}
-											totalLeads={total}
-											onOpenFilter={(filterKey) => {
-												setFilter(filterKey)
-												setSearch('')
-												setPage(1)
-												navigate(
-													filterKey === 'followups'
-														? 'followups'
-														: 'leads',
-												)
-											}}
-										/>
-									</div>
-								</div>
-
-								{/* VISUAL ANALYTICS: Traffic Acquisition & Channel Quality */}
-								<div>
-									<LeadSourceDistributionChart
-										sources={sources}
-										totalLeads={total}
-										onSelectSource={(src) => {
-											setSearch(src)
-											navigate('leads')
-										}}
-									/>
-								</div>
-
-								{/* 2-COLUMN ACTION CENTER */}
-								<div className="grid gap-6 lg:grid-cols-2">
-									{/* Urgent Inquiries Section */}
-									<div className="flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white p-5 shadow-xs">
-										<div>
-											<div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
-												<h2 className="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-500 uppercase">
+												<div className="flex items-center justify-between text-xs text-slate-500">
+													<span>High Priority Inquiries</span>
 													<Flame className="h-4 w-4 text-rose-500" />
-													Fresh & Urgent Inquiries Needing Outreach
-												</h2>
-												<button
+												</div>
+												<p className="mt-2 text-2xl font-bold tracking-tight text-rose-600">
+													{highPriorityCount.toLocaleString('en-US')}
+												</p>
+												<span className="mt-1 block text-[11px] text-slate-400">
+													{total > 0
+														? `${Math.round((highPriorityCount / total) * 100)}% of period volume`
+														: 'High priority in selected period'}
+												</span>
+											</button>
+
+											<button
+												type="button"
+												onClick={() => navigate('followups')}
+												className="group cursor-pointer rounded-xl border border-slate-200/90 bg-white p-5 text-left shadow-xs transition-all hover:border-slate-300 hover:shadow-sm"
+											>
+												<div className="flex items-center justify-between text-xs text-slate-500">
+													<span>Scheduled Follow-ups</span>
+													<Clock className="h-4 w-4 text-amber-500" />
+												</div>
+												<p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 group-hover:text-blue-600">
+													{followupCounts.total.toLocaleString('en-US')}
+												</p>
+												<span
+													className={`mt-1 block text-[11px] font-medium ${
+														overdueCount > 0
+															? 'text-rose-600'
+															: 'text-slate-400'
+													}`}
+												>
+													{overdueCount > 0
+														? `${overdueCount} overdue · all open leads`
+														: 'All open leads on track'}
+												</span>
+											</button>
+
+											<button
+												type="button"
+												onClick={() => {
+													setFilter('qualified')
+													setSearch('')
+													navigate('leads')
+												}}
+												className="group cursor-pointer rounded-xl border border-slate-200/90 bg-white p-5 text-left shadow-xs transition-all hover:border-slate-300 hover:shadow-sm"
+											>
+												<div className="flex items-center justify-between text-xs text-slate-500">
+													<span>Overall Qual Rate</span>
+													<TrendingUp className="h-4 w-4 text-emerald-500" />
+												</div>
+												<p className="mt-2 text-2xl font-bold tracking-tight text-emerald-600">
+													{insightAvgQualRate}%
+												</p>
+												<span className="mt-1 block text-[11px] text-slate-400">
+													{insightQualified} of {insightAssessed} assessed
+													qualified
+												</span>
+											</button>
+										</div>
+
+										{/* VISUAL ANALYTICS ROW 1: Lead Velocity Curve & Conversion Funnel */}
+										<div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-12">
+											<div className="flex flex-col xl:col-span-7 2xl:col-span-8">
+												<LeadVolumeTrendChart
+													trends={trends}
+													timeframe={dateRange}
+													totalLeads={total}
+													qualifiedLeads={insightQualified}
+												/>
+											</div>
+											<div className="flex flex-col xl:col-span-5 2xl:col-span-4">
+												<LeadPipelineFunnelChart
+													stages={stages}
+													qualifications={qualifications}
+													totalLeads={total}
+													onOpenFilter={(filterKey) => {
+														setFilter(filterKey)
+														setSearch('')
+														setPage(1)
+														navigate(
+															filterKey === 'followups'
+																? 'followups'
+																: 'leads',
+														)
+													}}
+												/>
+											</div>
+										</div>
+
+										{/* VISUAL ANALYTICS: Traffic Acquisition & Channel Quality */}
+										<div>
+											<LeadSourceDistributionChart
+												sources={sources}
+												totalLeads={total}
+												onSelectSource={(src) => {
+													if (src === '__other__') {
+														navigate('insights')
+														return
+													}
+													setFilter('all')
+													setSearch('')
+													setUtmSource(src)
+													setPage(1)
+													navigate('leads', { keepUtmSource: true })
+												}}
+											/>
+										</div>
+
+										{/* 2-COLUMN ACTION CENTER */}
+										<div className="grid gap-6 lg:grid-cols-2">
+											{/* Urgent Inquiries Section */}
+											<div className="flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white p-5 shadow-xs">
+												<div>
+													<div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+														<h2 className="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-500 uppercase">
+															<Flame className="h-4 w-4 text-rose-500" />
+															Fresh &amp; Urgent Inquiries Needing Outreach
+														</h2>
+														<button
+															onClick={() => {
+																setSearch('')
+																setFilter('new')
+																navigate('leads')
+															}}
+															className="cursor-pointer text-xs font-medium text-slate-600 hover:text-slate-900 print:hidden"
+														>
+															View all
+														</button>
+													</div>
+
+													{urgentInquiries.length > 0 ? (
+														<div className="space-y-3">
+															{urgentInquiries.slice(0, 5).map((l) => {
+																const sla = getSlaStatus(l.created_at, l.status)
+																return (
+																	<div
+																		key={l.id}
+																		onClick={() => selectLead(l.id)}
+																		className="group flex cursor-pointer items-center justify-between rounded-lg border border-slate-100 bg-slate-50/50 p-3 transition-colors hover:bg-slate-100/70"
+																	>
+																		<div className="flex min-w-0 items-center gap-3">
+																			<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[11px] font-semibold text-white">
+																				{getInitials(l.name)}
+																			</div>
+																			<div className="min-w-0">
+																				<p className="truncate text-xs font-semibold text-slate-900 group-hover:text-blue-600">
+																					{l.name}
+																				</p>
+																				<p className="truncate text-[11px] text-slate-400">
+																					{l.company_name || l.email} ·{' '}
+																					{leadChannel(
+																						l.utm_source,
+																						l.utm_medium,
+																					)}
+																				</p>
+																			</div>
+																		</div>
+																		<div className="flex shrink-0 items-center gap-2">
+																			{l.priority === 'high' && (
+																				<span className="rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-700">
+																					High
+																				</span>
+																			)}
+																			{sla && (
+																				<span
+																					className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] ${sla.badge}`}
+																				>
+																					<span
+																						className={`h-1.5 w-1.5 rounded-full ${sla.dot}`}
+																					/>
+																					{sla.label}
+																				</span>
+																			)}
+																			<span className="text-[11px] text-slate-400">
+																				{formatShortDate(l.created_at)}
+																			</span>
+																		</div>
+																	</div>
+																)
+															})}
+														</div>
+													) : (
+														<div className="py-8 text-center text-xs text-slate-400">
+															No urgent inquiries pending outreach.
+														</div>
+													)}
+												</div>
+
+												<motion.button
+													whileTap={{ scale: 0.98 }}
 													onClick={() => {
-														setFilter('new')
+														setFilter('all')
+														setSearch('')
 														navigate('leads')
 													}}
-													className="text-xs font-medium text-slate-600 hover:text-slate-900"
+													className="mt-4 w-full cursor-pointer rounded-lg border border-slate-200 bg-white py-2 text-center text-xs font-medium text-slate-700 shadow-2xs transition-colors hover:bg-slate-50 print:hidden"
 												>
-													View all
-												</button>
+													Open Leads Directory
+												</motion.button>
 											</div>
 
-											{urgentInquiries.length > 0 ? (
-												<div className="space-y-3">
-													{urgentInquiries.slice(0, 5).map((l) => {
-														const sla = getSlaStatus(l.created_at, l.status)
-														return (
-															<div
-																key={l.id}
-																onClick={() => selectLead(l.id)}
-																className="group flex cursor-pointer items-center justify-between rounded-lg border border-slate-100 bg-slate-50/50 p-3 transition-colors hover:bg-slate-100/70"
-															>
-																<div className="flex min-w-0 items-center gap-3">
-																	<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[11px] font-semibold text-white">
-																		{getInitials(l.name)}
-																	</div>
-																	<div className="min-w-0">
-																		<p className="truncate text-xs font-semibold text-slate-900 group-hover:text-blue-600">
-																			{l.name}
-																		</p>
-																		<p className="truncate text-[11px] text-slate-400">
-																			{l.company_name || l.email} ·{' '}
-																			{leadChannel(l.utm_source, l.utm_medium)}
-																		</p>
-																	</div>
-																</div>
-																<div className="flex shrink-0 items-center gap-2">
-																	{sla && (
-																		<span
-																			className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] ${sla.badge}`}
-																		>
-																			<span
-																				className={`h-1.5 w-1.5 rounded-full ${sla.dot}`}
-																			/>
-																			{sla.label}
-																		</span>
-																	)}
-																	<span className="text-[11px] text-slate-400">
-																		{formatShortDate(l.created_at)}
-																	</span>
-																</div>
-															</div>
-														)
-													})}
-												</div>
-											) : (
-												<div className="py-8 text-center text-xs text-slate-400">
-													No urgent inquiries pending outreach.
-												</div>
-											)}
-										</div>
+											{/* Upcoming & Overdue Follow-ups */}
+											<div className="flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white p-5 shadow-xs">
+												<div>
+													<div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+														<h2 className="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-500 uppercase">
+															<Clock className="h-4 w-4 text-amber-500" />
+															Upcoming &amp; Overdue Follow-ups
+														</h2>
+														<button
+															onClick={() => navigate('followups')}
+															className="cursor-pointer text-xs font-medium text-slate-600 hover:text-slate-900 print:hidden"
+														>
+															View all
+														</button>
+													</div>
 
-										<motion.button
-											whileTap={{ scale: 0.98 }}
-											onClick={() => {
-												setFilter('all')
-												navigate('leads')
-											}}
-											className="mt-4 w-full rounded-lg border border-slate-200 bg-white py-2 text-center text-xs font-medium text-slate-700 shadow-2xs transition-colors hover:bg-slate-50"
-										>
-											Open Leads Directory
-										</motion.button>
-									</div>
-
-									{/* Upcoming & Overdue Follow-ups */}
-									<div className="flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white p-5 shadow-xs">
-										<div>
-											<div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
-												<h2 className="flex items-center gap-2 text-sm font-semibold tracking-wider text-slate-500 uppercase">
-													<Clock className="h-4 w-4 text-amber-500" />
-													Upcoming & Overdue Follow-ups
-												</h2>
-												<button
-													onClick={() => navigate('followups')}
-													className="text-xs font-medium text-slate-600 hover:text-slate-900"
-												>
-													View all
-												</button>
-											</div>
-
-											{overviewFollowups.length > 0 ? (
-												<div className="space-y-3">
-													{overviewFollowups.slice(0, 5).map((l) => {
-														const isOverdue =
-															l.follow_up_at &&
-															Date.parse(l.follow_up_at) < Date.now()
-														return (
-															<div
-																key={l.id}
-																onClick={() => selectLead(l.id)}
-																className="group flex cursor-pointer items-center justify-between rounded-lg border border-slate-100 bg-slate-50/50 p-3 transition-colors hover:bg-slate-100/70"
-															>
-																<div className="min-w-0 pr-3">
-																	<p className="truncate text-xs font-semibold text-slate-900 group-hover:text-blue-600">
-																		{l.name}
-																	</p>
-																	<p className="truncate text-[11px] text-slate-500">
-																		{l.next_action || 'Follow up'}
-																	</p>
-																</div>
-																<div className="shrink-0 text-right">
-																	<span
-																		className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium ${
-																			isOverdue
-																				? 'border border-rose-200 bg-rose-50 font-semibold text-rose-700'
-																				: 'bg-slate-100 text-slate-600'
-																		}`}
+													{overviewFollowups.length > 0 ? (
+														<div className="space-y-3">
+															{overviewFollowups.slice(0, 5).map((l) => {
+																const isOverdue =
+																	l.follow_up_at &&
+																	Date.parse(l.follow_up_at) < Date.now()
+																return (
+																	<div
+																		key={l.id}
+																		onClick={() => selectLead(l.id)}
+																		className="group flex cursor-pointer items-center justify-between rounded-lg border border-slate-100 bg-slate-50/50 p-3 transition-colors hover:bg-slate-100/70"
 																	>
-																		{isOverdue && (
-																			<AlertTriangle className="h-3 w-3 text-rose-500" />
-																		)}
-																		{formatDate(l.follow_up_at)}
-																	</span>
-																</div>
-															</div>
-														)
-													})}
+																		<div className="min-w-0 pr-3">
+																			<p className="truncate text-xs font-semibold text-slate-900 group-hover:text-blue-600">
+																				{l.name}
+																			</p>
+																			<p className="truncate text-[11px] text-slate-500">
+																				{l.next_action || 'Follow up'}
+																			</p>
+																		</div>
+																		<div className="shrink-0 text-right">
+																			<span
+																				className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium ${
+																					isOverdue
+																						? 'border border-rose-200 bg-rose-50 font-semibold text-rose-700'
+																						: 'bg-slate-100 text-slate-600'
+																				}`}
+																			>
+																				{isOverdue && (
+																					<AlertTriangle className="h-3 w-3 text-rose-500" />
+																				)}
+																				{formatDate(l.follow_up_at)}
+																			</span>
+																		</div>
+																	</div>
+																)
+															})}
+														</div>
+													) : (
+														<div className="py-8 text-center text-xs text-slate-400">
+															No scheduled follow-ups pending.
+														</div>
+													)}
 												</div>
-											) : (
-												<div className="py-8 text-center text-xs text-slate-400">
-													No scheduled follow-ups pending.
-												</div>
-											)}
-										</div>
 
-										<motion.button
-											whileTap={{ scale: 0.98 }}
-											onClick={() => navigate('followups')}
-											className="mt-4 w-full rounded-lg border border-slate-200 bg-white py-2 text-center text-xs font-medium text-slate-700 shadow-2xs transition-colors hover:bg-slate-50"
-										>
-											Manage All Scheduled Follow-ups
-										</motion.button>
+												<motion.button
+													whileTap={{ scale: 0.98 }}
+													onClick={() => navigate('followups')}
+													className="mt-4 w-full cursor-pointer rounded-lg border border-slate-200 bg-white py-2 text-center text-xs font-medium text-slate-700 shadow-2xs transition-colors hover:bg-slate-50 print:hidden"
+												>
+													Manage All Scheduled Follow-ups
+												</motion.button>
+											</div>
+										</div>
 									</div>
-								</div>
+								)}
 							</motion.section>
 						) : view === 'customers' ? (
-							<CustomersClient />
+							<CustomersClient
+								externalRefresh={customersRevision}
+								externalSearch={customersSearchJump}
+								onExternalSearchConsumed={() => setCustomersSearchJump(null)}
+								onBusyChange={setCustomersBusy}
+								onCustomerChange={setCustomersSelected}
+								onOpenLead={(leadId) => {
+									setCustomersSelected(null)
+									setView('leads')
+									const url = new URL(location.href)
+									url.search = ''
+									url.searchParams.set('view', 'leads')
+									url.searchParams.set('lead', leadId)
+									history.pushState({}, '', url)
+									void openLead(leadId)
+								}}
+							/>
 						) : view === 'team' ? (
 							<motion.section
 								key="team-section"
@@ -2278,6 +2834,7 @@ DeanFlow Lead Intelligence Console`
 								transition={{ duration: 0.22, ease: 'easeOut' }}
 							>
 								<StaffManagement
+									authMode={authMode}
 									currentStaff={user}
 									initialStaff={initialStaff.map((s) => ({
 										...s,
@@ -2381,88 +2938,352 @@ DeanFlow Lead Intelligence Console`
 									</div>
 								</div>
 
+								{/* Cloudflare Analytics Engine Funnel & Web Vitals Rollups */}
+								<EdgeTelemetryCard dateRange={dateRange} />
+
+								{/* Insights Sub-Tabs */}
+								<div className="flex flex-wrap items-center justify-between gap-3">
+									<div className="flex flex-wrap gap-1.5 rounded-xl border border-slate-200 bg-white p-1 shadow-2xs">
+										{(
+											[
+												{ id: 'sources', label: `Sources / Medium (${sources.length})` },
+												{ id: 'campaigns', label: `Campaigns (${campaigns.length})` },
+												{ id: 'placements', label: `Form Placements (${placements.length})` },
+												{ id: 'countries', label: `GeoIP Countries (${countries.length})` },
+											] as const
+										).map((tab) => (
+											<button
+												key={tab.id}
+												type="button"
+												onClick={() => setInsightTab(tab.id)}
+												className={`cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+													insightTab === tab.id
+														? 'bg-slate-900 text-white shadow-2xs'
+														: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+												}`}
+											>
+												{tab.label}
+											</button>
+										))}
+									</div>
+									<p className="text-[11px] text-slate-500">
+										Click any Source or Campaign row to filter Leads Directory
+									</p>
+								</div>
+
 								{/* Insights Conversion Table */}
 								<div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-xs">
 									<div className="overflow-x-auto">
-										<table className="w-full text-left text-xs">
-											<thead className="border-b border-slate-200/80 bg-slate-50/80 font-semibold tracking-wider text-slate-500 uppercase">
-												<tr>
-													{[
-														'Source / Medium',
-														'Total Inquiries',
-														'Assessed',
-														'Qualified',
-														'Qualification Rate',
-														'Spam Count',
-													].map((h) => (
-														<th className="px-4 py-3" key={h}>
-															{h}
-														</th>
-													))}
-												</tr>
-											</thead>
-											<tbody className="divide-y divide-slate-100">
-												{sources.length > 0 ? (
-													sources.map((s) => {
-														const rate = s.assessed
-															? Math.round((s.qualified / s.assessed) * 100)
-															: 0
-														return (
+										{insightTab === 'sources' && (
+											<table className="w-full text-left text-xs">
+												<thead className="border-b border-slate-200/80 bg-slate-50/80 font-semibold tracking-wider text-slate-500 uppercase">
+													<tr>
+														{[
+															'Source / Medium',
+															'Total Inquiries',
+															'Assessed',
+															'Qualified',
+															'Qualification Rate',
+															'Spam Count',
+														].map((h) => (
+															<th className="px-4 py-3" key={h}>
+																{h}
+															</th>
+														))}
+													</tr>
+												</thead>
+												<tbody className="divide-y divide-slate-100">
+													{sources.length > 0 ? (
+														sources.map((s) => {
+															const rate = s.assessed
+																? Math.round((s.qualified / s.assessed) * 100)
+																: 0
+															return (
+																<tr
+																	key={`${s.source}-${s.medium}`}
+																	onClick={() => {
+																		setFilter('all')
+																		setSearch('')
+																		setUtmSource(
+																			s.source === 'Unknown'
+																				? '__unknown__'
+																				: s.source,
+																		)
+																		setUtmMedium(
+																			s.medium === 'Unknown'
+																				? '__unknown__'
+																				: s.medium,
+																		)
+																		setUtmCampaign('')
+																		setPage(1)
+																		navigate('leads', { keepUtmSource: true })
+																	}}
+																	className="cursor-pointer transition-colors hover:bg-blue-50/40"
+																>
+																	<td className="px-4 py-3.5 font-medium text-slate-900">
+																		<span className="font-mono text-blue-700 hover:underline">
+																			{s.source} / {s.medium}
+																		</span>
+																	</td>
+																	<td className="px-4 py-3.5 text-slate-700">
+																		{s.total}
+																	</td>
+																	<td className="px-4 py-3.5 text-slate-700">
+																		{s.assessed}
+																	</td>
+																	<td className="px-4 py-3.5 font-semibold text-emerald-600">
+																		{s.qualified}
+																	</td>
+																	<td className="px-4 py-3.5">
+																		{s.assessed ? (
+																			<div className="flex items-center gap-2">
+																				<div className="h-2 w-20 overflow-hidden rounded-full bg-slate-100">
+																					<div
+																						className="h-full rounded-full bg-emerald-500"
+																						style={{ width: `${rate}%` }}
+																					/>
+																				</div>
+																				<span className="font-semibold text-slate-800">
+																					{rate}%
+																				</span>
+																			</div>
+																		) : (
+																			<span className="text-slate-400">
+																				Not assessed
+																			</span>
+																		)}
+																	</td>
+																	<td className="px-4 py-3.5 text-slate-500">
+																		{s.spam}
+																	</td>
+																</tr>
+															)
+														})
+													) : (
+														<tr>
+															<td
+																colSpan={6}
+																className="px-4 py-8 text-center text-slate-400"
+															>
+																No source conversion records found.
+															</td>
+														</tr>
+													)}
+												</tbody>
+											</table>
+										)}
+
+										{insightTab === 'campaigns' && (
+											<table className="w-full text-left text-xs">
+												<thead className="border-b border-slate-200/80 bg-slate-50/80 font-semibold tracking-wider text-slate-500 uppercase">
+													<tr>
+														{[
+															'Campaign',
+															'Source / Medium',
+															'Total Inquiries',
+															'Qualified',
+															'Qual Rate',
+															'Avg AI Score',
+														].map((h) => (
+															<th className="px-4 py-3" key={h}>
+																{h}
+															</th>
+														))}
+													</tr>
+												</thead>
+												<tbody className="divide-y divide-slate-100">
+													{campaigns.length > 0 ? (
+														campaigns.map((c) => {
+															const rate = c.total
+																? Math.round((c.qualified / c.total) * 100)
+																: 0
+															return (
+																<tr
+																	key={`${c.campaign}-${c.source}-${c.medium}`}
+																	onClick={() => {
+																		setFilter('all')
+																		setSearch('')
+																		setUtmSource(
+																			c.source === 'Unknown'
+																				? '__unknown__'
+																				: c.source,
+																		)
+																		setUtmMedium(
+																			c.medium === 'Unknown'
+																				? '__unknown__'
+																				: c.medium,
+																		)
+																		setUtmCampaign(
+																			c.campaign === '(none)'
+																				? '__none__'
+																				: c.campaign,
+																		)
+																		setPage(1)
+																		navigate('leads', { keepUtmSource: true })
+																	}}
+																	className="cursor-pointer transition-colors hover:bg-blue-50/40"
+																>
+																	<td className="px-4 py-3.5 font-medium text-blue-700 hover:underline">
+																		<span className="font-mono">
+																			{c.campaign}
+																		</span>
+																	</td>
+																	<td className="px-4 py-3.5 font-mono text-slate-600">
+																		{c.source} / {c.medium}
+																	</td>
+																	<td className="px-4 py-3.5 text-slate-700">
+																		{c.total}
+																	</td>
+																	<td className="px-4 py-3.5 font-semibold text-emerald-600">
+																		{c.qualified}
+																	</td>
+																	<td className="px-4 py-3.5 font-medium text-slate-700">
+																		{rate}%
+																	</td>
+																	<td className="px-4 py-3.5">
+																		<span className="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-700">
+																			{c.avg_score || 0}
+																		</span>
+																	</td>
+																</tr>
+															)
+														})
+													) : (
+														<tr>
+															<td
+																colSpan={6}
+																className="px-4 py-8 text-center text-slate-400"
+															>
+																No campaign attribution records found.
+															</td>
+														</tr>
+													)}
+												</tbody>
+											</table>
+										)}
+
+										{insightTab === 'placements' && (
+											<table className="w-full text-left text-xs">
+												<thead className="border-b border-slate-200/80 bg-slate-50/80 font-semibold tracking-wider text-slate-500 uppercase">
+													<tr>
+														{[
+															'Capture Placement / Source',
+															'Total Captures',
+															'Qualified',
+															'Avg AI Score',
+														].map((h) => (
+															<th className="px-4 py-3" key={h}>
+																{h}
+															</th>
+														))}
+													</tr>
+												</thead>
+												<tbody className="divide-y divide-slate-100">
+													{placements.length > 0 ? (
+														placements.map((p) => (
 															<tr
-																key={`${s.source}-${s.medium}`}
-																className="transition-colors hover:bg-slate-50/60"
+																key={p.placement}
+																onClick={() => {
+																	const isSub =
+																		p.placement === 'popup' ||
+																		p.placement === 'newsletter'
+																	setFilter(isSub ? 'subscribers' : 'all')
+																	setSearch('')
+																	setUtmSource('')
+																	setUtmMedium('')
+																	setUtmCampaign('')
+																	setPage(1)
+																	navigate('leads')
+																}}
+																className="cursor-pointer transition-colors hover:bg-blue-50/40"
 															>
 																<td className="px-4 py-3.5 font-medium text-slate-900">
-																	<span className="font-mono">
-																		{s.source} / {s.medium}
+																	<span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-700">
+																		{p.placement}
 																	</span>
 																</td>
 																<td className="px-4 py-3.5 text-slate-700">
-																	{s.total}
-																</td>
-																<td className="px-4 py-3.5 text-slate-700">
-																	{s.assessed}
+																	{p.total}
 																</td>
 																<td className="px-4 py-3.5 font-semibold text-emerald-600">
-																	{s.qualified}
+																	{p.qualified}
 																</td>
-																<td className="px-4 py-3.5">
-																	{s.assessed ? (
-																		<div className="flex items-center gap-2">
-																			<div className="h-2 w-20 overflow-hidden rounded-full bg-slate-100">
-																				<div
-																					className="h-full rounded-full bg-emerald-500"
-																					style={{ width: `${rate}%` }}
-																				/>
-																			</div>
-																			<span className="font-semibold text-slate-800">
-																				{rate}%
-																			</span>
-																		</div>
-																	) : (
-																		<span className="text-slate-400">
-																			Not assessed
-																		</span>
-																	)}
-																</td>
-																<td className="px-4 py-3.5 text-slate-500">
-																	{s.spam}
+																<td className="px-4 py-3.5 font-semibold text-slate-700">
+																	{p.avg_score || 0}
 																</td>
 															</tr>
-														)
-													})
-												) : (
+														))
+													) : (
+														<tr>
+															<td
+																colSpan={4}
+																className="px-4 py-8 text-center text-slate-400"
+															>
+																No form placement records found.
+															</td>
+														</tr>
+													)}
+												</tbody>
+											</table>
+										)}
+
+										{insightTab === 'countries' && (
+											<table className="w-full text-left text-xs">
+												<thead className="border-b border-slate-200/80 bg-slate-50/80 font-semibold tracking-wider text-slate-500 uppercase">
 													<tr>
-														<td
-															colSpan={6}
-															className="px-4 py-8 text-center text-slate-400"
-														>
-															No source conversion records found.
-														</td>
+														{[
+															'Country (GeoIP / Submitted)',
+															'Total Inquiries',
+															'Qualified',
+															'Share',
+														].map((h) => (
+															<th className="px-4 py-3" key={h}>
+																{h}
+															</th>
+														))}
 													</tr>
-												)}
-											</tbody>
-										</table>
+												</thead>
+												<tbody className="divide-y divide-slate-100">
+													{countries.length > 0 ? (
+														countries.map((co) => {
+															const share = insightTotalLeads
+																? Math.round(
+																		(co.total / insightTotalLeads) * 100,
+																	)
+																: 0
+															return (
+																<tr
+																	key={co.country}
+																	className="transition-colors hover:bg-slate-50/60"
+																>
+																	<td className="px-4 py-3.5 font-medium text-slate-900">
+																		{co.country}
+																	</td>
+																	<td className="px-4 py-3.5 text-slate-700">
+																		{co.total}
+																	</td>
+																	<td className="px-4 py-3.5 font-semibold text-emerald-600">
+																		{co.qualified}
+																	</td>
+																	<td className="px-4 py-3.5 font-medium text-slate-600">
+																		{share}%
+																	</td>
+																</tr>
+															)
+														})
+													) : (
+														<tr>
+															<td
+																colSpan={4}
+																className="px-4 py-8 text-center text-slate-400"
+															>
+																No geographic records found.
+															</td>
+														</tr>
+													)}
+												</tbody>
+											</table>
+										)}
 									</div>
 								</div>
 							</motion.section>
@@ -2519,76 +3340,145 @@ DeanFlow Lead Intelligence Console`
 								</div>
 
 								{/* Search & Filter Bar */}
-								<div className="flex flex-col items-stretch justify-between gap-3 md:flex-row md:items-center">
-									<div className="relative max-w-md flex-1">
-										<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-											<Search className="h-4 w-4" />
-										</div>
-										<input
-											className="w-full rounded-xl border border-slate-200 bg-white py-2 pr-8 pl-9 text-xs text-slate-900 shadow-2xs transition-colors placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-900/5 focus:outline-none"
-											placeholder="Search by name, company, email or phone (or press ⌘K)..."
-											value={search}
-											onChange={(e) => {
-												setSearch(e.target.value)
-												setPage(1)
-											}}
-										/>
-										{search && (
-											<button
-												onClick={() => {
-													setSearch('')
+								<div className="space-y-2.5">
+									<div className="flex flex-col items-stretch justify-between gap-3 md:flex-row md:items-center">
+										<div className="relative max-w-md flex-1">
+											<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+												<Search className="h-4 w-4" />
+											</div>
+											<input
+												className="w-full rounded-xl border border-slate-200 bg-white py-2 pr-8 pl-9 text-xs text-slate-900 shadow-2xs transition-colors placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-900/5 focus:outline-none"
+												placeholder="Search by name, company, email or phone (or press ⌘K)..."
+												value={search}
+												onChange={(e) => {
+													setSearch(e.target.value)
 													setPage(1)
 												}}
-												className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600"
-											>
-												<X className="h-3.5 w-3.5" />
-											</button>
+											/>
+											{search && (
+												<button
+													onClick={() => {
+														setSearch('')
+														setPage(1)
+													}}
+													className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600"
+												>
+													<X className="h-3.5 w-3.5" />
+												</button>
+											)}
+										</div>
+
+										{/* Segmented Filter Pills (Leads view) with Framer-motion layoutId */}
+										{view === 'leads' && (
+											<div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white p-1 shadow-2xs">
+												{[
+													['all', 'All Leads'],
+													['new', 'New Inquiries'],
+													['unassigned', 'Unassigned'],
+													['qualified', 'Qualified'],
+													['assessed', 'Assessed'],
+													['contacted', 'Contacting / Engaged'],
+													['won', 'Won (legacy)'],
+													['wholesale_rfq', 'Wholesale RFQs'],
+													['subscribers', 'Subscribers'],
+												].map(([v, l]) => {
+													const active = filter === v
+													return (
+														<button
+															key={v}
+															onClick={() => {
+																setFilter(v)
+																setPage(1)
+															}}
+															className={`relative rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+																active
+																	? 'text-white'
+																	: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+															}`}
+														>
+															{active && (
+																<motion.div
+																	layoutId="activeFilterPill"
+																	className="absolute inset-0 rounded-lg bg-slate-900 shadow-2xs"
+																	transition={{
+																		type: 'spring',
+																		stiffness: 450,
+																		damping: 35,
+																	}}
+																/>
+															)}
+															<span className="relative z-10">{l}</span>
+														</button>
+													)
+												})}
+											</div>
 										)}
 									</div>
-
-									{/* Segmented Filter Pills (Leads view) with Framer-motion layoutId */}
-									{view === 'leads' && (
-										<div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white p-1 shadow-2xs">
-											{[
-												['all', 'All Leads'],
-												['new', 'New Inquiries'],
-												['unassigned', 'Unassigned'],
-												['qualified', 'Qualified'],
-												['assessed', 'Assessed'],
-												['contacted', 'Contacting / Engaged'],
-												['won', 'Won (legacy)'],
-												['wholesale_rfq', 'Wholesale RFQs'],
-												['subscribers', 'Subscribers'],
-											].map(([v, l]) => {
-												const active = filter === v
-												return (
+									{view === 'leads' && (utmSource || utmMedium || utmCampaign) && (
+										<div className="flex flex-wrap items-center gap-2">
+											{utmSource && (
+												<span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+													UTM Source:{' '}
+													<strong className="font-semibold">
+														{utmSource === '__unknown__'
+															? 'Direct / Unknown'
+															: utmSource}
+													</strong>
 													<button
-														key={v}
+														type="button"
+														aria-label="Clear UTM source filter"
 														onClick={() => {
-															setFilter(v)
+															setUtmSource('')
 															setPage(1)
 														}}
-														className={`relative rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-															active
-																? 'text-white'
-																: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-														}`}
+														className="ml-0.5 cursor-pointer rounded-full p-0.5 text-blue-500 hover:bg-blue-100 hover:text-blue-800"
 													>
-														{active && (
-															<motion.div
-																layoutId="activeFilterPill"
-																className="absolute inset-0 rounded-lg bg-slate-900 shadow-2xs"
-																transition={{
-																	type: 'spring',
-																	stiffness: 450,
-																	damping: 35,
-																}}
-															/>
-														)}
-														<span className="relative z-10">{l}</span>
+														<X className="h-3 w-3" />
 													</button>
-												)
-											})}
+												</span>
+											)}
+											{utmMedium && (
+												<span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
+													Medium:{' '}
+													<strong className="font-semibold">
+														{utmMedium === '__unknown__'
+															? 'Unknown'
+															: utmMedium}
+													</strong>
+													<button
+														type="button"
+														aria-label="Clear UTM medium filter"
+														onClick={() => {
+															setUtmMedium('')
+															setPage(1)
+														}}
+														className="ml-0.5 cursor-pointer rounded-full p-0.5 text-indigo-500 hover:bg-indigo-100 hover:text-indigo-800"
+													>
+														<X className="h-3 w-3" />
+													</button>
+												</span>
+											)}
+											{utmCampaign && (
+												<span className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-medium text-violet-700">
+													Campaign:{' '}
+													<strong className="font-semibold">
+														{utmCampaign === '__none__'
+															? '(none)'
+															: utmCampaign}
+													</strong>
+													<button
+														type="button"
+														aria-label="Clear UTM campaign filter"
+														onClick={() => {
+															setUtmCampaign('')
+															setPage(1)
+														}}
+														className="ml-0.5 cursor-pointer rounded-full p-0.5 text-violet-500 hover:bg-violet-100 hover:text-violet-800"
+													>
+														<X className="h-3 w-3" />
+													</button>
+												</span>
+											)}
 										</div>
 									)}
 								</div>
@@ -2690,17 +3580,48 @@ DeanFlow Lead Intelligence Console`
 
 																{/* Acquisition Channel */}
 																<td className="px-4 py-3.5">
-																	<span className="block font-medium text-slate-800">
-																				{l.source === 'wholesale_rfq' ? 'Wholesale RFQ' : l.utm_source || 'Direct / Organic'}
-																	</span>
-																	<span className="py-0.2 mt-0.5 inline-block rounded-full bg-slate-100 px-2 text-[10px] font-medium text-slate-600">
-																		{leadChannel(l.utm_source, l.utm_medium)}
-																	</span>
+																	<div className="flex flex-wrap items-center gap-1.5">
+																		<span className="font-medium text-slate-800">
+																			{l.source === 'wholesale_rfq'
+																				? 'Wholesale RFQ'
+																				: l.utm_source || 'Direct / Organic'}
+																		</span>
+																		{(l.ip_country || l.country) && (
+																			<span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-slate-600">
+																				{l.ip_country || l.country}
+																			</span>
+																		)}
+																	</div>
+																	<div className="mt-1 flex flex-wrap items-center gap-1">
+																		<span className="py-0.2 inline-block rounded-full bg-slate-100 px-2 text-[10px] font-medium text-slate-600">
+																			{leadChannel(l.utm_source, l.utm_medium)}
+																		</span>
+																		{l.utm_campaign && (
+																			<span className="max-w-[140px] truncate rounded-full border border-violet-200 bg-violet-50 px-2 text-[10px] font-medium text-violet-700">
+																				{l.utm_campaign}
+																			</span>
+																		)}
+																	</div>
 																</td>
 
 																{/* Qualification & Priority */}
 																<td className="px-4 py-3.5">
 																	<div className="flex flex-wrap items-center gap-1.5">
+																		{typeof l.ai_score === 'number' &&
+																			l.ai_score > 0 && (
+																				<span
+																					className={`rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
+																						l.ai_score >= 70
+																							? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+																							: l.ai_score >= 40
+																								? 'border-amber-200 bg-amber-50 text-amber-700'
+																								: 'border-slate-200 bg-slate-50 text-slate-600'
+																					}`}
+																					title="Automated Intent Score (0-100)"
+																				>
+																					AI {l.ai_score}
+																				</span>
+																			)}
 																		<span
 																			className={`rounded-full border px-2 py-0.5 text-[11px] font-medium capitalize ${
 																				l.qualification === 'qualified'
@@ -2811,16 +3732,18 @@ DeanFlow Lead Intelligence Console`
 													filters.
 												</p>
 												{(search ||
+													utmSource ||
 													filter !== 'all' ||
 													dateRange !== 'all') && (
 													<button
 														onClick={() => {
 															setSearch('')
+															setUtmSource('')
 															setFilter('all')
 															setDateRange('all')
 															setPage(1)
 														}}
-														className="mt-3 inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+														className="mt-3 inline-flex cursor-pointer items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
 													>
 														Clear filters
 													</button>

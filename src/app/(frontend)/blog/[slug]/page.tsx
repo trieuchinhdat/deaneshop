@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { groq } from 'next-sanity'
 import { notFound } from 'next/navigation'
+import { connection } from 'next/server'
+import { isStaticStorefront } from '@/lib/deployment-profile'
 import { ROUTES } from '@/lib/env'
 import { enrichProductsWithD1Reviews } from '@/lib/reviews'
 import { client } from '@/sanity/lib/client'
@@ -17,8 +19,6 @@ import type { BLOG_POST_QUERY_RESULT } from '@/sanity/types'
 import ModulesResolver from '@/ui/modules'
 import BlogPostContent from '@/ui/modules/blog/blog-post-content'
 import Breadcrumbs from '@/ui/modules/breadcrumbs'
-
-export const dynamic = 'force-dynamic'
 
 type Props = {
 	params: Promise<{ slug: string }>
@@ -138,6 +138,7 @@ export async function generateStaticParams() {
 }
 
 async function getPost(slug: string) {
+	if (!isStaticStorefront) await connection()
 	const post = await sanityFetchLive<BLOG_POST_QUERY_RESULT>({
 		query: BLOG_POST_QUERY,
 		params: { slug, blogDir: `${ROUTES.blog}/` },

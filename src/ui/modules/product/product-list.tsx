@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { connection } from 'next/server'
 import { Suspense } from 'react'
 import { enrichProductsWithD1Reviews } from '@/lib/reviews'
+import { isStaticStorefront } from '@/lib/deployment-profile'
 import { sanityFetchLive } from '@/sanity/lib/live'
 import { PRODUCT_CARD_FIELDS } from '@/sanity/lib/product-card-query'
 import type { ProductList } from '@/sanity/types'
@@ -85,7 +86,7 @@ export default async function ProductListCategory({
 	...props
 }: ProductListModuleProps) {
 	// Builder pages with product lists need request-bound D1 reviews, too.
-	await connection()
+	if (!isStaticStorefront) await connection()
 	// Query Sanity API
 	const result = await sanityFetchLive<ProductListQueryResult>({
 		query: PRODUCTS_BY_COLLECTION_QUERY,

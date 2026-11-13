@@ -12,7 +12,7 @@ import {
 	Send,
 	User,
 } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { IntelligenceLead } from '@/lib/lead-intelligence'
 
 export default function LeadContactClient({
@@ -20,13 +20,15 @@ export default function LeadContactClient({
 	canEdit,
 	canAssign,
 	staff,
+	externalDraft,
 	onSaved,
 }: {
 	lead: IntelligenceLead
 	canEdit: boolean
 	canAssign: boolean
 	staff: { id: string; name: string }[]
-	onSaved: () => void
+	externalDraft?: { key: number; subject: string; body: string } | null
+	onSaved: (latestEventId?: number) => void
 }) {
 	const emailCommand = useRef({ key: '', id: '' })
 	function commandId() {
@@ -44,6 +46,12 @@ export default function LeadContactClient({
 	const [isError, setIsError] = useState(false)
 	const [owner, setOwner] = useState(lead.assigned_to || '')
 	const [status, setStatus] = useState(lead.status)
+
+	useEffect(() => {
+		if (!externalDraft) return
+		setSubject(externalDraft.subject)
+		setBody(externalDraft.body)
+	}, [externalDraft])
 
 	const EMAIL_TEMPLATES = [
 		{
@@ -96,7 +104,7 @@ export default function LeadContactClient({
 				throw new Error(d.error || d.message || 'Request failed')
 			setMessage('Saved successfully.')
 			setNote('')
-			onSaved()
+			onSaved(typeof d.latestEventId === 'number' ? d.latestEventId : undefined)
 		} catch (e) {
 			setIsError(true)
 			setMessage(e instanceof Error ? e.message : 'Request failed')

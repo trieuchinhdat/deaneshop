@@ -70,6 +70,7 @@ export async function GET() {
 	}
 
 	try {
+		await d1Query('SELECT sanity_user_id FROM admin_users LIMIT 0')
 		await d1Query(
 			'SELECT lead_id, version, qualification, priority, follow_up_at, next_action, reason FROM lead_assessments LIMIT 0',
 		)

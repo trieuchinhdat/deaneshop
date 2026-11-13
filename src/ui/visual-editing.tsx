@@ -1,9 +1,12 @@
 import { VisualEditing } from 'next-sanity/visual-editing'
+import { sanityStudioUrl } from '@/lib/sanity-studio-url'
 import { draftMode } from 'next/headers'
 import { SanityLive } from '@/sanity/lib/live'
 import HoverDetails from '@/ui/hover-details'
+import { isStaticStorefront } from '@/lib/deployment-profile'
 
 export default async function VisualEditingControls() {
+	if (isStaticStorefront) return null
 	return (
 		<>
 			<SanityLive />
@@ -22,7 +25,7 @@ export default async function VisualEditingControls() {
 								</a>
 							</li>
 							<li>
-								<a href="/studio" className="link">
+								<a href={sanityStudioUrl} className="link">
 									Open the Studio
 								</a>
 							</li>

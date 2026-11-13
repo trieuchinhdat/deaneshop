@@ -1,9 +1,11 @@
 import { hashPassword, validPassword } from '@/lib/passwords'
+import { randomUUID } from 'node:crypto'
+import { getAdminAuthMode, validSanityUserId } from '@/lib/admin-auth-mode'
 import { NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { AdminUserRole, PersistenceError, adminUsersDb, d1Query } from '@/lib/d1'
 
-const VALID_ROLES: readonly AdminUserRole[] = ['superadmin', 'admin', 'sales', 'cskh', 'marketing']
+const VALID_ROLES: readonly AdminUserRole[] = ['superadmin', 'admin', 'sales', 'marketing']
 const VALID_STATUSES = ['active', 'inactive'] as const
 
 function isLastSuperadminError(error: unknown): boolean {
@@ -52,17 +54,19 @@ export async function POST(req: Request) {
 		const session = auth.session
 
 		const body = await req.json().catch(() => ({}))
-		const { email, password, full_name, role = 'sales', avatar_url, status = 'active' } = body
+		const { email, password, role = 'sales', avatar_url, status = 'active' } = body
+		const externalAuth = getAdminAuthMode() !== 'password'
+		const full_name = externalAuth && !body.full_name ? email : body.full_name
 
 		if (
 			typeof email !== 'string' ||
-			!email.trim() ||
+			email.trim().length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ||
 			typeof full_name !== 'string' ||
 			!full_name.trim() ||
-			!validPassword(password)
+			(!externalAuth && !validPassword(password))
 		) {
 			return NextResponse.json(
-				{ success: false, error: 'Please provide valid email, full name, and strong password (12–72 chars).' },
+				{ success: false, error: externalAuth ? 'Provide a valid staff email.' : 'Please provide valid email, full name, and strong password (12–72 chars).' },
 				{ status: 400 },
 			)
 		}
@@ -92,7 +96,7 @@ export async function POST(req: Request) {
 		const newUser = await adminUsersDb.create({
 			id: `user_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
 			email: email.toLowerCase().trim(),
-			password_hash: await hashPassword(password),
+			password_hash: externalAuth ? `sanity-only:${randomUUID()}` : await hashPassword(password),
 			full_name: full_name.trim(),
 			role: role as AdminUserRole,
 			avatar_url: typeof avatar_url === 'string' ? avatar_url : null,
@@ -107,7 +111,7 @@ export async function POST(req: Request) {
 			success: true,
 			message: 'Staff user created successfully.',
 			user: sanitizedNewUser,
-		})
+		}, { headers: { 'Cache-Control': 'no-store' } })
 	} catch (error: any) {
 		const status = error instanceof PersistenceError ? 503 : 500
 		console.error('API /api/admin/users POST error:', error)
@@ -127,7 +131,7 @@ export async function PUT(req: Request) {
 		const session = auth.session
 
 		const body = await req.json().catch(() => ({}))
-		const { id, full_name, email, role, status, avatar_url, password } = body
+		const { id, full_name, email, role, status, avatar_url, password, sanity_user_id } = body
 
 		if (typeof id !== 'string' || !id.trim()) {
 			return NextResponse.json({ success: false, error: 'Missing staff user ID to update.' }, { status: 400 })
@@ -176,6 +180,15 @@ export async function PUT(req: Request) {
 		}
 
 		const patch: any = {}
+		if (sanity_user_id !== undefined) {
+			if (sanity_user_id !== null && !validSanityUserId(sanity_user_id)) return NextResponse.json({ success: false, error: 'Invalid Sanity Account ID.' }, { status: 400 })
+			if (targetId === session.id && sanity_user_id !== targetUser.sanity_user_id) return NextResponse.json({ success: false, error: 'Ask another administrator to change your own linked identity.' }, { status: 409 })
+			patch.sanity_user_id = sanity_user_id
+			if (sanity_user_id) {
+				const linked = await adminUsersDb.getBySanityId(sanity_user_id)
+				if (linked && linked.id !== targetId) return NextResponse.json({ success: false, error: 'This Sanity identity is already linked.' }, { status: 409 })
+			}
+		}
 		if (full_name !== undefined) {
 			if (typeof full_name !== 'string' || !full_name.trim()) {
 				return NextResponse.json({ success: false, error: 'Full name cannot be empty.' }, { status: 400 })
@@ -192,6 +205,7 @@ export async function PUT(req: Request) {
 		if (status !== undefined) patch.status = status
 		if (avatar_url !== undefined) patch.avatar_url = avatar_url
 		if (password) {
+			if (getAdminAuthMode() !== 'password') return NextResponse.json({ success: false, error: 'Passwords are managed by your sign-in provider.' }, { status: 400 })
 			if (!validPassword(password)) {
 				return NextResponse.json(
 					{ success: false, error: 'Password must be 12 characters minimum and 72 UTF-8 bytes maximum' },
@@ -215,6 +229,7 @@ export async function PUT(req: Request) {
 			if (patch.full_name !== undefined) { sets.push('full_name = ?'); params.push(patch.full_name) }
 			if (patch.email !== undefined) { sets.push('email = ?'); params.push(patch.email) }
 			if (patch.password_hash !== undefined) { sets.push('password_hash = ?'); params.push(patch.password_hash) }
+			if (patch.sanity_user_id !== undefined) { sets.push('sanity_user_id = ?'); params.push(patch.sanity_user_id) }
 			if (patch.role !== undefined) { sets.push('role = ?'); params.push(patch.role) }
 			if (patch.status !== undefined) { sets.push('status = ?'); params.push(patch.status) }
 			if (patch.avatar_url !== undefined) { sets.push('avatar_url = ?'); params.push(patch.avatar_url) }

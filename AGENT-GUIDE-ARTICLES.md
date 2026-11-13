@@ -746,9 +746,9 @@ File: `src/ui/table-of-contents/toc.tsx` & `src/ui/modules/blog/post-sidebar.tsx
 ## 11. ENGINEERING STANDARDS & DEVELOPER EXTENSION GUIDE
 
 ### 1. Extending PortableText Embed Blocks (5-Step Protocol):
-1. **Define Schema Object:** Create `src/sanity/schemaTypes/objects/<block-name>.ts`.
-2. **Register Schema:** Export in `src/sanity/schemaTypes/index.ts`.
-3. **Add to Document:** Include `{ type: '<block-name>' }` in the `content` field of `src/sanity/schemaTypes/documents/blog.post.ts`.
+1. **Define Schema Object:** Create `studio/src/sanity/schemaTypes/objects/<block-name>.ts`.
+2. **Register Schema:** Export in `studio/src/sanity/schemaTypes/index.ts`.
+3. **Add to Document:** Include `{ type: '<block-name>' }` in the `content` field of `studio/src/sanity/schemaTypes/documents/blog.post.ts`.
 4. **Expand GROQ Query:** Add fragment projections in `BLOG_POST_QUERY` inside `src/app/(frontend)/blog/[slug]/page.tsx`.
 5. **Implement UI Component:** Create `src/ui/modules/blog/blocks/<block-name>.tsx` and register in `components.types` within `src/ui/modules/blog/blog-post-content.tsx`.
 

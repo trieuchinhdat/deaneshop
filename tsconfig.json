@@ -42,6 +42,10 @@
 		"node_modules",
 		".open-next",
 		".wrangler",
-		"worker.ts"
+		".static-storefront-build",
+		"worker.ts",
+		"worker-free.ts",
+		"studio",
+		"scripts/test-custom-html-module.tsx"
 	]
 }

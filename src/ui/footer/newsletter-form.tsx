@@ -3,6 +3,7 @@
 import { ArrowRight, CheckCircle2, Loader2, Mail } from 'lucide-react'
 import Link from 'next/link'
 import { useId, useState } from 'react'
+import { buildTrackingPayload } from '@/lib/tracking-payload'
 
 interface NewsletterFormProps {
 	title?: string
@@ -46,10 +47,12 @@ export default function NewsletterForm({
 		setErrorMessage('')
 
 		try {
+			const tracking = buildTrackingPayload()
 			const res = await fetch('/api/popup/lead', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
+					...tracking,
 					email: trimmedEmail,
 					source: 'footer_newsletter',
 					consent: Boolean(consentText.trim()),

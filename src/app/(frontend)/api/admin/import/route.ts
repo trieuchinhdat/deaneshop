@@ -54,7 +54,6 @@ export async function POST(req: Request) {
 			'superadmin',
 			'admin',
 			'sales',
-			'cskh',
 		])
 		if (!auth.ok) {
 			return NextResponse.json(
@@ -110,14 +109,13 @@ export async function POST(req: Request) {
 		} else if (type === 'orders') {
 			if (
 				session.role !== 'superadmin' &&
-				session.role !== 'admin' &&
-				session.role !== 'cskh'
+				session.role !== 'admin'
 			) {
 				return NextResponse.json(
 					{
 						success: false,
 						message:
-							'Permission denied: Only Administrators and Operations/CSKH staff can update order fulfillment.',
+							'Permission denied: Only Administrators can update order fulfillment.',
 					},
 					{ status: 403 },
 				)

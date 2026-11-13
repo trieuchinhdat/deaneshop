@@ -1,7 +1,43 @@
 name: Verify commerce
 on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+  pull-requests: read
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.paths.outputs.web }}
+      studio: ${{ steps.paths.outputs.studio }}
+      contracts: ${{ steps.paths.outputs.contracts }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: paths
+        with:
+          filters: |
+            web:
+              - 'src/**'
+              - 'shared/**'
+              - 'scripts/**'
+              - 'tests/**'
+              - 'migrations/**'
+              - '*.{ts,json,jsonc}'
+              - '.npmrc'
+              - '.github/workflows/**'
+            contracts:
+              - 'src/**'
+            studio:
+              - 'studio/**'
+              - 'shared/**'
+              - 'src/sanity/lib/queries.ts'
+              - 'src/sanity/lib/product-card-query.ts'
+              - 'src/sanity/types.ts'
+              - 'AGENT-GUIDE-*.md'
+              - '.github/workflows/**'
   verify:
+    needs: changes
+    if: needs.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,6 +50,7 @@ jobs:
           python-version: '3.12'
       - run: npm ci --ignore-scripts
       - run: npm run typecheck
+      - run: npm run verify:studio-boundary
       - run: npm test
       - run: npm run lint:security
       - run: npm run verify:migrations
@@ -23,6 +60,10 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: npm run verify:production
         env:
+          NEXT_PUBLIC_SANITY_STUDIO_URL: ${{ vars.NEXT_PUBLIC_SANITY_STUDIO_URL || 'https://deanflow.sanity.studio' }}
+          SANITY_STUDIO_ORIGIN: ${{ vars.NEXT_PUBLIC_SANITY_STUDIO_URL || 'https://deanflow.sanity.studio' }}
+          NEXT_PUBLIC_ADMIN_AUTH_MODE: ${{ vars.NEXT_PUBLIC_ADMIN_AUTH_MODE || 'password' }}
+          NEXT_PUBLIC_DEPLOYMENT_PROFILE: ${{ vars.NEXT_PUBLIC_DEPLOYMENT_PROFILE || 'free' }}
           ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
           NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ vars.NEXT_PUBLIC_SANITY_PROJECT_ID }}
           NEXT_PUBLIC_SANITY_DATASET: ${{ vars.NEXT_PUBLIC_SANITY_DATASET }}
@@ -30,10 +71,42 @@ jobs:
       - name: Build Cloudflare Worker bundle (OpenNext + Next.js)
         run: npm run build:cf
         env:
+          NEXT_PUBLIC_SANITY_STUDIO_URL: ${{ vars.NEXT_PUBLIC_SANITY_STUDIO_URL || 'https://deanflow.sanity.studio' }}
+          SANITY_STUDIO_ORIGIN: ${{ vars.NEXT_PUBLIC_SANITY_STUDIO_URL || 'https://deanflow.sanity.studio' }}
+          NEXT_PUBLIC_ADMIN_AUTH_MODE: ${{ vars.NEXT_PUBLIC_ADMIN_AUTH_MODE || 'password' }}
+          NEXT_PUBLIC_DEPLOYMENT_PROFILE: ${{ vars.NEXT_PUBLIC_DEPLOYMENT_PROFILE || 'free' }}
+          NEXT_PUBLIC_VITALS_SAMPLE_RATE: ${{ vars.NEXT_PUBLIC_VITALS_SAMPLE_RATE }}
           NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ vars.NEXT_PUBLIC_SANITY_PROJECT_ID }}
           NEXT_PUBLIC_SANITY_DATASET: ${{ vars.NEXT_PUBLIC_SANITY_DATASET }}
           SANITY_API_READ_TOKEN: ${{ secrets.SANITY_API_READ_TOKEN }}
           NEXT_PUBLIC_BASE_URL: ${{ vars.NEXT_PUBLIC_BASE_URL }}
       - name: Dry-run Wrangler Worker bundle
-        run: npx wrangler deploy --dry-run --outdir=.wrangler/dry-run
+        run: npm run dry-run:cf
       - run: npm run perf:check -- --ci
+
+  studio:
+    needs: changes
+    if: needs.changes.outputs.studio == 'true' || needs.changes.outputs.contracts == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      SANITY_STUDIO_PROJECT_ID: ${{ vars.NEXT_PUBLIC_SANITY_PROJECT_ID || 'jy7u0ikv' }}
+      SANITY_STUDIO_DATASET: ${{ vars.NEXT_PUBLIC_SANITY_DATASET || 'production' }}
+      SANITY_STUDIO_WEB_URL: ${{ vars.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' }}
+      SANITY_STUDIO_ADMIN_AUTH_MODE: ${{ vars.NEXT_PUBLIC_ADMIN_AUTH_MODE || 'password' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: studio/package-lock.json
+      - run: npm --prefix studio ci --ignore-scripts
+      - if: needs.changes.outputs.studio == 'true' || github.event_name == 'workflow_dispatch'
+        run: npm --prefix studio run typecheck
+      - if: needs.changes.outputs.studio == 'true' || github.event_name == 'workflow_dispatch'
+        run: npm --prefix studio test
+      - run: npm --prefix studio audit --audit-level=high
+      - run: npm run typegen
+      - run: git diff --exit-code -- src/sanity/types.ts
+      - if: needs.changes.outputs.studio == 'true' || github.event_name == 'workflow_dispatch'
+        run: npm --prefix studio run build

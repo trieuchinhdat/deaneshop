@@ -7,7 +7,6 @@ import {
 	FiCheck,
 	FiCheckCircle,
 	FiEdit2,
-	FiHeadphones,
 	FiKey,
 	FiLock,
 	FiMail,
@@ -28,6 +27,7 @@ import {
 import { AdminUserRole, D1AdminUser } from '@/lib/d1'
 
 interface StaffManagementProps {
+	authMode?: 'password' | 'sanity'
 	initialStaff: D1AdminUser[]
 	currentStaff?: any
 }
@@ -44,35 +44,29 @@ const ROLE_DEFINITIONS: Record<AdminUserRole, RoleConfig> = {
 		label: 'Super Admin',
 		badge: 'bg-rose-50 text-rose-700 border-rose-200',
 		IconComponent: FiShield,
-		desc: 'Full administrative access: User governance, system configuration, revenue metrics, and data purging.',
+		desc: 'Full administrative access: User governance, system configuration, and data purging.',
 	},
 	admin: {
-		label: 'Administrator',
+		label: 'Admin',
 		badge: 'bg-purple-50 text-purple-700 border-purple-200',
 		IconComponent: FiSliders,
-		desc: 'Operational management: Team assignment, B2B pipeline controls, store order fulfillment, and UGC.',
+		desc: 'Operational management: Team assignment, password resets, B2B pipeline controls, and customer directory.',
 	},
 	sales: {
-		label: 'B2B Account Executive',
+		label: 'Sale',
 		badge: 'bg-blue-50 text-blue-700 border-blue-200',
 		IconComponent: FiBriefcase,
-		desc: 'Lead operations: Pipeline stages, deal qualification, Resend email outreach, and B2B contracts.',
-	},
-	cskh: {
-		label: 'Customer Support',
-		badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-		IconComponent: FiHeadphones,
-		desc: 'Order logistics, packing slips, customer care communication, and review moderation.',
+		desc: 'Lead operations: Scoped pipeline, deal qualification, email outreach, and scheduled follow-ups.',
 	},
 	marketing: {
-		label: 'Growth Marketing',
+		label: 'Marketing',
 		badge: 'bg-amber-50 text-amber-700 border-amber-200',
 		IconComponent: FiTrendingUp,
-		desc: 'Marketing attribution analysis, session journey breadcrumbs, blog articles, and comments.',
+		desc: 'Growth analytics: Marketing attribution, source quality insights, and read-only lead visibility.',
 	},
 }
 
-export default function StaffManagement({ initialStaff = [], currentStaff }: StaffManagementProps) {
+export default function StaffManagement({ initialStaff = [], currentStaff, authMode = 'password' }: StaffManagementProps) {
 	const isSuperAdmin = currentStaff?.role === 'superadmin'
 	const isAdminOrSuperAdmin = currentStaff?.role === 'superadmin' || currentStaff?.role === 'admin'
 
@@ -83,6 +77,10 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 	// Modals
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 	const [editingUser, setEditingUser] = useState<D1AdminUser | null>(null)
+	const [editPassword, setEditPassword] = useState('')
+	const [editError, setEditError] = useState<string | null>(null)
+	const [isUpdating, setIsUpdating] = useState(false)
+	const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
 	// Create Form State
 	const [fullName, setFullName] = useState('')
@@ -112,10 +110,28 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 	const metrics = useMemo(() => {
 		const total = staffList.length
 		const salesCount = staffList.filter((u) => u.role === 'sales').length
-		const cskhCount = staffList.filter((u) => u.role === 'cskh').length
+		const marketingCount = staffList.filter((u) => u.role === 'marketing').length
 		const activeCount = staffList.filter((u) => u.status === 'active').length
-		return { total, salesCount, cskhCount, activeCount }
+		return { total, salesCount, marketingCount, activeCount }
 	}, [staffList])
+
+	if (!isAdminOrSuperAdmin) {
+		return (
+			<div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center my-6">
+				<FiShield className="mx-auto h-12 w-12 text-amber-600 mb-3" />
+				<h3 className="text-lg font-bold text-slate-900">Access Restricted</h3>
+				<p className="mt-1 text-sm text-slate-600 max-w-md mx-auto">
+					Only Super Administrators and Administrators have permission to manage team members and role configurations.
+				</p>
+			</div>
+		)
+	}
+
+	const openEditModal = (user: D1AdminUser) => {
+		setEditingUser({ ...user })
+		setEditPassword('')
+		setEditError(null)
+	}
 
 	// Create User Handler
 	const handleCreateUser = async (e: React.FormEvent) => {
@@ -130,7 +146,7 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 				body: JSON.stringify({
 					full_name: fullName.trim(),
 					email: email.trim(),
-					password,
+					...(authMode === 'password' ? { password } : {}),
 					role: selectedRole,
 					status: 'active',
 				}),
@@ -145,6 +161,7 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 			setFullName('')
 			setEmail('')
 			setPassword('')
+			setActionFeedback({ type: 'success', message: `Created account for ${result.user.email}.` })
 		} catch (err: any) {
 			setFormError(err.message || 'Server error occurred.')
 		} finally {
@@ -153,24 +170,80 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 	}
 
 	// Update User Handler
-	const handleUpdateUser = async (id: string, patch: Partial<D1AdminUser>) => {
+	const handleUpdateUser = async (
+		id: string,
+		patch: Partial<D1AdminUser> & { password?: string },
+	): Promise<{ ok: boolean; error?: string }> => {
+		setActionFeedback(null)
 		try {
 			const res = await fetch('/api/admin/users', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ id, ...patch }),
 			})
-			const result = await res.json()
-			if (result.success) {
-				setStaffList((prev) =>
-					prev.map((u) => (u.id === id ? { ...u, ...patch, updated_at: new Date().toISOString() } : u)),
-				)
-				if (editingUser?.id === id) {
-					setEditingUser((prev) => (prev ? { ...prev, ...patch } : null))
-				}
+			const result = await res.json().catch(() => ({}))
+			if (!res.ok || !result.success) {
+				const message = result.error || 'Failed to update team member.'
+				setActionFeedback({ type: 'error', message })
+				return { ok: false, error: message }
 			}
-		} catch (err) {
-			console.error('Update staff failed:', err)
+
+			const { password: _omittedPassword, ...safePatch } = patch
+			setStaffList((prev) =>
+				prev.map((u) => (u.id === id ? { ...u, ...safePatch, updated_at: new Date().toISOString() } : u)),
+			)
+			if (editingUser?.id === id) {
+				setEditingUser((prev) => (prev ? { ...prev, ...safePatch } : null))
+			}
+			return { ok: true }
+		} catch (err: any) {
+			const message = err?.message || 'Update staff failed.'
+			setActionFeedback({ type: 'error', message })
+			return { ok: false, error: message }
+		}
+	}
+
+	const handleSaveEdit = async (e: React.FormEvent) => {
+		e.preventDefault()
+		if (!editingUser) return
+		setEditError(null)
+
+		const cleanName = editingUser.full_name.trim()
+		if (!cleanName) {
+			setEditError('Full name cannot be empty.')
+			return
+		}
+		if (authMode === 'password' && editPassword) {
+			const passwordBytes = new TextEncoder().encode(editPassword).length
+			if (editPassword.length < 12 || passwordBytes > 72) {
+				setEditError('New password must be at least 12 characters and at most 72 UTF-8 bytes.')
+				return
+			}
+		}
+
+		setIsUpdating(true)
+		try {
+			const didResetPassword = authMode === 'password' && Boolean(editPassword)
+			const res = await handleUpdateUser(editingUser.id, {
+				full_name: cleanName,
+				role: editingUser.role,
+				status: editingUser.status,
+				...(didResetPassword ? { password: editPassword } : {}),
+			})
+			if (!res.ok) {
+				setEditError(res.error || 'Failed to update team member.')
+				return
+			}
+			setEditingUser(null)
+			setEditPassword('')
+			setActionFeedback({
+				type: 'success',
+				message: didResetPassword
+					? `Updated ${cleanName} and reset their password. Existing sessions were revoked.`
+					: `Updated ${cleanName}.`,
+			})
+		} finally {
+			setIsUpdating(false)
 		}
 	}
 
@@ -194,6 +267,34 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 
 	return (
 		<div className="space-y-6">
+			{actionFeedback && (
+				<div
+					role={actionFeedback.type === 'error' ? 'alert' : 'status'}
+					className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-xs font-bold ${
+						actionFeedback.type === 'error'
+							? 'border-rose-200 bg-rose-50 text-rose-700'
+							: 'border-emerald-200 bg-emerald-50 text-emerald-700'
+					}`}
+				>
+					<span className="flex items-center gap-2">
+						{actionFeedback.type === 'error' ? (
+							<FiAlertCircle className="h-4 w-4 shrink-0" />
+						) : (
+							<FiCheckCircle className="h-4 w-4 shrink-0" />
+						)}
+						{actionFeedback.message}
+					</span>
+					<button
+						type="button"
+						onClick={() => setActionFeedback(null)}
+						className="text-current/70 hover:text-current cursor-pointer"
+						aria-label="Dismiss notification"
+					>
+						<FiX className="h-4 w-4" />
+					</button>
+				</div>
+			)}
+
 			{/* Top KPI Cards */}
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 				<div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs">
@@ -213,7 +314,7 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 					<div className="flex items-center justify-between">
 						<span className="text-[11px] font-black uppercase tracking-wider text-blue-700 flex items-center gap-1">
 							<FiBriefcase className="h-3.5 w-3.5" />
-							Sales Executives
+							Sale
 						</span>
 						<FiUserCheck className="h-4 w-4 text-blue-600" />
 					</div>
@@ -223,17 +324,17 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 					</div>
 				</div>
 
-				<div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4 shadow-2xs">
+				<div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-4 shadow-2xs">
 					<div className="flex items-center justify-between">
-						<span className="text-[11px] font-black uppercase tracking-wider text-emerald-700 flex items-center gap-1">
-							<FiHeadphones className="h-3.5 w-3.5" />
-							Customer Support
+						<span className="text-[11px] font-black uppercase tracking-wider text-amber-700 flex items-center gap-1">
+							<FiTrendingUp className="h-3.5 w-3.5" />
+							Marketing
 						</span>
-						<FiShield className="h-4 w-4 text-emerald-600" />
+						<FiTrendingUp className="h-4 w-4 text-amber-600" />
 					</div>
 					<div className="mt-1 flex items-baseline gap-2">
-						<span className="font-mono text-2xl font-black text-emerald-800">{metrics.cskhCount}</span>
-						<span className="text-[11px] text-emerald-600 font-bold">Store Ops</span>
+						<span className="font-mono text-2xl font-black text-amber-800">{metrics.marketingCount}</span>
+						<span className="text-[11px] text-amber-600 font-bold">Growth Analytics</span>
 					</div>
 				</div>
 
@@ -259,7 +360,7 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 					Role-Based Access Control (RBAC Matrix)
 				</h3>
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-					{(['superadmin', 'sales', 'cskh', 'marketing'] as AdminUserRole[]).map((r) => {
+					{(['superadmin', 'admin', 'sales', 'marketing'] as AdminUserRole[]).map((r) => {
 						const def = ROLE_DEFINITIONS[r]
 						const Icon = def.IconComponent
 						return (
@@ -298,15 +399,18 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 					>
 						<option value="all">All Roles</option>
 						<option value="superadmin">Super Admin</option>
-						<option value="sales">Account Executive</option>
-						<option value="cskh">Customer Support</option>
-						<option value="marketing">Growth Marketing</option>
+						<option value="admin">Admin</option>
+						<option value="sales">Sale</option>
+						<option value="marketing">Marketing</option>
 					</select>
 				</div>
 
 				<button
 					type="button"
-					onClick={() => setIsCreateModalOpen(true)}
+					onClick={() => {
+						setFormError(null)
+						setIsCreateModalOpen(true)
+					}}
 					className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition cursor-pointer"
 				>
 					<FiUserPlus className="h-4 w-4" />
@@ -335,19 +439,7 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 								const Icon = roleDef.IconComponent
 								const isActive = user.status === 'active'
 
-	if (!isAdminOrSuperAdmin) {
-		return (
-			<div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center my-6">
-				<FiShield className="mx-auto h-12 w-12 text-amber-600 mb-3" />
-				<h3 className="text-lg font-bold text-slate-900">Access Restricted</h3>
-				<p className="mt-1 text-sm text-slate-600 max-w-md mx-auto">
-					Only Super Administrators and Administrators have permission to manage team members and role configurations.
-				</p>
-			</div>
-		)
-	}
-
-	return (
+								return (
 									<tr key={user.id} className="hover:bg-slate-50/80 transition">
 										{/* User Info */}
 										<td className="py-3 px-4">
@@ -450,12 +542,12 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 												<button
 													type="button"
 													disabled={user.role === 'superadmin' && !isSuperAdmin}
-													onClick={() => setEditingUser(user)}
+													onClick={() => openEditModal(user)}
 													className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
 													title={
 														user.role === 'superadmin' && !isSuperAdmin
 															? 'Only Super Admin can edit a Super Admin'
-															: 'Edit Role & Permissions'
+															: 'Edit Role, Status & Reset Password'
 													}
 												>
 													<FiEdit2 className="h-3.5 w-3.5" />
@@ -508,10 +600,10 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 
 						<form onSubmit={handleCreateUser} className="space-y-3.5">
 							<div>
-								<label className="text-xs font-bold text-slate-700 block">Full Name:</label>
+								<label className="text-xs font-bold text-slate-700 block">Full Name{authMode !== 'password' ? ' (optional)' : ''}:</label>
 								<input
 									type="text"
-									required
+									required={authMode === 'password'}
 									value={fullName}
 									onChange={(e) => setFullName(e.target.value)}
 									placeholder="e.g. Alexander Nguyen"
@@ -531,16 +623,11 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 								/>
 							</div>
 
-							<div>
+							{authMode === 'password' && <div>
 								<label className="text-xs font-bold text-slate-700 block">Initial Password:</label>
-								<input
-									type="password"
-									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									required minLength={12} placeholder="At least 12 characters"
-									className="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl focus:border-slate-900 focus:outline-hidden"
-								/>
-							</div>
+								<input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={12} placeholder="At least 12 characters" className="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl" />
+							</div>}
+							{authMode === 'sanity' && <p className="text-xs text-slate-600">The member signs in with their Sanity account. No invitation link or Account ID is needed.</p>}
 
 							<div>
 								<label className="text-xs font-bold text-slate-700 block">Assign Role:</label>
@@ -549,15 +636,15 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 									onChange={(e) => setSelectedRole(e.target.value as any)}
 									className="w-full mt-1 px-3 py-2 text-xs font-bold border border-slate-300 rounded-xl bg-white focus:border-slate-900 focus:outline-hidden cursor-pointer"
 								>
-									<option value="sales">B2B Account Executive (Lead & Pipeline Ops)</option>
-									<option value="cskh">Operations & Logistics (Quotes & Fulfillment)</option>
-									<option value="marketing">Growth Marketing (Attribution & Content)</option>
-									<option value="admin">Administrator (Operations & Team Governance)</option>
+									<option value="sales">Sale (Lead & Pipeline Ops)</option>
+									<option value="marketing">Marketing (Attribution & Analytics)</option>
+									<option value="admin">Admin (Operations & Team Governance)</option>
 									{isSuperAdmin && (
 										<option value="superadmin">Super Admin (Full System Privileges)</option>
 									)}
 								</select>
 							</div>
+
 
 							<div className="pt-2 flex items-center justify-end gap-2">
 								<button
@@ -581,7 +668,7 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 				</div>
 			)}
 
-			{/* Modal: Edit Member Role */}
+			{/* Modal: Edit Member Role & Reset Password */}
 			{editingUser && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
 					<div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 space-y-4 animate-in zoom-in-95 duration-200">
@@ -592,18 +679,30 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 							</h3>
 							<button
 								type="button"
-								onClick={() => setEditingUser(null)}
+								onClick={() => {
+									setEditingUser(null)
+									setEditPassword('')
+									setEditError(null)
+								}}
 								className="text-slate-400 hover:text-slate-800 cursor-pointer"
 							>
 								<FiX className="h-5 w-5" />
 							</button>
 						</div>
 
-						<div className="space-y-3.5">
+						{editError && (
+							<div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-bold text-rose-700 flex items-center gap-2">
+								<FiAlertCircle className="h-4 w-4 shrink-0" />
+								{editError}
+							</div>
+						)}
+
+						<form onSubmit={handleSaveEdit} className="space-y-3.5">
 							<div>
 								<label className="text-xs font-bold text-slate-700 block">Full Name:</label>
 								<input
 									type="text"
+									required
 									value={editingUser.full_name}
 									onChange={(e) => setEditingUser({ ...editingUser, full_name: e.target.value })}
 									className="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl focus:border-slate-900 focus:outline-hidden"
@@ -617,10 +716,9 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 									onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as any })}
 									className="w-full mt-1 px-3 py-2 text-xs font-bold border border-slate-300 rounded-xl bg-white focus:border-slate-900 focus:outline-hidden cursor-pointer"
 								>
-									<option value="sales">B2B Account Executive (Lead & Pipeline Ops)</option>
-									<option value="cskh">Operations & Logistics (Quotes & Fulfillment)</option>
-									<option value="marketing">Growth Marketing (Attribution & Content)</option>
-									<option value="admin">Administrator (Operations & Team Governance)</option>
+									<option value="sales">Sale (Lead & Pipeline Ops)</option>
+									<option value="marketing">Marketing (Attribution & Analytics)</option>
+									<option value="admin">Admin (Operations & Team Governance)</option>
 									{isSuperAdmin && (
 										<option value="superadmin">Super Admin (Full System Privileges)</option>
 									)}
@@ -639,31 +737,55 @@ export default function StaffManagement({ initialStaff = [], currentStaff }: Sta
 								</select>
 							</div>
 
+							{authMode === 'password' && (
+								<div>
+									<label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+										<FiKey className="h-3.5 w-3.5 text-slate-500" />
+										Reset Password <span className="font-normal text-slate-400">(optional)</span>
+									</label>
+									<input
+										type="password"
+										value={editPassword}
+										onChange={(e) => setEditPassword(e.target.value)}
+										autoComplete="new-password"
+										minLength={12}
+										maxLength={72}
+										placeholder="Leave blank to keep current password (min 12 chars)"
+										className="w-full mt-1 px-3 py-2 text-xs border border-slate-300 rounded-xl focus:border-slate-900 focus:outline-hidden"
+									/>
+									<p className="mt-1 text-[11px] text-slate-500">
+										Entering a new password immediately signs out active sessions for this user.
+									</p>
+								</div>
+							)}
+
+							{authMode === 'sanity' && (
+								<p className="text-xs text-slate-600">
+									{editingUser.sanity_user_id ? 'Sanity account linked.' : 'Account will be linked on first Sanity sign-in.'}
+								</p>
+							)}
 							<div className="pt-2 flex items-center justify-end gap-2">
 								<button
 									type="button"
-									onClick={() => setEditingUser(null)}
+									onClick={() => {
+										setEditingUser(null)
+										setEditPassword('')
+										setEditError(null)
+									}}
 									className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
 								>
 									Cancel
 								</button>
 								<button
-									type="button"
-									onClick={() => {
-										handleUpdateUser(editingUser.id, {
-											full_name: editingUser.full_name,
-											role: editingUser.role,
-											status: editingUser.status,
-										})
-										setEditingUser(null)
-									}}
-									className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+									type="submit"
+									disabled={isUpdating}
+									className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
 								>
-									<FiCheck className="h-3.5 w-3.5" />
+									{isUpdating ? <FiRefreshCw className="h-3.5 w-3.5 animate-spin" /> : <FiCheck className="h-3.5 w-3.5" />}
 									Save Changes
 								</button>
 							</div>
-						</div>
+						</form>
 					</div>
 				</div>
 			)}

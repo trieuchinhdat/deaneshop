@@ -1,9 +1,7 @@
-import { useConsentStore } from '@/store/use-consent-store'
-
 /**
- * Client-side Session Journey Breadcrumbs Tracker
- * Stores visited pages in sessionStorage to provide full-funnel attribution
- * when a user submits a lead or contact form.
+ * Client-side First-Party Session Journey Breadcrumbs Tracker
+ * Stores visited pages & key on-site intent interactions in localStorage (with sliding 60-min expiry)
+ * so cross-tab B2B research stays intact and is attached only when a visitor submits a form/RFQ/order.
  */
 
 export interface JourneyBreadcrumb {
@@ -15,89 +13,139 @@ export interface JourneyBreadcrumb {
 
 const STORAGE_KEY = 'deanflow_session_journey'
 const MAX_BREADCRUMBS = 40
+const SESSION_TTL_MS = 60 * 60 * 1000 // 60 min sliding window
 
-export function recordPageVisit(title?: string): void {
-	if (typeof window === 'undefined' || !useConsentStore.getState().marketing)
-		return
+const AD_PARAM_KEYS = new Set([
+	'utm_source',
+	'utm_medium',
+	'utm_campaign',
+	'utm_term',
+	'utm_content',
+	'fbclid',
+	'gclid',
+	'ttclid',
+	'gbraid',
+	'wbraid',
+	'msclkid',
+	'twclid',
+])
 
+function getCurrentJourneyPath(): string {
+	const pathname = window.location.pathname || '/'
+	const rawSearch = window.location.search || ''
+	if (!rawSearch) return pathname.slice(0, 160)
 	try {
-		const currentPath = window.location.pathname
-		const currentTitle = title || document.title || currentPath
-		const raw = sessionStorage.getItem(STORAGE_KEY)
-		let list: JourneyBreadcrumb[] = []
-
-		if (raw) {
-			try {
-				list = JSON.parse(raw)
-			} catch {
-				list = []
-			}
-		}
-
-		// Don't add duplicate if refreshed same page
-		const last = list[list.length - 1]
-		if (
-			last &&
-			last.path === currentPath &&
-			(!last.event || last.event === 'page_view')
-		) {
-			return
-		}
-
-		list.push({
-			path: currentPath,
-			title: currentTitle.replace(/\s*\|.*$/, '').trim(),
-			timestamp: new Date().toISOString(),
-			event: 'page_view',
-		})
-
-		if (list.length > MAX_BREADCRUMBS) {
-			list = list.slice(list.length - MAX_BREADCRUMBS)
-		}
-
-		sessionStorage.setItem(STORAGE_KEY, JSON.stringify(list))
+		const params = new URLSearchParams(rawSearch)
+		for (const key of AD_PARAM_KEYS) params.delete(key)
+		const filtered = params.toString()
+		return (filtered ? `${pathname}?${filtered}` : pathname).slice(0, 160)
 	} catch {
-		// Ignore sessionStorage quota or access errors
+		return pathname.slice(0, 160)
 	}
 }
 
-export function getSessionJourney(): JourneyBreadcrumb[] {
-	if (typeof window === 'undefined' || !useConsentStore.getState().marketing)
-		return []
-
+function readStoredBreadcrumbs(): JourneyBreadcrumb[] {
+	if (typeof window === 'undefined') return []
 	try {
-		const raw = sessionStorage.getItem(STORAGE_KEY)
-		if (!raw) return []
-		return JSON.parse(raw)
+		const raw = window.localStorage?.getItem(STORAGE_KEY)
+		if (raw) {
+			const parsed = JSON.parse(raw)
+			if (Array.isArray(parsed)) return parsed
+			if (parsed && typeof parsed === 'object') {
+				const envelope = parsed as { expiresAt?: number; items?: unknown }
+				if (typeof envelope.expiresAt === 'number' && Date.now() > envelope.expiresAt) {
+					window.localStorage.removeItem(STORAGE_KEY)
+					return []
+				}
+				return Array.isArray(envelope.items) ? (envelope.items as JourneyBreadcrumb[]) : []
+			}
+		}
+		// Graceful fallback from legacy sessionStorage key if still present
+		const legacyRaw = window.sessionStorage?.getItem(STORAGE_KEY)
+		if (legacyRaw) {
+			const legacyParsed = JSON.parse(legacyRaw)
+			if (Array.isArray(legacyParsed)) return legacyParsed
+		}
 	} catch {
-		return []
+		// Ignore storage access or malformed JSON errors
 	}
+	return []
+}
+
+function writeStoredBreadcrumbs(list: JourneyBreadcrumb[]): void {
+	if (typeof window === 'undefined') return
+	try {
+		const trimmed = list.slice(-MAX_BREADCRUMBS)
+		window.localStorage?.setItem(
+			STORAGE_KEY,
+			JSON.stringify({
+				expiresAt: Date.now() + SESSION_TTL_MS,
+				items: trimmed,
+			}),
+		)
+	} catch {
+		// Ignore localStorage quota or access errors
+	}
+}
+
+export function recordPageVisit(title?: string): void {
+	if (typeof window === 'undefined') return
+
+	const currentPath = getCurrentJourneyPath()
+	const currentTitle = title || document.title || currentPath
+	const list = readStoredBreadcrumbs()
+
+	// Don't add duplicate if refreshed same page
+	const last = list[list.length - 1]
+	if (
+		last &&
+		last.path === currentPath &&
+		(!last.event || last.event === 'page_view')
+	) {
+		return
+	}
+
+	list.push({
+		path: currentPath,
+		title: currentTitle.replace(/\s*\|.*$/, '').trim(),
+		timestamp: new Date().toISOString(),
+		event: 'page_view',
+	})
+
+	writeStoredBreadcrumbs(list)
+}
+
+export function getSessionJourney(): JourneyBreadcrumb[] {
+	return readStoredBreadcrumbs()
 }
 
 export function recordJourneyEvent(
 	event: 'form_start' | 'cta_click' | 'contact_click' | 'catalog_download',
 	label: string,
 ): void {
-	if (typeof window === 'undefined' || !useConsentStore.getState().marketing)
+	if (typeof window === 'undefined') return
+	const list = readStoredBreadcrumbs()
+	const currentPath = getCurrentJourneyPath()
+	const cleanLabel = label.trim().slice(0, 200) || event
+	const last = list[list.length - 1]
+	// Avoid double-logging identical interaction on rapid double-click
+	if (last && last.event === event && last.title === cleanLabel && last.path === currentPath) {
 		return
-	try {
-		const list = getSessionJourney()
-		list.push({
-			path: window.location.pathname,
-			title: label.slice(0, 200),
-			timestamp: new Date().toISOString(),
-			event,
-		})
-		sessionStorage.setItem(
-			STORAGE_KEY,
-			JSON.stringify(list.slice(-MAX_BREADCRUMBS)),
-		)
-	} catch {}
+	}
+	list.push({
+		path: currentPath,
+		title: cleanLabel,
+		timestamp: new Date().toISOString(),
+		event,
+	})
+	writeStoredBreadcrumbs(list)
 }
+
 export function clearSessionJourney(): void {
 	if (typeof window !== 'undefined') {
 		try {
-			sessionStorage.removeItem(STORAGE_KEY)
+			window.localStorage?.removeItem(STORAGE_KEY)
+			window.sessionStorage?.removeItem(STORAGE_KEY)
 		} catch {}
 	}
 }

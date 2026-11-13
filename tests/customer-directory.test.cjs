@@ -33,6 +33,8 @@ c.commit();print(json.dumps({'results':rows}));c.close()`,db,sql,JSON.stringify(
  r=await get('sales','customer='+encodeURIComponent('email:alice@example.test'));assert.equal(r.data.items.length,1);assert.equal(r.data.items[0].id,'a')
  r=await get('sales','customer='+encodeURIComponent('email:person1@example.test'));assert.equal(r.status,404)
  r=await get('admin','search=Zelda');assert.equal(r.data.total,1);assert.equal(r.data.items[0].interactions,3)
+ r=await get('admin','source=blog_comment');assert.equal(r.data.total,1);assert.equal(r.data.items[0].customer_key,'email:alice@example.test');assert.equal(r.data.items[0].interactions,3)
+ r=await get('admin','sort=interactions');assert.equal(r.data.items[0].customer_key,'email:alice@example.test')
  r=await get('admin','page=-1');assert.equal(r.status,400)
  }finally{fs.rmSync(dir,{recursive:true,force:true})}
 })

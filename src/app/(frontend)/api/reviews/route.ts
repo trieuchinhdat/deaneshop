@@ -10,6 +10,7 @@ import {
 	validImage,
 } from '@/lib/upload-policy'
 import { apiVersion, dataset, projectId } from '@/sanity/env'
+import { isStaticStorefront } from '@/lib/deployment-profile'
 
 function isUploadedFile(entry: unknown): entry is File {
 	if (!entry || typeof entry !== 'object') return false
@@ -35,6 +36,7 @@ async function cleanupUploadedAssets(
 }
 
 export async function POST(req: Request) {
+	if (isStaticStorefront) return NextResponse.json({ error: 'Review submissions are unavailable on this deployment.' }, { status: 403 })
 	let writeClient: ReturnType<typeof createClient> | null = null
 	const uploadedAssetIds: string[] = []
 

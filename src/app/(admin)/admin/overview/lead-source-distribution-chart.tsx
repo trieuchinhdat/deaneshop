@@ -56,6 +56,7 @@ export default function LeadSourceDistributionChart({
 
 		const rawList: {
 			name: string
+			filterKey: string
 			medium: string
 			total: number
 			assessed: number
@@ -63,22 +64,27 @@ export default function LeadSourceDistributionChart({
 			spam: number
 			qualRate: number
 			pct: number
+			exactPct: number
 			color: (typeof PALETTE)[0]
 		}[] = []
 
 		top5.forEach((s, idx) => {
 			const qualRate =
 				s.assessed > 0 ? Math.round((s.qualified / s.assessed) * 100) : 0
-			const pct = Math.round((s.total / effectiveTotal) * 100)
+			const exactPct = (s.total / effectiveTotal) * 100
+			const pct = Math.round(exactPct)
+			const isUnknown = !s.source || s.source === 'Unknown'
 			rawList.push({
-				name: s.source || 'Organic / Direct',
-				medium: s.medium || 'direct',
+				name: isUnknown ? 'Direct / Unknown' : s.source,
+				filterKey: isUnknown ? '__unknown__' : s.source,
+				medium: s.medium === 'Unknown' ? 'unattributed' : s.medium || 'direct',
 				total: s.total,
 				assessed: s.assessed,
 				qualified: s.qualified,
 				spam: s.spam,
 				qualRate,
 				pct,
+				exactPct,
 				color: PALETTE[idx % PALETTE.length],
 			})
 		})
@@ -92,10 +98,12 @@ export default function LeadSourceDistributionChart({
 				otherAssessed > 0
 					? Math.round((otherQualified / otherAssessed) * 100)
 					: 0
-			const pct = Math.round((otherTotal / effectiveTotal) * 100)
+			const exactPct = (otherTotal / effectiveTotal) * 100
+			const pct = Math.round(exactPct)
 
 			rawList.push({
 				name: 'Other Channels',
+				filterKey: '__other__',
 				medium: `${rest.length} sources`,
 				total: otherTotal,
 				assessed: otherAssessed,
@@ -103,18 +111,19 @@ export default function LeadSourceDistributionChart({
 				spam: otherSpam,
 				qualRate,
 				pct,
+				exactPct,
 				color: PALETTE[PALETTE.length - 1],
 			})
 		}
 
-		// Precompute dashoffset purely without modifying variables during JSX render
+		// Precompute exact dashoffset without rounding gaps
 		let acc = 0
 		const segsWithOffset = rawList.map((seg) => {
 			const offset = acc
-			acc += seg.pct
+			acc += seg.exactPct
 			return {
 				...seg,
-				strokeDasharray: `${(seg.pct / 100) * circumference} ${circumference}`,
+				strokeDasharray: `${(seg.exactPct / 100) * circumference} ${circumference}`,
 				strokeDashoffset: -((offset / 100) * circumference),
 			}
 		})
@@ -157,6 +166,8 @@ export default function LeadSourceDistributionChart({
 				<div className="flex flex-col items-center justify-center lg:col-span-4">
 					<div className="relative flex items-center justify-center">
 						<svg
+							role="img"
+							aria-label="Traffic acquisition share by channel"
 							width="150"
 							height="150"
 							viewBox="0 0 100 100"
@@ -179,7 +190,7 @@ export default function LeadSourceDistributionChart({
 
 									return (
 										<circle
-											key={seg.name}
+											key={`${seg.name}-${seg.medium}-${i}`}
 											cx="50"
 											cy="50"
 											r={radius}
@@ -191,6 +202,7 @@ export default function LeadSourceDistributionChart({
 											className="cursor-pointer transition-all duration-200"
 											onMouseEnter={() => setHoveredIdx(i)}
 											onMouseLeave={() => setHoveredIdx(null)}
+											onClick={() => onSelectSource?.(seg.filterKey)}
 										/>
 									)
 								})}
@@ -236,16 +248,16 @@ export default function LeadSourceDistributionChart({
 							const isHovered = hoveredIdx === i
 							return (
 								<div
-									key={seg.name}
+									key={`${seg.name}-${seg.medium}-${i}`}
 									role="button"
 									tabIndex={0}
 									onMouseEnter={() => setHoveredIdx(i)}
 									onMouseLeave={() => setHoveredIdx(null)}
-									onClick={() => onSelectSource?.(seg.name)}
+									onClick={() => onSelectSource?.(seg.filterKey)}
 									onKeyDown={(e) => {
 										if (e.key === 'Enter' || e.key === ' ') {
 											e.preventDefault()
-											onSelectSource?.(seg.name)
+											onSelectSource?.(seg.filterKey)
 										}
 									}}
 									className={`cursor-pointer rounded-xl border p-2.5 transition-all focus:outline-hidden focus:ring-1 focus:ring-slate-300 ${

@@ -1,8 +1,27 @@
 /// <reference types="@opennextjs/cloudflare" />
 
 declare global {
+	interface AnalyticsEngineDataPoint {
+		blobs?: Array<string | ArrayBuffer | null>
+		doubles?: Array<number | null>
+		indexes?: Array<string | ArrayBuffer | null>
+	}
+
+	interface AnalyticsEngineDataset {
+		writeDataPoint(event?: AnalyticsEngineDataPoint): void
+	}
+
 	interface CloudflareEnv {
+		ASSETS: { fetch: (request: Request) => Promise<Response> }
+		NEXT_PUBLIC_SANITY_STUDIO_URL?: string
+		SANITY_STUDIO_ORIGIN?: string
+		NEXT_PUBLIC_ADMIN_AUTH_MODE?: string
+		NEXT_PUBLIC_DEPLOYMENT_PROFILE?: string
+		OUTBOX_MAX_JOBS_PER_INVOCATION?: string
+		D1_LOG_METRICS?: string
 		DB: D1Database
+		ANALYTICS?: AnalyticsEngineDataset
+		ANALYTICS_DATASET?: string
 		ADMIN_JWT_SECRET?: string
 		D1_ALLOW_MEMORY?: string
 		D1_DATABASE_ID?: string
@@ -10,6 +29,7 @@ declare global {
 		CLOUDFLARE_D1_DATABASE_ID?: string
 		CLOUDFLARE_ACCOUNT_ID?: string
 		CLOUDFLARE_API_TOKEN?: string
+		CLOUDFLARE_ANALYTICS_API_TOKEN?: string
 		SANITY_API_READ_TOKEN?: string
 		SANITY_API_WRITE_TOKEN?: string
 		RESEND_API_KEY?: string

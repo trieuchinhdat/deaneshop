@@ -8,7 +8,7 @@ test('Studio bridge rejects even a forged Studio identity', async () => {
  const response = await POST(new Request('https://test/api', {method:'POST', body: JSON.stringify({sanityUser:{email:'admin@example.com'}})}))
  assert.equal(response.status,403); assert.equal(response.headers.get('set-cookie'),null)
 })
-test('passwords are bcrypt hashes and legacy plaintext cannot log in', async () => {
+test('passwords are native scrypt hashes and legacy plaintext cannot log in', async () => {
  const p = load('src/lib/passwords.ts')
  const hashed = await p.hashPassword('test-password-long-enough')
  assert.notEqual(hashed,'test-password-long-enough')
@@ -17,10 +17,10 @@ test('passwords are bcrypt hashes and legacy plaintext cannot log in', async () 
  assert.equal(await p.verifyPassword('legacy', 'legacy'),false)
  await assert.rejects(p.hashPassword('short'))
 })
-test('all five session roles check DB status, role and password on every verification', async () => {
+test('all four session roles check DB status, role and password on every verification', async () => {
  let user
  const auth = load('src/lib/admin-auth.ts', { './d1': {adminUsersDb:{getById: async()=>user}}, 'next/headers': {cookies:async()=>({get:()=>null})} }, {process:{env:{ADMIN_JWT_SECRET:'test-only-secret-32-characters-long-enough'}}})
- for(const role of ['superadmin','admin','sales','cskh','marketing']) {
+ for(const role of ['superadmin','admin','sales','marketing']) {
   user={id:'u',email:'u@test.com',full_name:'User',role,status:'active',created_at:'2026-01-01',password_hash:'hash-a'}
   const token=await auth.createAdminSessionToken({id:'u'})
   assert.equal((await auth.verifyAdminSessionToken(token)).role,role)
@@ -29,6 +29,9 @@ test('all five session roles check DB status, role and password on every verific
   user.password_hash='hash-a'; user.role='different'; assert.equal(await auth.verifyAdminSessionToken(token),null)
   assert.equal(await auth.verifyAdminSessionToken(token+'x'),null)
  }
+ user={id:'u',email:'u@test.com',full_name:'User',role:'cskh',status:'active',created_at:'2026-01-01',password_hash:'hash-a'}
+ const legacyToken=await auth.createAdminSessionToken({id:'u'})
+ assert.equal(await auth.verifyAdminSessionToken(legacyToken),null)
  assert.equal(await auth.verifyAdminSessionToken(null),null)
 })
 test('missing signing secret refuses issuance', async () => {

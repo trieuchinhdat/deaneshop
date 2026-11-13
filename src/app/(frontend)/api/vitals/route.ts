@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { writeAnalyticsDataPoint } from '@/lib/analytics-engine'
 
 const METRIC_BUDGETS = {
 	lcpMs: 2500,
@@ -22,7 +23,12 @@ export async function POST(req: Request) {
 				? raw.checkoutMs
 				: undefined
 		const device = raw.device === 'mobile' ? 'mobile' : 'desktop'
-		const path = typeof raw.path === 'string' ? raw.path.slice(0, 120) : '/'
+		const path = typeof raw.path === 'string' ? raw.path.split('?')[0].slice(0, 120) : '/'
+		const cf = (req as Request & { cf?: { country?: string } }).cf
+		const rawCountry = cf?.country || req.headers.get('cf-ipcountry') || ''
+		const country = /^[A-Z]{2}$/i.test(rawCountry.trim())
+			? rawCountry.trim().toUpperCase()
+			: ''
 
 		const withinBudget =
 			(lcp === undefined || lcp <= METRIC_BUDGETS.lcpMs) &&
@@ -33,6 +39,17 @@ export async function POST(req: Request) {
 		if (!withinBudget) {
 			console.warn('[WebVitals Budget Warning]', { path, device, lcp, inp, cls, checkoutMs })
 		}
+
+		await writeAnalyticsDataPoint({
+			event: 'vitals',
+			path: path || '/',
+			device,
+			country,
+			lcp,
+			inp,
+			cls,
+			checkoutMs,
+		})
 
 		return NextResponse.json({ ok: true, withinBudget }, { status: 200, headers: { 'Cache-Control': 'no-store' } })
 	} catch {

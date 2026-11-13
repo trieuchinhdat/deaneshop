@@ -136,13 +136,56 @@ export default function LeadVolumeTrendChart({
 		if (timeframe === 'all' && dataMap.size > 0) {
 			const sortedKeys = Array.from(dataMap.keys()).sort()
 			if (sortedKeys.length > 0) {
+				const firstDate = new Date(`${sortedKeys[0]}T00:00:00Z`)
+				const lastDate = new Date(
+					`${sortedKeys[sortedKeys.length - 1]}T00:00:00Z`,
+				)
+				const daySpan =
+					Number.isFinite(firstDate.getTime()) &&
+					Number.isFinite(lastDate.getTime())
+						? Math.round((lastDate.getTime() - firstDate.getTime()) / 86400000)
+						: 0
+
+				if (daySpan > 0 && daySpan <= 180) {
+					const continuous: TimelinePoint[] = []
+					for (let offset = 0; offset <= daySpan; offset++) {
+						const d = new Date(firstDate)
+						d.setUTCDate(firstDate.getUTCDate() + offset)
+						const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+						const entry = dataMap.get(key) || {
+							total: 0,
+							qualified: 0,
+							urgent: 0,
+						}
+						continuous.push({
+							key,
+							label: d.toLocaleDateString('en-US', {
+								timeZone: 'UTC',
+								month: 'short',
+								day: 'numeric',
+							}),
+							fullLabel: d.toLocaleDateString('en-US', {
+								timeZone: 'UTC',
+								weekday: 'short',
+								month: 'short',
+								day: 'numeric',
+								year: 'numeric',
+							}),
+							total: entry.total,
+							qualified: entry.qualified,
+							urgent: entry.urgent,
+						})
+					}
+					return continuous
+				}
+
 				return sortedKeys.map((key) => {
 					const entry = dataMap.get(key) || {
 						total: 0,
 						qualified: 0,
 						urgent: 0,
 					}
-					const d = new Date(key)
+					const d = new Date(`${key}T00:00:00Z`)
 					const label = Number.isNaN(d.getTime())
 						? key
 						: d.toLocaleDateString('en-US', {
@@ -349,8 +392,10 @@ export default function LeadVolumeTrendChart({
 			{/* SVG Chart Container */}
 			<div className="relative w-full overflow-hidden">
 				<svg
+					role="img"
+					aria-label="Inbound acquisition velocity chart comparing total leads and qualified leads over time"
 					viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-					className="h-56 w-full touch-none select-none"
+					className="h-56 w-full touch-manipulation select-none"
 					onMouseLeave={() => setHoveredIndex(null)}
 				>
 					<defs>
@@ -499,15 +544,22 @@ export default function LeadVolumeTrendChart({
 									</text>
 								)}
 
-								{/* Invisible hover capture rect */}
+								{/* Interactive hover, tap & keyboard focus capture rect */}
 								<rect
+									tabIndex={0}
+									role="button"
+									aria-label={`${p.data.fullLabel}: ${p.data.total} inbound, ${p.data.qualified} qualified`}
 									x={p.x - chartWidth / points.length / 2}
 									y={padding.top}
 									width={chartWidth / points.length}
 									height={chartHeight + padding.bottom}
 									fill="transparent"
-									className="cursor-pointer"
+									className="cursor-pointer focus:outline-none"
 									onMouseEnter={() => setHoveredIndex(idx)}
+									onFocus={() => setHoveredIndex(idx)}
+									onClick={() =>
+										setHoveredIndex((prev) => (prev === idx ? null : idx))
+									}
 								/>
 							</g>
 						)

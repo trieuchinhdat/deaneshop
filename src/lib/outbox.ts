@@ -3,6 +3,7 @@ import { getEnvVarSync } from './cf-env'
 import { d1Query, leadNotesDb, leadsDb, ordersDb } from './d1'
 import { buildComplianceDossierEmailContent } from './dossier-email'
 import { issueQuoteAccess } from './quote-token'
+import { outboxJobLimit } from './outbox-budget'
 
 export function escapeEmailHtml(value: string): string {
 	return value.replace(
@@ -591,7 +592,7 @@ export async function drainOutbox(maxJobs = 10) {
 	let failed = 0
 	let deadLettered = 0
 	let superseded = 0
-	for (let i = 0; i < maxJobs; i++) {
+	for (let i = 0; i < outboxJobLimit(maxJobs); i++) {
 		const res = await processOutbox()
 		if (!res.processed) break
 		if (res.status === 'sent') sent++

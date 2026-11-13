@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { groq } from 'next-sanity'
 import { notFound } from 'next/navigation'
+import { connection } from 'next/server'
+import { isStaticStorefront } from '@/lib/deployment-profile'
 import { ROUTES } from '@/lib/env'
 import { enrichProductsWithD1Reviews } from '@/lib/reviews'
 import { client } from '@/sanity/lib/client'
@@ -15,8 +17,6 @@ import {
 import ModulesResolver from '@/ui/modules'
 import Breadcrumbs from '@/ui/modules/breadcrumbs'
 import CollectionContent from '@/ui/modules/collection/collection-content'
-
-export const dynamic = 'force-dynamic'
 
 type Props = {
 	params: Promise<{ slug: string }>
@@ -116,6 +116,7 @@ export async function generateStaticParams() {
 }
 
 async function getCollection(slug: string) {
+	if (!isStaticStorefront) await connection()
 	const collection = await sanityFetchLive<any>({
 		query: COLLECTION_QUERY,
 		params: {

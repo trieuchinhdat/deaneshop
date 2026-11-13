@@ -23,6 +23,9 @@ export async function GET() {
 		)
 		await d1Query('SELECT lead_id FROM lead_assessments LIMIT 0')
 		await d1Query('SELECT lead_id FROM wholesale_rfq_lead_projection LIMIT 0')
+		if (getEnvVarSync('NEXT_PUBLIC_ADMIN_AUTH_MODE') === 'sanity') {
+			await d1Query('SELECT sanity_user_id FROM admin_users LIMIT 0')
+		}
 		const triggers = await d1Query<{ count: number }>(
 			"SELECT COUNT(*) AS count FROM sqlite_master WHERE type = 'trigger' AND name IN ('lead_dossier_job','wholesale_rfq_to_lead','wholesale_rfq_lead_priority')",
 		)

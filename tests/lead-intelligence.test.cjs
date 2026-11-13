@@ -63,8 +63,26 @@ test('analytics view returns aggregated sources, trends, stages and qualificatio
  assert.ok(Array.isArray(data.stages))
  assert.ok(Array.isArray(data.qualifications))
  assert.ok(Array.isArray(data.priorities))
+ assert.ok(Array.isArray(data.urgentItems))
+ assert.ok(Array.isArray(data.followupItems))
+ assert.equal(typeof data.total, 'number')
  assert.ok(statements.some(s => s.includes('strftime')))
  assert.ok(statements.some(s => s.includes('l.status')))
+})
+test('utmSource filter handles both known sources and unattributed __unknown__ leads', async () => {
+ let statements = []
+ let bound = []
+ const handlers = api('admin', async (sql, args) => {
+  statements.push(sql)
+  if (args) bound.push(args)
+  return { results: [] }
+ })
+ assert.equal((await handlers.GET(new Request('https://test/api?utmSource=__unknown__'))).status, 200)
+ assert.ok(statements.some(s => s.includes("l.utm_source IS NULL OR TRIM(l.utm_source) = ''")))
+ statements = []
+ assert.equal((await handlers.GET(new Request('https://test/api?utmSource=google'))).status, 200)
+ assert.ok(statements.some(s => s.includes('LOWER(TRIM(l.utm_source)) = LOWER(TRIM(?))')))
+ assert.ok(bound.some(a => a.includes('google')))
 })
 test('assessment writes persist and reject a stale concurrent update', async () => {
  const fs=require('node:fs'), os=require('node:os'), path=require('node:path')
@@ -110,4 +128,100 @@ test('intelligence API identifies missing migration separately from connection f
  const response=await api('admin',async()=>{throw {causeMessage:'no such table: lead_assessments'}}).GET(new Request('https://test/api?view=insights'))
  assert.equal(response.status,503)
  assert.equal((await response.json()).code,'LEAD_SCHEMA_MISSING')
+})
+test('events cursor check distinguishes NEW_LEAD vs LEAD_UPDATED, scopes sales, resets stale cursor, and sets no-store', async () => {
+ const fs=require('node:fs'), os=require('node:os'), path=require('node:path')
+ const {execFileSync}=require('node:child_process')
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'lead-events-'))
+ const db=path.join(dir,'test.sqlite')
+ function sql(query,params=[],script=false){return JSON.parse(execFileSync('python3',['-c',`import sqlite3,json,sys
+c=sqlite3.connect(sys.argv[1]);c.row_factory=sqlite3.Row
+if sys.argv[4]=='true':
+ c.executescript(sys.argv[2]);rows=[]
+else:
+ rows=[dict(x) for x in c.execute(sys.argv[2],json.loads(sys.argv[3])).fetchall()]
+c.commit();print(json.dumps({'results':rows}));c.close()`,db,query,JSON.stringify(params),String(script)],{encoding:'utf8'}))}
+ const makeApi=(role,id='rep-1')=>load('src/app/(frontend)/api/admin/intelligence/route.ts',{
+  'next/server':{NextResponse:{json:(body,init)=>new Response(JSON.stringify(body),{status:init?.status||200,headers:init?.headers})}},
+  '@/lib/admin-auth':{requireAdminSession:async()=>({ok:true,session:{id,role}})},
+  '@/lib/d1':{d1Query:(q,args)=>Promise.resolve(sql(q,args)),leadsDb:{getById:async()=>null},leadNotesDb:{listByLeadId:async()=>[]},adminUsersDb:{list:async()=>[]}},
+ })
+ try {
+  sql(`
+   CREATE TABLE leads(id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, company_name TEXT, assigned_to TEXT, source TEXT, status TEXT, created_at TEXT, updated_at TEXT);
+   CREATE TABLE admin_events(id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, resource_id TEXT NOT NULL, created_at TEXT NOT NULL);
+   ${fs.readFileSync('migrations/0008_lead_intelligence.sql','utf8')}
+   CREATE TRIGGER lead_committed AFTER INSERT ON leads BEGIN
+    INSERT INTO admin_events(type,resource_id,created_at) VALUES('NEW_LEAD',NEW.id,NEW.created_at);
+   END;
+   CREATE TRIGGER lead_changed AFTER UPDATE ON leads BEGIN
+    INSERT INTO admin_events(type,resource_id,created_at) VALUES('LEAD_UPDATED',NEW.id,NEW.updated_at);
+   END;
+   INSERT INTO leads VALUES ('lead-1','Alice','a@b.test','123','Acme','rep-1','landing_page','new','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z');
+  `,[],true)
+
+  const adminApi=makeApi('admin','admin-1')
+  const salesApi=makeApi('sales','rep-1')
+  const salesTwoApi=makeApi('sales','rep-2')
+
+  // Invalid after cursor
+  const badRes=await adminApi.GET(new Request('https://test/api?view=events&after=-5'))
+  assert.equal(badRes.status,400)
+  assert.equal(badRes.headers.get('cache-control'),'no-store')
+
+  // Initial cursor load without after
+  const initRes=await adminApi.GET(new Request('https://test/api?view=events'))
+  assert.equal(initRes.status,200)
+  assert.equal(initRes.headers.get('cache-control'),'no-store')
+  const initData=await initRes.json()
+  assert.equal(initData.latestEventId,1)
+  assert.equal(initData.hasNewLead,false)
+  assert.equal(initData.hasLeadUpdated,false)
+
+  // List view also returns latestEventId and no-store
+  const listRes=await adminApi.GET(new Request('https://test/api?view=leads&page=1'))
+  assert.equal(listRes.status,200)
+  assert.equal(listRes.headers.get('cache-control'),'no-store')
+  assert.equal((await listRes.json()).latestEventId,1)
+
+  // Stale cursor > maxId resets safely
+  const resetRes=await adminApi.GET(new Request('https://test/api?view=events&after=999'))
+  const resetData=await resetRes.json()
+  assert.equal(resetData.latestEventId,1)
+  assert.equal(resetData.cursorReset,true)
+  assert.equal(resetData.hasNewLead,false)
+
+  // Non-lead event advances cursor without triggering lead reload
+  sql(`INSERT INTO admin_events(type,resource_id,created_at) VALUES('NEW_ORDER','ord-1','2026-01-01T00:01:00Z')`)
+  const orderOnly=await (await adminApi.GET(new Request('https://test/api?view=events&after=1'))).json()
+  assert.equal(orderOnly.latestEventId,2)
+  assert.equal(orderOnly.hasNewLead,false)
+  assert.equal(orderOnly.hasLeadUpdated,false)
+
+  // Updating lead triggers LEAD_UPDATED (not NEW_LEAD)
+  sql(`UPDATE leads SET status='contacted', updated_at='2026-01-01T00:02:00Z' WHERE id='lead-1'`)
+  const updatedAdmin=await (await adminApi.GET(new Request('https://test/api?view=events&after=2'))).json()
+  assert.equal(updatedAdmin.latestEventId,3)
+  assert.equal(updatedAdmin.hasNewLead,false)
+  assert.equal(updatedAdmin.hasLeadUpdated,true)
+
+  // rep-2 does NOT see rep-1's lead update, but its cursor still advances
+  const updatedSalesTwo=await (await salesTwoApi.GET(new Request('https://test/api?view=events&after=2'))).json()
+  assert.equal(updatedSalesTwo.latestEventId,3)
+  assert.equal(updatedSalesTwo.hasNewLead,false)
+  assert.equal(updatedSalesTwo.hasLeadUpdated,false)
+
+  // New lead assigned to rep-2: admin and rep-2 see NEW_LEAD, sales rep-1 does not
+  sql(`INSERT INTO leads VALUES ('lead-2','Bob','b@b.test','456','Beta','rep-2','landing_page','new','2026-01-01T00:03:00Z','2026-01-01T00:03:00Z')`)
+  const newAdmin=await (await adminApi.GET(new Request('https://test/api?view=events&after=3'))).json()
+  assert.equal(newAdmin.latestEventId,4)
+  assert.equal(newAdmin.hasNewLead,true)
+  const newSalesTwo=await (await salesTwoApi.GET(new Request('https://test/api?view=events&after=3'))).json()
+  assert.equal(newSalesTwo.latestEventId,4)
+  assert.equal(newSalesTwo.hasNewLead,true)
+  const newSales=await (await salesApi.GET(new Request('https://test/api?view=events&after=3'))).json()
+  assert.equal(newSales.latestEventId,4)
+  assert.equal(newSales.hasNewLead,false)
+  assert.equal(newSales.hasLeadUpdated,false)
+ } finally {fs.rmSync(dir,{recursive:true,force:true})}
 })

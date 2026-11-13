@@ -14,14 +14,17 @@ test('outbox records provider failure and sends stable idempotency key on retry'
 })
 test('SSE filters orders and other-owner leads for sales; resumes after requested cursor',async()=>{
  let cursor
- const route=load('src/app/(frontend)/api/admin/events/route.ts',{
-  'next/server':{},'@/lib/admin-auth':{getAdminSession:async()=>({id:'sales-a',role:'sales'}),ROLE_PERMITTED_TABS:{sales:['leads','customers']}},
-  '@/lib/d1':{d1Query:async(sql,params)=>{cursor=params[0];return {results:[{id:11,type:'NEW_ORDER',resource_id:'o'},{id:12,type:'NEW_LEAD',resource_id:'other',assigned_to:'sales-b'},{id:13,type:'NEW_LEAD',resource_id:'mine',assigned_to:'sales-a'}]}}}
- },{ReadableStream})
- const res=await route.GET({headers:new Headers({'last-event-id':'10'}),nextUrl:new URL('https://test/api'),signal:new AbortController().signal})
- const reader=res.body.getReader();const first=await reader.read();await reader.cancel()
- const text=new TextDecoder().decode(first.value)
- assert.equal(cursor,10);assert.match(text,/mine/);assert.doesNotMatch(text,/NEW_ORDER|other/)
+ const runFor=async(role,id)=>{
+  const route=load('src/app/(frontend)/api/admin/events/route.ts',{
+   'next/server':{},'@/lib/admin-auth':{getAdminSession:async()=>({id,role}),ROLE_PERMITTED_TABS:{sales:['overview','leads','customers']}},
+   '@/lib/d1':{d1Query:async(sql,params)=>{cursor=params[0];return {results:[{id:11,type:'NEW_ORDER',resource_id:'o'},{id:12,type:'NEW_LEAD',resource_id:'other',assigned_to:'sales-b'},{id:13,type:'NEW_LEAD',resource_id:'mine',assigned_to:id}]}}}
+  },{ReadableStream})
+  const res=await route.GET({headers:new Headers({'last-event-id':'10'}),nextUrl:new URL('https://test/api'),signal:new AbortController().signal})
+  const reader=res.body.getReader();const first=await reader.read();await reader.cancel()
+  return new TextDecoder().decode(first.value)
+ }
+ const salesText=await runFor('sales','sales-a')
+ assert.equal(cursor,10);assert.match(salesText,/mine/);assert.doesNotMatch(salesText,/NEW_ORDER|other/)
 })
 test('image policy rejects spoofed content and oversized uploads',()=>{
  const {validImage,MAX_IMAGE_BYTES}=load('src/lib/upload-policy.ts')

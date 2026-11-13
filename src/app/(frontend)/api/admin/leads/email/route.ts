@@ -7,7 +7,7 @@ import { escapeEmailHtml, processOutbox } from '@/lib/outbox'
 
 export async function GET(req: Request) {
 	try {
-		const auth = await requireAdminSession(['superadmin', 'admin', 'sales', 'cskh'])
+		const auth = await requireAdminSession(['superadmin', 'admin', 'sales'])
 		if (!auth.ok) {
 			return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
 		}
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
 
 		const target = await leadsDb.getById(leadId)
 		if (!target) return NextResponse.json({ success: false }, { status: 404 })
-		if (['sales', 'cskh'].includes(session.role) && target.assigned_to !== session.id) {
+		if (session.role === 'sales' && target.assigned_to !== session.id) {
 			return NextResponse.json({ success: false }, { status: 403 })
 		}
 
@@ -53,7 +53,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
 	try {
 		// 1. RBAC Guard: Only Super Admin, Admin, and Sales can send B2B outreach emails
-		const auth = await requireAdminSession(['superadmin', 'admin', 'sales', 'cskh'])
+		const auth = await requireAdminSession(['superadmin', 'admin', 'sales'])
 		if (!auth.ok) {
 			return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
 		}
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
 
 		const target = await leadsDb.getById(cleanLeadId)
 		if (!target) return NextResponse.json({ success: false }, { status: 404 })
-		if (['sales', 'cskh'].includes(session.role) && target.assigned_to !== session.id) {
+		if (session.role === 'sales' && target.assigned_to !== session.id) {
 			return NextResponse.json({ success: false }, { status: 403 })
 		}
 		if (cleanTo.toLowerCase() !== target.email?.toLowerCase()) {

@@ -5,6 +5,16 @@ async function computeFingerprint(payload: Record<string, unknown>): Promise<str
 		expectedTotal: _expectedTotal,
 		expectedCustomQuote: _expectedCustomQuote,
 		requirePriceMatch: _requirePriceMatch,
+		attribution_json: _attributionJson,
+		journey_json: _journeyJson,
+		landing_page_url: _landingPageUrl,
+		utm_source: _utmSource,
+		utm_medium: _utmMedium,
+		utm_campaign: _utmCampaign,
+		utm_term: _utmTerm,
+		utm_content: _utmContent,
+		click_id: _clickId,
+		marketing_consent: _marketingConsent,
 		...stable
 	} = payload
 	const digest = await crypto.subtle.digest(

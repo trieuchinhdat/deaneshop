@@ -105,7 +105,7 @@ test('DF-022 & DF-030: live.ts is not a Server Action, forces published in prod,
 	assert.equal(searchOut.products.length, 1)
 
 	const storeMod = load('src/ui/modules/search/store.ts', {
-		'./actions': { searchStorefront: actionsMod.searchStorefront },
+		'./http': { searchStorefront: actionsMod.searchStorefront },
 	})
 
 	let resolveFirst

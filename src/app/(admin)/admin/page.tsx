@@ -1,30 +1,25 @@
 import { getAdminSession } from '@/lib/admin-auth'
 import { adminUsersDb } from '@/lib/d1'
-import { writeClient } from '@/sanity/lib/write-client'
 import AdminLoginForm from './admin-login-form'
 import LeadWorkspaceClient from './lead-workspace-client'
+import { getAdminAuthMode } from '@/lib/admin-auth-mode'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-export default async function AdminPage() {
-	const [session, siteInfo] = await Promise.all([
-		getAdminSession(),
-		writeClient
-			.fetch(
-				`*[_type == "site"][0]{ "logoUrl": logo.image.default.asset->url, "logoLightUrl": logo.image.light.asset->url, "logoDarkUrl": logo.image.dark.asset->url, siteName, title }`,
-			)
-			.catch(() => null),
-	])
-
-	const brandLogo = siteInfo?.logoDarkUrl || siteInfo?.logoUrl || siteInfo?.logoLightUrl || undefined
-	const brandTitle = siteInfo?.siteName || siteInfo?.title || 'DeanFlow'
+export default async function AdminPage({ searchParams }: {
+	searchParams: Promise<{ login?: string }>
+}) {
+	const authMode = getAdminAuthMode()
+	const session = await getAdminSession()
+	const brandTitle = process.env.NEXT_PUBLIC_SITE_NAME || 'DeanFlow'
 
 	if (!session) {
 		return (
 			<AdminLoginForm
-				logoUrl={brandLogo}
 				brandName={brandTitle}
+				authMode={authMode}
+				loginExpired={(await searchParams).login === 'expired'}
 			/>
 		)
 	}
@@ -36,8 +31,8 @@ export default async function AdminPage() {
 		<LeadWorkspaceClient
 			user={session}
 			initialStaff={staff.map(({ password_hash, ...user }) => user)}
-			brandLogoUrl={brandLogo}
 			brandName={brandTitle}
+			authMode={authMode}
 		/>
 	)
 }

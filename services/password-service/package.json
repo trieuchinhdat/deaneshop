@@ -1,0 +1,14 @@
+{
+	"name": "deanflow-password-service",
+	"version": "1.0.0",
+	"private": true,
+	"engines": {
+		"node": ">=22.12.0"
+	},
+	"scripts": {
+		"start": "node server.cjs"
+	},
+	"dependencies": {
+		"bcryptjs": "3.0.3"
+	}
+}

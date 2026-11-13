@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { broadcastAdminEvent } from '@/lib/admin-events'
-import { PersistenceError, leadNotesDb, leadsDb } from '@/lib/d1'
+import { PersistenceError, d1Query, leadNotesDb, leadsDb } from '@/lib/d1'
 
 const VALID_LEAD_STATUSES = ['new', 'contacted', 'discovery', 'proposal', 'won', 'lost', 'closed'] as const
 
 export async function POST(req: Request) {
 	try {
-		const auth = await requireAdminSession(['superadmin', 'admin', 'sales', 'cskh'])
+		const auth = await requireAdminSession(['superadmin', 'admin', 'sales'])
 		if (!auth.ok) {
 			return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
 		}
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 		if (!existing) return NextResponse.json({ success: false }, { status: 404 })
 
 		// Sales can only update leads already assigned to them; unassigned leads must be claimed via /api/admin/leads/claim
-		if (['sales', 'cskh'].includes(session.role) && existing.assigned_to !== session.id) {
+		if (session.role === 'sales' && existing.assigned_to !== session.id) {
 			return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
 		}
 
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
 		// Only Admin/Superadmin can reassign leads via update endpoint
 		const newAssignedTo = assigned_to !== undefined ? assigned_to : assignedTo
 		if (newAssignedTo !== undefined) {
-			if (['sales', 'cskh'].includes(session.role)) {
+			if (session.role === 'sales') {
 				if (newAssignedTo !== session.id) {
 					return NextResponse.json(
 						{ success: false, error: 'Only Administrators can reassign leads to other staff members.' },
@@ -126,11 +126,23 @@ export async function POST(req: Request) {
 
 		broadcastAdminEvent('LEAD_UPDATED', { id: targetId, patch })
 
-		return NextResponse.json({
-			success: true,
-			message: 'Lead updated successfully.',
-			patch,
-		})
+		const latestEventRes = await d1Query<{ latestEventId: number | null }>(
+			'SELECT COALESCE(MAX(id), 0) AS latestEventId FROM admin_events',
+		).catch(() => null)
+		const latestEventId =
+			typeof latestEventRes?.results?.[0]?.latestEventId === 'number'
+				? latestEventRes.results[0].latestEventId
+				: null
+
+		return NextResponse.json(
+			{
+				success: true,
+				message: 'Lead updated successfully.',
+				patch,
+				...(latestEventId !== null ? { latestEventId } : {}),
+			},
+			{ headers: { 'Cache-Control': 'no-store' } },
+		)
 	} catch (error: any) {
 		const status = error instanceof PersistenceError ? 503 : 500
 		console.error('API /api/admin/leads/update error:', error)

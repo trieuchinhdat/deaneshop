@@ -1829,6 +1829,7 @@ export default function ProductContentClient({
 										<button
 											type="button"
 											onClick={() => handleOpenRfq(false)}
+											data-track-cta={`rfq_modal:${title}`}
 											className="flex h-11 min-w-[200px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 text-xs sm:text-sm font-extrabold text-white shadow-md transition hover:bg-slate-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 sm:h-12"
 										>
 											<FiFileText className="text-base text-emerald-400" />
@@ -1841,6 +1842,7 @@ export default function ProductContentClient({
 										<button
 											type="button"
 											onClick={handleAddToQuoteList}
+											data-track-cta={`add_to_quote:${title}`}
 											className="flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-bold text-slate-800 shadow-2xs transition hover:bg-slate-50 hover:border-slate-400 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
 										>
 											<FiFileText className="h-4 w-4 text-primary" />
@@ -1851,6 +1853,7 @@ export default function ProductContentClient({
 											<button
 												type="button"
 												onClick={() => handleOpenRfq(true)}
+												data-track-cta={`sample_request:${title}`}
 												className="flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-bold text-slate-800 shadow-2xs transition hover:bg-slate-50 hover:border-slate-400 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
 											>
 												<FiPackage className="h-4 w-4 text-slate-600" />
@@ -2090,6 +2093,7 @@ export default function ProductContentClient({
 										<button
 											type="button"
 											onClick={() => handleOpenRfq(false)}
+											data-track-cta={`rfq_modal:${title}`}
 											className="flex h-11 min-w-[220px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 text-xs sm:text-sm font-extrabold text-white shadow-md transition hover:bg-slate-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 sm:h-12"
 										>
 											<FiFileText className="text-base text-emerald-400" />
@@ -2102,6 +2106,7 @@ export default function ProductContentClient({
 										<button
 											type="button"
 											onClick={handleAddToQuoteList}
+											data-track-cta={`add_to_quote:${title}`}
 											className="flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-bold text-slate-800 shadow-2xs transition hover:bg-slate-50 hover:border-slate-400 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
 										>
 											<FiFileText className="h-4 w-4 text-primary" />
@@ -2112,6 +2117,7 @@ export default function ProductContentClient({
 											<button
 												type="button"
 												onClick={() => handleOpenRfq(true)}
+												data-track-cta={`sample_request:${title}`}
 												className="flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-bold text-slate-800 shadow-2xs transition hover:bg-slate-50 hover:border-slate-400 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
 											>
 												<FiPackage className="h-4 w-4 text-slate-600" />
@@ -3067,6 +3073,7 @@ export default function ProductContentClient({
 								<button
 									type="button"
 									onClick={() => handleOpenRfq(false)}
+									data-track-cta={`rfq_sticky:${title}`}
 									className="cursor-pointer rounded-xl bg-slate-900 px-4 py-2 text-center text-xs font-bold text-white shadow-md transition hover:bg-slate-800 active:scale-[0.98] flex items-center gap-1.5 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
 								>
 									<FiFileText className="text-emerald-400 text-sm flex-none" />

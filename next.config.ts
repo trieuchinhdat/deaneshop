@@ -8,6 +8,7 @@ if (process.env.NODE_ENV === 'development') {
 
 const nextConfig: NextConfig = {
 	reactCompiler: true,
+	...(process.env.DEANFLOW_STATIC_EXPORT === '1' ? { output: 'export' as const } : {}),
 
 	images: {
 		loader: 'custom',
@@ -23,15 +24,10 @@ const nextConfig: NextConfig = {
 		],
 	},
 
-	webpack: (config) => {
-		config.module.rules.push({
-			test: /\.md$/,
-			type: 'asset/source',
-		})
-		return config
-	},
 
 	async redirects() {
+		// The public export uses Cloudflare _redirects generated from the Worker build.
+		if (process.env.DEANFLOW_STATIC_EXPORT === '1') return []
 		const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
 		const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
 		const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2025-07-01'
@@ -68,5 +64,7 @@ const nextConfig: NextConfig = {
 		}
 	},
 }
+
+if (process.env.DEANFLOW_STATIC_EXPORT === '1') delete nextConfig.redirects
 
 export default nextConfig

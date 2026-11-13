@@ -35,13 +35,15 @@ export function proxy(request: NextRequest) {
 
 export const config = {
 	matcher: [
-		/*
-		 * Match all request paths except:
-		 * - _next/static (static files)
-		 * - _next/image (image optimization files)
-		 * - favicon.ico, sitemap.xml, robots.txt
-		 * - Studio path (/studio)
-		 */
-		'/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|studio).*)',
+		{
+			// Match before loading Node.js middleware: attribution is only needed
+			// for consenting visitors to public pages, never API/admin or prefetches.
+			source: '/((?!api(?:/|$)|admin(?:/|$)|studio(?:/|$)|_next/|favicon.ico|sitemap.xml|robots.txt).*)',
+			has: [{ type: 'cookie', key: 'deanflow_consent', value: 'marketing' }],
+			missing: [
+				{ type: 'header', key: 'next-router-prefetch' },
+				{ type: 'header', key: 'purpose', value: 'prefetch' },
+			],
+		},
 	],
 }

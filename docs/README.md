@@ -11,15 +11,22 @@
 | [Kiến trúc](../ARCHITECTURE.md) | Tìm đường dữ liệu và các file chủ chốt |
 | [CMS schema](../CMS-SCHEMA.md) | Thêm/sửa module Sanity |
 | [Runbook D1](../RUNBOOK_CLOUDFLARE_D1.md) | Cấu hình, migration, backup, health check |
+| [Triển khai clone cho khách hàng](CLIENT_DEPLOYMENT_RUNBOOK.md) | Tách tài nguyên, cấu hình, commit/push, deploy và bàn giao |
+| [Đăng nhập admin bằng email/mật khẩu](ADMIN_PASSWORD_SIGN_IN.md) | Tạo/reset staff D1, session và cấu hình runtime |
+| [Đăng nhập admin bằng Sanity](SANITY_ADMIN_SIGN_IN.md) | Xác minh phiên Studio, liên kết identity D1 và chuyển chế độ an toàn |
+| [Deploy Studio độc lập](SANITY_STUDIO_DEPLOYMENT.md) | Cài đặt, env, CORS, TypeGen, CI và thứ tự phát hành Studio/website |
+| [Website public tĩnh trên Free](STATIC_STOREFRONT_DEPLOYMENT.md) | Build/export HTML và navigation, giữ route private tại Worker, preview và deploy đúng artifact |
+| [Kế hoạch tách Sanity Studio](SANITY_STUDIO_SEPARATION_PLAN.md) | Tách editor khỏi Cloudflare, giữ kết nối CMS và xử lý đăng nhập CRM giữa hai origin |
 
 ## Tài liệu chuyên sâu
 
-`AGENT-GUIDE-ARTICLES.md`, `AGENT-GUIDE-PAGE.md`, `AGENT-GUIDE-PRODUCT.md` nằm ở gốc vì các route `/api/sanity/guide-*` import chúng trực tiếp. Đây là tài liệu tải xuống cho các importer trong Studio. Trước khi dùng prompt hoặc JSON mẫu, đối chiếu schema và action hiện tại.
+`AGENT-GUIDE-ARTICLES.md`, `AGENT-GUIDE-PAGE.md`, `AGENT-GUIDE-PRODUCT.md` nằm ở gốc và được các action trong `studio/src/sanity/actions/` đóng gói thành asset tải xuống bằng Vite. Đây là tài liệu tải xuống cho các importer trong Studio. Trước khi dùng prompt hoặc JSON mẫu, đối chiếu schema và action hiện tại.
 
 Không duy trì bản sao guide trong `docs/`. Khi sửa hợp đồng importer, cập nhật file `AGENT-GUIDE-*.md` tương ứng ở gốc và đối chiếu action/schema.
 
 ## Review cần giữ
 
+- [Khả năng chạy Cloudflare Free 2026-11-12](reviews/FREE_PLAN_READINESS_REVIEW_2026_11_12.md): các hạng mục cần tối ưu, thu gọn và đo runtime trước khi dùng Free.
 - [Production readiness 2026-11-11](reviews/PRODUCTION_READINESS_REVIEW_2026_11_11.md): kết quả remediation được ghi nhận và điều kiện còn chặn production.
 - [Issue tracker order/admin/global](reviews/ISSUES_ORDER_ADMIN_GLOBAL_2026_11_10.md): lưu 34 issue cùng chi tiết fix và phần nghiệm thu còn thiếu. `VERIFIED` chỉ bằng chứng local được ghi tại đợt đó; `FIXED_PENDING_VERIFICATION` vẫn cần nghiệm thu runtime.
 

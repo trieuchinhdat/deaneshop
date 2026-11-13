@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { isStaticStorefront } from '@/lib/deployment-profile'
 import { useEffect, useState } from 'react'
 import {
 	HiOutlineBuildingStorefront,
@@ -19,6 +20,7 @@ import { useMounted } from '@/hooks/useMounted'
 import { checkoutKey, retireCheckoutKey } from '@/lib/checkout-submission'
 import { ROUTES } from '@/lib/env'
 import { escapeHtml } from '@/lib/toast'
+import { buildTrackingPayload } from '@/lib/tracking-payload'
 import { cn, formatPrice } from '@/lib/utils'
 import { recordCheckoutTiming } from '@/lib/vitals'
 import { urlFor } from '@/sanity/lib/image'
@@ -241,6 +243,7 @@ export default function CartCheckoutClient({
 			currency: 'USD',
 			paymentMethod: isRfq ? 'b2b_rfq_negotiation' : 'cod',
 			paymentStatus: 'unpaid',
+			...buildTrackingPayload(),
 		}
 
 		const startedAt =
@@ -331,14 +334,14 @@ export default function CartCheckoutClient({
 					confirmButtonText: 'View Request Confirmation',
 					confirmButtonColor: '#0f172a',
 				}).then(() => {
-					router.push(
-						`/${ROUTES.orderSuccess}?orderId=${encodeURIComponent(orderId)}${receiptQuery}`,
-					)
+					const url = `/${ROUTES.orderSuccess}?orderId=${encodeURIComponent(orderId)}${receiptQuery}`
+					if (isStaticStorefront) window.location.assign(url)
+					else router.push(url)
 				})
 			} else {
-				router.push(
-					`/${ROUTES.orderSuccess}?orderId=${encodeURIComponent(orderId)}${receiptQuery}`,
-				)
+				const url = `/${ROUTES.orderSuccess}?orderId=${encodeURIComponent(orderId)}${receiptQuery}`
+				if (isStaticStorefront) window.location.assign(url)
+				else router.push(url)
 			}
 		} catch (error: any) {
 			setIsSubmitting(false)

@@ -57,9 +57,10 @@ export interface D1Lead {
 	updated_at: string
 }
 
-export type AdminUserRole = 'superadmin' | 'admin' | 'sales' | 'cskh' | 'marketing'
+export type AdminUserRole = 'superadmin' | 'admin' | 'sales' | 'marketing'
 
 export interface D1AdminUser {
+	sanity_user_id?: string | null
 	id: string
 	email: string
 	password_hash: string
@@ -111,6 +112,12 @@ export interface D1Order {
 	utm_term?: string | null
 	utm_content?: string | null
 	click_id?: string | null
+	landing_page_url?: string | null
+	attribution_json?: string | null
+	consent_json?: string | null
+	journey_json?: string | null
+	ip_country?: string | null
+	ip_city?: string | null
 	customer_note?: string | null
 	internal_notes?: string | null
 	deleted_at?: string | null
@@ -439,6 +446,15 @@ export async function d1Query<T = any>(sql: string, params: any[] = []): Promise
 	if (!result.success) throw new PersistenceError(result.error)
 	if (/^\s*INSERT\s+INTO/i.test(sql) && (result.meta?.changes ?? 0) < 1) {
 		throw new PersistenceError('Insert affected 0 rows')
+	}
+	if (getEnvVarSync('D1_LOG_METRICS') === 'true') {
+		// Opt-in profiling without SQL, bind values, credentials, or record contents.
+		console.info('[D1 metrics]', {
+			operation: /^\s*(SELECT|WITH|INSERT|UPDATE|DELETE)\b/i.exec(sql)?.[1]?.toUpperCase() || 'OTHER',
+			rowsRead: result.meta?.rows_read,
+			rowsWritten: result.meta?.rows_written,
+			durationMs: result.meta?.duration,
+		})
 	}
 	return result
 }
@@ -1116,6 +1132,7 @@ export const adminUsersDb = {
 	async create(user: Omit<D1AdminUser, 'created_at' | 'updated_at'> & { created_at?: string; updated_at?: string }): Promise<D1AdminUser> {
 		const now = new Date().toISOString()
 		const item: D1AdminUser = {
+			...(user.sanity_user_id ? { sanity_user_id: user.sanity_user_id } : {}),
 			id: user.id || `user_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
 			email: user.email.toLowerCase().trim(),
 			password_hash: user.password_hash,
@@ -1132,8 +1149,8 @@ export const adminUsersDb = {
 		const sql = `
 			INSERT INTO admin_users (
 				id, email, password_hash, full_name, role, avatar_url,
-				status, assigned_leads_count, last_login_at, created_at, updated_at
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				status, assigned_leads_count, last_login_at, created_at, updated_at${item.sanity_user_id ? ', sanity_user_id' : ''}
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?${item.sanity_user_id ? ', ?' : ''})
 		`
 		const params = [
 			item.id,
@@ -1149,6 +1166,7 @@ export const adminUsersDb = {
 			item.updated_at,
 		]
 
+		if (item.sanity_user_id) params.push(item.sanity_user_id)
 		await d1Query(sql, params)
 		return item
 	},
@@ -1191,6 +1209,11 @@ export const adminUsersDb = {
 		return res.results?.[0] || null
 	},
 
+	async getBySanityId(userId: string): Promise<D1AdminUser | null> {
+		const result = await d1Query<D1AdminUser>('SELECT * FROM admin_users WHERE sanity_user_id = ? LIMIT 1', [userId])
+		return result.results?.[0] || null
+	},
+
 	async update(id: string, patch: Partial<D1AdminUser>): Promise<boolean> {
 		const sets: string[] = ['updated_at = ?']
 		const params: any[] = [new Date().toISOString()]
@@ -1198,6 +1221,7 @@ export const adminUsersDb = {
 		if (patch.full_name !== undefined) { sets.push('full_name = ?'); params.push(patch.full_name) }
 		if (patch.email !== undefined) { sets.push('email = ?'); params.push(patch.email.toLowerCase().trim()) }
 		if (patch.password_hash !== undefined) { sets.push('password_hash = ?'); params.push(patch.password_hash) }
+		if (patch.sanity_user_id !== undefined) { sets.push('sanity_user_id = ?'); params.push(patch.sanity_user_id) }
 		if (patch.role !== undefined) { sets.push('role = ?'); params.push(patch.role) }
 		if (patch.status !== undefined) { sets.push('status = ?'); params.push(patch.status) }
 		if (patch.avatar_url !== undefined) { sets.push('avatar_url = ?'); params.push(patch.avatar_url) }
@@ -1270,6 +1294,12 @@ export const ordersDb = {
 			utm_term: order.utm_term || null,
 			utm_content: order.utm_content || null,
 			click_id: order.click_id || null,
+			landing_page_url: order.landing_page_url || null,
+			attribution_json: order.attribution_json || null,
+			consent_json: order.consent_json || null,
+			journey_json: order.journey_json || null,
+			ip_country: order.ip_country || null,
+			ip_city: order.ip_city || null,
 			customer_note: order.customer_note || null,
 			internal_notes: order.internal_notes || null,
 			created_at: order.created_at || now,
@@ -1285,8 +1315,9 @@ export const ordersDb = {
 				payment_method, payment_status, fulfillment_status, tracking_code,
 				payment_terms, quote_status, quote_approved_at, quote_approved_by, quote_valid_until,
 				utm_source, utm_medium, utm_campaign, utm_term, utm_content, click_id,
+				landing_page_url, attribution_json, consent_json, journey_json, ip_country, ip_city,
 				customer_note, internal_notes, created_at, updated_at
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`
 		const params = [
 			item.request_hash,
@@ -1326,6 +1357,12 @@ export const ordersDb = {
 			item.utm_term,
 			item.utm_content,
 			item.click_id,
+			item.landing_page_url,
+			item.attribution_json,
+			item.consent_json,
+			item.journey_json,
+			item.ip_country,
+			item.ip_city,
 			item.customer_note,
 			item.internal_notes,
 			item.created_at,

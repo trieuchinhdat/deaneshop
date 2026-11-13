@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { isStaticStorefront } from '@/lib/deployment-profile'
 import type { PRODUCT_QUERY_RESULT, PRODUCT_SETTINGS_QUERY_RESULT, ProductContent } from '@/sanity/types'
 import ProductContentClient from './product-content-client'
 
@@ -33,7 +34,9 @@ export default function ProductContent({
 					shortPitch={(product as any)?.shortPitch}
 					keyBenefits={(product as any)?.keyBenefits}
 					specs={(product as any)?.specs}
-					productSettings={productSettings}
+					productSettings={isStaticStorefront
+						? { ...productSettings, enableReviews: false, enableReviewStars: false } as PRODUCT_SETTINGS_QUERY_RESULT
+						: productSettings}
 					hasVariants={(product as any)?.hasVariants ?? false}
 					options={(product as any)?.options}
 					variants={(product as any)?.variants}

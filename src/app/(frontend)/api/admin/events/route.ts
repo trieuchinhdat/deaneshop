@@ -82,7 +82,8 @@ export async function GET(req: NextRequest) {
 									: isComment
 										? tabs.includes('comments')
 										: tabs.includes('leads') &&
-											(current.role !== 'sales' || event.assigned_to === current.id)
+											(current.role !== 'sales' ||
+												event.assigned_to === current.id)
 
 							if (!stopped && visible) {
 								const prefix = sentRetryPrefix ? '' : 'retry: 2000\n'

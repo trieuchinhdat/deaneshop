@@ -25,7 +25,7 @@ export async function resolveQuoteAccess(
 	)
 	const latestIssuedVersion = latestRes.results?.[0]?.version ?? null
 
-	if (session && ['admin', 'superadmin', 'cskh'].includes(session.role)) {
+	if (session && ['admin', 'superadmin'].includes(session.role)) {
 		return {
 			authorized: true,
 			isStaff: true,
@@ -101,7 +101,7 @@ export async function canAccessQuote(
 	nowDate?: Date,
 ): Promise<boolean> {
 	const session = await getAdminSession()
-	if (session && ['admin', 'superadmin', 'cskh'].includes(session.role)) return true
+	if (session && ['admin', 'superadmin'].includes(session.role)) return true
 	if (!token || !/^[a-f0-9]{64}$/.test(token)) return false
 	const nowIso = (nowDate ?? new Date()).toISOString()
 	const result = await d1Query(

@@ -50,7 +50,7 @@ function isDomainTriggerError(error: unknown): boolean {
 
 export async function POST(request: Request) {
 	try {
-		const auth = await requireAdminSession(['superadmin', 'admin', 'cskh'])
+		const auth = await requireAdminSession(['superadmin', 'admin'])
 		if (!auth.ok) {
 			return NextResponse.json(
 				{ success: false, message: auth.error },

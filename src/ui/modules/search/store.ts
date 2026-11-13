@@ -5,7 +5,7 @@ import {
 	type SearchResponse,
 	type SearchResultItem,
 	type SearchScope,
-} from './actions'
+} from './http'
 
 export type { SearchResponse, SearchResultItem }
 

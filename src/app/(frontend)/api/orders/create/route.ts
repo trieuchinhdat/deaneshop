@@ -1,11 +1,13 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { NextResponse } from 'next/server'
-import { scheduleBackgroundTask } from '@/lib/cf-env'
-import { d1Query, ordersDb } from '@/lib/d1'
+import { d1Query, leadsDb, ordersDb } from '@/lib/d1'
 import { CommerceError, priceOrder, requestedItems, textField, type CatalogProduct, type PurchaseMode } from '@/lib/commerce'
-import { parseAttributionCookie } from '@/lib/attribution'
-import { drainOutbox } from '@/lib/outbox'
+import { calculateLeadScore, generateLeadSummaryAndPitch } from '@/lib/lead-scoring'
 import { takeRateLimit } from '@/lib/rate-limit'
+import {
+	resolveRequestTrackingContext,
+	trackServerConversion,
+} from '@/lib/request-tracking'
 import { client } from '@/sanity/lib/client'
 
 export async function POST(request: Request) {
@@ -105,7 +107,11 @@ export async function POST(request: Request) {
 			}
 		}
 
-		const attr = parseAttributionCookie(request.headers.get('cookie'))
+		const tracking = resolveRequestTrackingContext(request, body, {
+			formSource: mode === 'wholesale_rfq' ? 'wholesale_rfq' : `checkout_${mode}`,
+			policyVersion: '2026-11-10',
+			strictJourney: false,
+		})
 		// Keep customer-facing references short while retaining a cryptographically
 		// random, collision-resistant identifier. The internal order ID remains unchanged.
 		const orderNumber = `${mode === 'wholesale_rfq' ? 'RFQ' : 'ORD'}-${randomBytes(5).toString('hex').toUpperCase()}`
@@ -119,8 +125,11 @@ export async function POST(request: Request) {
 				items_json: JSON.stringify(priced.lines), subtotal: priced.subtotal, shipping_fee: priced.shipping, discount: 0, total: priced.total, currency: 'USD',
 				payment_method: mode === 'wholesale_rfq' ? 'manual' : 'cod', payment_status: 'unpaid', fulfillment_status: 'pending',
 				quote_status: mode === 'wholesale_rfq' ? 'pending' : null, customer_note: note,
-				utm_source: attr?.utm_source, utm_medium: attr?.utm_medium, utm_campaign: attr?.utm_campaign,
-				utm_term: attr?.utm_term, utm_content: attr?.click_id ? attr.utm_content : attr?.utm_content, click_id: attr?.click_id })
+				utm_source: tracking.utmSource, utm_medium: tracking.utmMedium, utm_campaign: tracking.utmCampaign,
+				utm_term: tracking.utmTerm, utm_content: tracking.utmContent, click_id: tracking.clickId,
+				landing_page_url: tracking.landingPageUrl, attribution_json: tracking.attributionJson,
+				consent_json: tracking.consentJson, journey_json: tracking.journeyJson,
+				ip_country: tracking.cfCountry, ip_city: tracking.cfCity })
 		} catch (error) {
 			const winner = await ordersDb.getById(id, { includeDeleted: true })
 			if (winner?.deleted_at) {
@@ -140,8 +149,56 @@ export async function POST(request: Request) {
 			}
 			throw error
 		}
+
+		// Best-effort AI intelligence enrichment for atomically projected wholesale RFQ leads.
+		if (mode === 'wholesale_rfq' && typeof leadsDb?.update === 'function') {
+			try {
+				const productLines = priced.lines.map((line) => `${line.title || line.sku} x ${line.quantity}`).join(', ')
+				const rfqMessage = [
+					`Wholesale quote ${orderNumber}`,
+					`Products: ${productLines}`,
+					note ? `Requirements: ${note}` : '',
+					trade.customization ? `Customization: ${trade.customization}` : '',
+					trade.port ? `Destination port: ${trade.port}` : '',
+				].filter(Boolean).join('\n')
+				const rfqScore = calculateLeadScore({
+					name,
+					email,
+					phone,
+					company_name: trade.company,
+					budget_range: priced.total > 0 ? `$${priced.total}` : undefined,
+					message: rfqMessage,
+					source: 'wholesale_rfq',
+				})
+				const { summary, pitchDraft } = generateLeadSummaryAndPitch(
+					{
+						name,
+						email,
+						company_name: trade.company,
+						budget_range: priced.total > 0 ? `$${priced.total} USD` : 'Custom wholesale quote',
+						message: rfqMessage,
+						source: 'wholesale_rfq',
+						country,
+					},
+					process.env.NEXT_PUBLIC_SITE_NAME || 'Enterprise',
+				)
+				await leadsDb.update(`lead_rfq:${id}`, {
+					ai_score: rfqScore.score,
+					ai_summary: summary,
+					ai_pitch_draft: pitchDraft,
+				})
+			} catch {
+				// Trigger-created baseline score & summary remain intact if enrichment fails.
+			}
+		}
+		await trackServerConversion(tracking, {
+			placement: mode,
+			label: orderNumber,
+			value: priced.total,
+		})
+
 		// The database trigger commits the delivery job with the order, before acknowledging.
-		scheduleBackgroundTask(() => drainOutbox(5))
+		// Delivery is handled by the scheduled outbox processor after the durable commit.
 		return NextResponse.json({
 			success: true,
 			orderId: orderNumber,

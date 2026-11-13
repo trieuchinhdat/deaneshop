@@ -22,6 +22,7 @@ import TrackingScripts from '@/ui/tracking-scripts'
 import ScrollToTop from '@/ui/scroll-to-top'
 import JourneyTracker from '@/ui/journey-tracker'
 import WebVitalsReporter from '@/ui/web-vitals-reporter'
+import StaticRuntimeNavigation from '@/ui/static-runtime-navigation'
 
 export async function generateMetadata(): Promise<Metadata> {
 	const site = await getSite()
@@ -182,6 +183,7 @@ export default async function RootLayout({
 					}}
 				>
 					<NuqsAdapter>
+						<StaticRuntimeNavigation />
 						<CookiePreferences />
 						<JourneyTracker />
 						<WebVitalsReporter />

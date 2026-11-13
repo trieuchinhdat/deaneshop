@@ -689,7 +689,7 @@ test('DF-007, DF-016, DF-017, DF-018, DF-020, DF-021: admin pagination, CSV form
 	assert.match(await csvRes.text(), /dup@corp\.com/)
 })
 
-test('DF-008 & DF-009: SSE checkpoint cursor reset & OptimisticMutationController rollback / bulk reconciliation', async () => {
+test('DF-008: SSE checkpoint cursor reset', async () => {
 	const sseRoute = load(
 		'src/app/(frontend)/api/admin/events/route.ts',
 		{
@@ -718,49 +718,6 @@ test('DF-008 & DF-009: SSE checkpoint cursor reset & OptimisticMutationControlle
 	const text = new TextDecoder().decode(first.value)
 	assert.match(text, /event: checkpoint/)
 	assert.match(text, /"cursor":12/)
-
-	const mutations = load('src/lib/admin-mutations.ts')
-	const ctrl = new mutations.OptimisticMutationController()
-	let orders = [{ _id: 'o1', fulfillmentStatus: 'PENDING' }]
-	let errorMsg = ''
-
-	const failed = await ctrl.run({
-		key: 'order:o1',
-		snapshot: orders,
-		applyOptimistic: () => {
-			orders = [{ _id: 'o1', fulfillmentStatus: 'PROCESSING' }]
-		},
-		restore: (snap) => {
-			orders = snap
-		},
-		request: async () => Response.json({ success: false, message: 'Version conflict' }, { status: 409 }),
-		onError: (msg) => {
-			errorMsg = msg
-		},
-	})
-	assert.equal(failed, false)
-	assert.equal(orders[0].fulfillmentStatus, 'PENDING')
-	assert.match(errorMsg, /Version conflict/)
-
-	const reconciled = mutations.reconcileBulkOrderUpdate({
-		previousOrders: [
-			{ _id: 'o1', fulfillmentStatus: 'PENDING', version: 1 },
-			{ _id: 'o2', fulfillmentStatus: 'PENDING', version: 1 },
-		],
-		targetIds: ['o1', 'o2'],
-		newStatus: 'CONFIRMED',
-		responseOk: true,
-		responseData: {
-			results: [
-				{ id: 'o1', status: 'updated', version: 2 },
-				{ id: 'o2', status: 'conflict', message: 'Modified concurrently' },
-			],
-		},
-	})
-	assert.equal(reconciled.nextOrders[0].fulfillmentStatus, 'CONFIRMED')
-	assert.equal(reconciled.nextOrders[1].fulfillmentStatus, 'PENDING')
-	assert.equal(reconciled.failedCount, 1)
-	assert.equal(reconciled.remainingSelectedIds.has('o2'), true)
 })
 
 test('DF-010..DF-015, DF-024, DF-025, DF-028, DF-029: quote snapshot/TTL alignment, outbox delivery envelope idempotency, lead notify/dossier triggers, and email idempotency', async (t) => {
@@ -988,7 +945,7 @@ test('DF-010..DF-015, DF-024, DF-025, DF-028, DF-029: quote snapshot/TTL alignme
 	assert.equal(fetchCalls.length, fetchCountAfterSend)
 })
 
-test('Super Admin Soft Delete: RBAC superadmin-only, eligibility guards, snapshot preservation, KPI/outbox cleanup, and bulk reconcile', async (t) => {
+test('Super Admin Soft Delete: RBAC superadmin-only, eligibility guards, snapshot preservation, KPI/outbox cleanup, and bulk delete', async (t) => {
 	const { sqlite, repo } = await setupDb(t, 'df-soft-delete-')
 	const superSession = { id: 'sa-1', role: 'superadmin', name: 'Root Super', email: 'super@test.com' }
 	const adminSession = { id: 'adm-1', role: 'admin', name: 'Store Admin', email: 'admin@test.com' }
@@ -1255,7 +1212,7 @@ test('Super Admin Soft Delete: RBAC superadmin-only, eligibility guards, snapsho
 	const metricsDeleted = await crmMod.customerMetrics(['rfq-sent@example.com'])
 	assert.equal(metricsDeleted.get('rfq-sent@example.com'), undefined)
 
-	// 5. Bulk soft delete mixed batch + reconcileBulkOrderDelete
+	// 5. Bulk soft delete mixed batch
 	const bulkRes = await deleteSuper.POST(
 		new Request('https://test/api/orders/delete', {
 			method: 'POST',
@@ -1272,23 +1229,6 @@ test('Super Admin Soft Delete: RBAC superadmin-only, eligibility guards, snapsho
 	assert.equal(bulkJson.deletedCount, 1)
 	assert.equal(bulkJson.conflictCount, 1)
 	assert.equal(bulkJson.failedCount, 2)
-
-	const mutHelpers = load('src/lib/admin-mutations.ts')
-	const reconciled = mutHelpers.reconcileBulkOrderDelete({
-		previousOrders: [
-			{ _id: 'ord-del-bulk-ok', orderId: 'ORD-BLK-006' },
-			{ _id: 'ord-del-approved', orderId: 'RFQ-APP-004' },
-			{ _id: 'ord-del-d2c', orderId: 'ORD-DEL-001' },
-		],
-		targetIds: ['ord-del-bulk-ok', 'ord-del-approved', 'ord-del-d2c', 'ord-missing'],
-		responseOk: bulkRes.ok,
-		responseData: bulkJson,
-	})
-	assert.deepEqual(
-		reconciled.nextOrders.map((o) => o._id),
-		['ord-del-approved', 'ord-del-d2c'],
-	)
-	assert.deepEqual(Array.from(reconciled.remainingSelectedIds).sort(), ['ord-del-approved', 'ord-del-d2c', 'ord-missing'])
 
 	const summaryAfter = await queriesMod.getRoleScopedAggregates(superSession)
 	assert.equal(summaryAfter.orders.totalOrders, 4)

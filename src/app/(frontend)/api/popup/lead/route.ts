@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server'
 import { broadcastAdminEvent } from '@/lib/admin-events'
-import { parseAttributionCookie } from '@/lib/attribution'
-import { scheduleBackgroundTask } from '@/lib/cf-env'
 import { CommerceError, textField } from '@/lib/commerce'
 import { leadsDb, PersistenceError } from '@/lib/d1'
-import { drainOutbox } from '@/lib/outbox'
+import {
+	calculateLeadScore,
+	generateLeadSummaryAndPitch,
+} from '@/lib/lead-scoring'
 import { takeRateLimit } from '@/lib/rate-limit'
+import {
+	resolveRequestTrackingContext,
+	trackServerConversion,
+} from '@/lib/request-tracking'
 
 export async function POST(req: Request) {
 	try {
@@ -18,7 +23,6 @@ export async function POST(req: Request) {
 		const cleanEmail = textField(body.email, 'email', false, 254)
 		const cleanName = textField(body.name, 'name', false, 200)
 		const couponGiven = textField(body.couponGiven, 'couponGiven', false, 100)
-		const pageUrl = textField(body.pageUrl, 'pageUrl', false, 500)
 		const source = textField(body.source, 'source', false, 100)
 
 		if (!cleanEmail && !cleanPhone) {
@@ -46,37 +50,59 @@ export async function POST(req: Request) {
 				? 'newsletter'
 				: 'popup'
 
-		const cookieAttr = parseAttributionCookie(req.headers.get('cookie'))
-		const cfCountry = req.headers.get('cf-ipcountry') || null
-		const cfCity = req.headers.get('cf-ipcity') || null
+		const tracking = resolveRequestTrackingContext(req, body, {
+			formSource: cleanSource,
+			policyVersion: '2026-11-11',
+			strictJourney: false,
+		})
+		const resolvedName =
+			cleanName || (cleanEmail ? cleanEmail.split('@')[0] : 'Subscriber')
+		const leadMessage = couponGiven ? `Coupon claimed: ${couponGiven}` : null
+		const scoreResult = calculateLeadScore({
+			name: resolvedName,
+			email: cleanEmail || null,
+			phone: cleanPhone || null,
+			message: leadMessage,
+			source: cleanSource,
+		})
+		const { summary: aiSummary, pitchDraft: aiPitchDraft } =
+			generateLeadSummaryAndPitch(
+				{
+					name: resolvedName,
+					email: cleanEmail || null,
+					message: leadMessage,
+					source: cleanSource,
+					country: tracking.cfCountry,
+				},
+				process.env.NEXT_PUBLIC_SITE_NAME || 'Enterprise',
+			)
 
 		// 1. Insert into Cloudflare D1 (Primary fast edge storage)
 		const leadId = `lead_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 		const d1Lead = await leadsDb.create({
 			id: leadId,
-			name: cleanName || (cleanEmail ? cleanEmail.split('@')[0] : 'Subscriber'),
+			name: resolvedName,
 			email: cleanEmail || null,
 			phone: cleanPhone || null,
-			country: cfCountry,
-			ip_country: cfCountry,
-			ip_city: cfCity,
+			country: tracking.cfCountry,
+			ip_country: tracking.cfCountry,
+			ip_city: tracking.cfCity,
 			source: cleanSource,
-			landing_page_url: pageUrl || null,
-			message: couponGiven ? `Coupon claimed: ${couponGiven}` : null,
-			utm_source: cookieAttr?.utm_source || null,
-			utm_medium: cookieAttr?.utm_medium || null,
-			utm_campaign: cookieAttr?.utm_campaign || null,
-			utm_term: cookieAttr?.utm_term || null,
-			utm_content: cookieAttr?.utm_content || null,
-			click_id: cookieAttr?.click_id || null,
-			attribution_json: JSON.stringify(cookieAttr || {}),
-			consent_json: JSON.stringify({
-				marketing: body.consent === true,
-				capturedAt: new Date().toISOString(),
-				policyVersion: '2026-11-11',
-				form: cleanSource,
-				consentText: textField(body.consentText, 'consentText', false, 2000),
-			}),
+			landing_page_url: tracking.landingPageUrl,
+			message: leadMessage,
+			is_corporate_email: scoreResult.isCorporate ? 1 : 0,
+			ai_score: scoreResult.score,
+			ai_summary: aiSummary,
+			ai_pitch_draft: aiPitchDraft,
+			journey_json: tracking.journeyJson,
+			utm_source: tracking.utmSource,
+			utm_medium: tracking.utmMedium,
+			utm_campaign: tracking.utmCampaign,
+			utm_term: tracking.utmTerm,
+			utm_content: tracking.utmContent,
+			click_id: tracking.clickId,
+			attribution_json: tracking.attributionJson,
+			consent_json: tracking.consentJson,
 			enqueue_notify: 1,
 			status: 'new',
 		})
@@ -87,7 +113,12 @@ export async function POST(req: Request) {
 			email: d1Lead.email,
 		})
 
-		scheduleBackgroundTask(() => drainOutbox(5))
+		await trackServerConversion(tracking, {
+			placement: cleanSource,
+			label: cleanSource,
+		})
+
+		// Delivery is handled by the scheduled outbox processor after the durable commit.
 
 		return NextResponse.json({
 			success: true,

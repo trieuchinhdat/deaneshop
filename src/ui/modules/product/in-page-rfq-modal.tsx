@@ -16,8 +16,8 @@ import {
 	FiX,
 } from 'react-icons/fi'
 import { HiOutlineSparkles } from 'react-icons/hi2'
-import { getSessionJourney } from '@/lib/journey-tracker'
 import { leadSubmissionKey, retireLeadSubmission } from '@/lib/lead-submission'
+import { buildTrackingPayload } from '@/lib/tracking-payload'
 import { formatPrice } from '@/lib/utils'
 
 interface InPageRfqModalProps {
@@ -109,15 +109,15 @@ export default function InPageRfqModal({
 		setIsSubmitting(true)
 		setError(null)
 
+		const tracking = buildTrackingPayload()
 		const payload = {
+			...tracking,
 			name: name.trim(),
 			email: email.trim(),
 			phone: phone.trim(),
 			company_name: companyName.trim(),
 			country: country.trim(),
 			source: isSampleMode ? 'product_sample_request' : 'product_quote_request',
-			landing_page_url: window.location.href,
-			journey_json: getSessionJourney(),
 			message: `Product: ${productTitle} (${productId})\nSKU: ${sku || productId}\nVariant: ${variantId || 'Default'}\nQuantity: ${orderQuantity} units\nDestination: ${country} ${destinationPort}\nTimeline: ${targetDeliveryDate || 'Not specified'}\nRequirements: ${customizationRequirements || 'Not specified'}`,
 		}
 

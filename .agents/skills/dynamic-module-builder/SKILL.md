@@ -18,7 +18,7 @@ Hệ thống lấy module **Bảng giá sỉ phân tầng — Volume Pricing (`t
 
 ## Khi nào kích hoạt Skill này (When to Activate)
 
-- Khi phát triển một Dynamic Module mới trong `src/sanity/schemaTypes/modules/` và `src/ui/modules/`.
+- Khi phát triển một Dynamic Module mới trong `studio/src/sanity/schemaTypes/modules/` và `src/ui/modules/`.
 - Khi nâng cấp hoặc refactor một Module hiện có để hỗ trợ Sanity Visual Editing (Click-to-Edit, Live Preview).
 - Khi rà soát mã nguồn (code review) để đảm bảo chuẩn schema 3-Tab, chuẩn hóa US Market copywriting, và loại bỏ lỗi vỡ giao diện do ký tự ẩn Stega.
 
@@ -29,9 +29,9 @@ Hệ thống lấy module **Bảng giá sỉ phân tầng — Volume Pricing (`t
 Mọi module trong hệ thống DEANFLOW đều phải tuân thủ nghiêm ngặt chu trình 5 bước:
 
 ```text
-[1. Sanity Schema]       src/sanity/schemaTypes/modules/<module-name>.ts
+[1. Sanity Schema]       studio/src/sanity/schemaTypes/modules/<module-name>.ts
         ↓
-[2. Schema Registry]     src/sanity/schemaTypes/index.ts
+[2. Schema Registry]     studio/src/sanity/schemaTypes/index.ts
         ↓
 [3. GROQ Fragment]       src/sanity/lib/queries.ts (MODULES_QUERY)
         ↓
@@ -114,7 +114,7 @@ Mọi module trong DEANFLOW bắt buộc sử dụng kiến trúc Preview tập 
 1. **Cấp độ Module (Bắt buộc dùng `defineModulePreview`):**
    - **Tuyệt đối không tự viết `preview.prepare` thủ công** ở cấp độ module.
    - Luôn sử dụng helper dùng chung: `import { defineModulePreview } from '@/sanity/lib/define-module-preview'`.
-   - Khai báo định danh trong từ điển thân thiện: `MODULE_FRIENDLY_NAMES` (`src/sanity/lib/module-preview-config.ts`).
+   - Khai báo định danh trong từ điển thân thiện: `MODULE_FRIENDLY_NAMES` (`studio/src/sanity/lib/module-preview-config.ts`).
    - Định dạng Tiêu đề (Title) chuẩn hóa tự động:
      `[Friendly Module Name] - ${heading || title || 'Untitled'}`
    - Định dạng Phụ đề (Subtitle) chuẩn hóa tự động:
@@ -123,7 +123,7 @@ Mọi module trong DEANFLOW bắt buộc sử dụng kiến trúc Preview tập 
 
 2. **Cấp độ Phần tử mảng (Array Member):** Vẫn định nghĩa `preview.prepare` cục bộ cho từng phần tử con để hiển thị tóm tắt thông số (ví dụ: *"500 – 999 units: $14.20/unit"* thay vì chuỗi mặc định *"Item 1"*).
 
-#### Code mẫu chuẩn: `src/sanity/schemaTypes/modules/tiered-pricing.ts`
+#### Code mẫu chuẩn: `studio/src/sanity/schemaTypes/modules/tiered-pricing.ts`
 
 ```ts
 import { defineArrayMember, defineField, defineType } from 'sanity'

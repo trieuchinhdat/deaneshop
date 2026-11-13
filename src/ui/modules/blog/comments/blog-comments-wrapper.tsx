@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { connection } from 'next/server'
 import { commentsDb } from '@/lib/d1'
+import { isStaticStorefront } from '@/lib/deployment-profile'
 import type { CommentItem } from './comment-card'
 import CommentsSection from './comments-section'
 
@@ -33,7 +34,7 @@ export default async function BlogCommentsWrapper({
 	title,
 	subtitle,
 }: BlogCommentsWrapperProps) {
-	if (!enableComments || !allowComments || !postId) return null
+	if (isStaticStorefront || !enableComments || !allowComments || !postId) return null
 	await connection()
 
 	let commentItems: CommentItem[] = []

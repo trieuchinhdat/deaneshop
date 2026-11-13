@@ -1,5 +1,4 @@
 import { runWithRuntimeContext } from './src/lib/cf-env'
-import { drainOutbox } from './src/lib/outbox'
 // @ts-expect-error -- generated at build time by @opennextjs/cloudflare
 import openNextHandler from './.open-next/worker.js'
 
@@ -28,9 +27,10 @@ const worker = {
 		ctx: WorkerExecutionContext,
 	): Promise<void> {
 		ctx.waitUntil(
-			runWithRuntimeContext({ env: env as Record<string, any>, ctx }, () =>
-				drainOutbox(15),
-			),
+			runWithRuntimeContext({ env: env as Record<string, any>, ctx }, async () => {
+				const { drainOutbox } = await import('./src/lib/outbox')
+				return drainOutbox(15)
+			}),
 		)
 	},
 }

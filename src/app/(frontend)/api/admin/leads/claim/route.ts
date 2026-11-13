@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { broadcastAdminEvent } from '@/lib/admin-events'
-import { PersistenceError, leadNotesDb, leadsDb } from '@/lib/d1'
+import { PersistenceError, d1Query, leadNotesDb, leadsDb } from '@/lib/d1'
 
 export async function POST(req: Request) {
 	try {
@@ -48,12 +48,25 @@ export async function POST(req: Request) {
 
 		broadcastAdminEvent('LEAD_UPDATED', { id: leadId, assigned_to: targetAssignee })
 
-		const updated = await leadsDb.getById(leadId)
-		return NextResponse.json({
-			success: true,
-			message: 'Lead claimed successfully',
-			lead: updated,
-		})
+		const [updated, latestEventRes] = await Promise.all([
+			leadsDb.getById(leadId),
+			d1Query<{ latestEventId: number | null }>(
+				'SELECT COALESCE(MAX(id), 0) AS latestEventId FROM admin_events',
+			).catch(() => null),
+		])
+		const latestEventId =
+			typeof latestEventRes?.results?.[0]?.latestEventId === 'number'
+				? latestEventRes.results[0].latestEventId
+				: null
+		return NextResponse.json(
+			{
+				success: true,
+				message: 'Lead claimed successfully',
+				lead: updated,
+				...(latestEventId !== null ? { latestEventId } : {}),
+			},
+			{ headers: { 'Cache-Control': 'no-store' } },
+		)
 	} catch (error: any) {
 		const status = error instanceof PersistenceError ? 503 : 500
 		return NextResponse.json(

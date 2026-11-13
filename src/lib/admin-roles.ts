@@ -1,4 +1,4 @@
-export type AdminRole = 'superadmin' | 'admin' | 'sales' | 'cskh' | 'marketing'
+export type AdminRole = 'superadmin' | 'admin' | 'sales' | 'marketing'
 
 export type AdminTab =
 	| 'overview'
@@ -12,8 +12,7 @@ export type AdminTab =
 export const ROLE_PERMITTED_TABS: Record<AdminRole, AdminTab[]> = {
 	superadmin: ['overview', 'leads', 'orders', 'customers', 'reviews', 'comments', 'staff'],
 	admin: ['overview', 'leads', 'orders', 'customers', 'reviews', 'comments', 'staff'],
-	sales: ['leads', 'customers'],
-	cskh: ['orders', 'customers', 'reviews'],
+	sales: ['overview', 'leads', 'customers'],
 	marketing: ['overview', 'comments', 'reviews', 'leads'],
 }
 
@@ -21,7 +20,6 @@ export const ROLE_DEFAULT_TAB: Record<AdminRole, AdminTab> = {
 	superadmin: 'overview',
 	admin: 'overview',
 	sales: 'leads',
-	cskh: 'orders',
 	marketing: 'overview',
 }
 

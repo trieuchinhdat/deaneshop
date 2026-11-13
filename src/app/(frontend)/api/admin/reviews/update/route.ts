@@ -17,8 +17,8 @@ async function revalidateReviewTargets(productSlug?: string | null) {
 
 export async function POST(req: Request) {
 	try {
-		// 1. RBAC Guard: Superadmin, Admin, CSKH can moderate reviews
-		const auth = await requireAdminSession(['superadmin', 'admin', 'cskh'])
+		// 1. RBAC Guard: Superadmin & Admin can moderate reviews
+		const auth = await requireAdminSession(['superadmin', 'admin'])
 		if (!auth.ok) {
 			return NextResponse.json({ success: false, message: auth.error }, { status: auth.status })
 		}

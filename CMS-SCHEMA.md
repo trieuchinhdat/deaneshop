@@ -7,7 +7,7 @@ All modules in DEANFLOW must utilize the Centralized Module Preview Architecture
 ### Step-by-Step Workflow for Adding a New Module:
 
 1. **Register Merchant Friendly Name:**
-   Add the schema identifier to `MODULE_FRIENDLY_NAMES` in `src/sanity/lib/module-preview-config.ts`:
+   Add the schema identifier to `MODULE_FRIENDLY_NAMES` in `studio/src/sanity/lib/module-preview-config.ts`:
    ```ts
    export const MODULE_FRIENDLY_NAMES = {
      // ...
@@ -16,7 +16,7 @@ All modules in DEANFLOW must utilize the Centralized Module Preview Architecture
    ```
 
 2. **Define Schema with `defineModulePreview`:**
-   Create schema file at `src/sanity/schemaTypes/modules/<module-name>.ts`. Always use the shared helper and **never write manual `preview.prepare`**:
+   Create schema file at `studio/src/sanity/schemaTypes/modules/<module-name>.ts`. Always use the shared helper and **never write manual `preview.prepare`**:
    ```ts
    import { defineField, defineType } from 'sanity'
    import { SparklesIcon } from '@sanity/icons'
@@ -63,8 +63,8 @@ All modules in DEANFLOW must utilize the Centralized Module Preview Architecture
    - **Hidden State**: When a module is hidden (`hidden: true` or `attributes.hidden: true`), `[Hidden]` is automatically prefixed to the subtitle.
 
 4. **Register Schema in System:**
-   - `src/sanity/schemaTypes/index.ts` (added to dynamic modules array with `withModuleHidden`).
-   - `src/sanity/schemaTypes/fragments/modules.ts` (added to Page Builder array and insertMenu groups).
+   - `studio/src/sanity/schemaTypes/index.ts` (added to dynamic modules array with `withModuleHidden`).
+   - `studio/src/sanity/schemaTypes/fragments/modules.ts` (added to Page Builder array and insertMenu groups).
 
 5. **Query & Frontend Binding:**
    - Add GROQ projection fragment in `src/sanity/lib/queries.ts`.
@@ -75,7 +75,7 @@ All modules in DEANFLOW must utilize the Centralized Module Preview Architecture
 
 ## Adding New Fields to Existing Modules
 
-1. Update schema file in `src/sanity/schemaTypes/modules/`.
+1. Update schema file in `studio/src/sanity/schemaTypes/modules/`.
 2. Update the corresponding GROQ projection fragment in `src/sanity/lib/queries.ts`.
 3. Run `npm run typegen` to regenerate TypeScript types (`src/sanity/types.ts`).
 4. Update TS props interface in `src/ui/modules/<module-name>/`.

@@ -13,7 +13,7 @@ Reviewed against repository configuration on 2026-11-11. This runbook describes 
    npx wrangler d1 create deanflow-db
    ```
 2. Update `database_id` in `wrangler.jsonc` with the returned UUID.
-3. Review all migrations through `0010_lead_delivery_and_submissions.sql`. Before upgrading an existing database, export a backup and test the migration in staging. Apply to the intended environment before deploying the new capture API:
+3. Review all migrations through `0011_sanity_staff_identity.sql`. Before upgrading an existing database, export a backup and test the migration in staging. Apply to the intended environment before deploying the new capture API:
    ```bash
    npm run d1:migrate:local
    npm run d1:migrate:remote
@@ -36,10 +36,12 @@ Reviewed against repository configuration on 2026-11-11. This runbook describes 
 6. Build and validate the candidate before deployment:
    ```bash
    npm run build:cf
-   npx wrangler deploy --dry-run --outdir=.wrangler/dry-run
+   npm run dry-run:cf
    npm run perf:check -- --ci
    ```
    Product, collection and article pages query D1 at request time. Do not provide production database write credentials merely to prerender these pages during builds.
+
+For Sanity-based staff authentication, apply migration `0011` and explicitly link each active D1 staff account before switching the deployed auth mode. See [Sanity admin sign-in](docs/SANITY_ADMIN_SIGN_IN.md); no external bcrypt host is needed for this mode.
 
 ## 3. Health Checks
 - **Public readiness probe**: `GET /api/health` -> returns `200 {"ok":true,"database":"connected"}` only when persistent D1 and the required lead submission/assessment/RFQ schema are available, else `503`.

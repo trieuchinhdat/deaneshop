@@ -20,6 +20,7 @@ const REQUIRED_TABLES = [
 	'lead_notes',
 	'lead_assessments',
 	'import_batches',
+	'sanity_login_transactions',
 ]
 
 const REQUIRED_TRIGGERS = [
@@ -56,6 +57,9 @@ conn = sqlite3.connect(db_path)
 conn.executescript(script)
 conn.execute('SELECT submission_key, submission_hash, submission_result, dossier_payload FROM leads LIMIT 0')
 conn.execute('SELECT lead_id FROM wholesale_rfq_lead_projection LIMIT 0')
+conn.execute('SELECT sanity_user_id FROM admin_users LIMIT 0')
+assert not conn.execute("SELECT name FROM sqlite_master WHERE name = 'admin_staff_invitations'").fetchone(), 'Retired staff invitation table still exists'
+assert any(r[1] == 'idx_admin_users_sanity_identity' and r[2] == 1 for r in conn.execute('PRAGMA index_list(admin_users)')), 'Unique Sanity staff identity index missing'
 assert any(r[1] == 'idx_leads_submission_key' and r[2] == 1 for r in conn.execute('PRAGMA index_list(leads)')), 'Unique lead submission index missing'
 conn.commit()
 rows = conn.execute("SELECT type, name FROM sqlite_master WHERE type IN ('table', 'trigger')").fetchall()

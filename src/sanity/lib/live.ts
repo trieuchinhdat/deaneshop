@@ -6,6 +6,7 @@ import { defineLive } from 'next-sanity/live'
 import { draftMode } from 'next/headers'
 import { client } from './client'
 import { token } from './token'
+import { isStaticStorefront } from '@/lib/deployment-profile'
 
 export const { sanityFetch, SanityLive } = defineLive({
 	client: client.withConfig({
@@ -20,6 +21,15 @@ export const { sanityFetch, SanityLive } = defineLive({
 export async function sanityFetchLive<T>(
 	args: Parameters<typeof sanityFetch>[0],
 ) {
+	if (isStaticStorefront) {
+		// A published build snapshot never reads cookies, drafts, or request-bound D1.
+		return client.fetch<T>(args.query, args.params || {}, {
+			perspective: 'published',
+			stega: false,
+			useCdn: false,
+			token,
+		})
+	}
 	const isDraftMode = (await draftMode()).isEnabled
 	const preview = process.env.NODE_ENV === 'development' || isDraftMode
 	const { perspective: requestedPerspective, ...safeArgs } = args

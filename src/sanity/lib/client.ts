@@ -1,3 +1,4 @@
+import { sanityStudioUrl } from '@/lib/sanity-studio-url'
 import { createClient } from 'next-sanity'
 import { apiVersion, dataset, projectId } from '../env'
 
@@ -7,7 +8,7 @@ export const client = createClient({
 	apiVersion,
 	useCdn: true, // Set to false if statically generating pages, using ISR or tag-based revalidation
 	stega: {
-		studioUrl: '/studio',
+		studioUrl: sanityStudioUrl,
 		filter: (props) => {
 			const sourcePathStr = props.sourcePath.join('.')
 			if (

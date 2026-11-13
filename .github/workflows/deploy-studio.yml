@@ -1,0 +1,30 @@
+name: Deploy Sanity Studio
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
+      SANITY_STUDIO_PROJECT_ID: ${{ vars.NEXT_PUBLIC_SANITY_PROJECT_ID }}
+      SANITY_STUDIO_DATASET: ${{ vars.NEXT_PUBLIC_SANITY_DATASET || 'production' }}
+      SANITY_STUDIO_HOST: ${{ vars.SANITY_STUDIO_HOST || 'deanflow' }}
+      SANITY_STUDIO_WEB_URL: ${{ vars.NEXT_PUBLIC_BASE_URL }}
+      SANITY_STUDIO_ADMIN_AUTH_MODE: ${{ vars.NEXT_PUBLIC_ADMIN_AUTH_MODE || 'password' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: studio/package-lock.json
+      - name: Check deployment configuration
+        run: node studio/scripts/check-deploy-env.cjs
+      - run: npm --prefix studio ci --ignore-scripts
+      - run: npm --prefix studio run typecheck
+      - run: npm --prefix studio test
+      - run: npm run typegen
+      - run: git diff --exit-code -- src/sanity/types.ts
+      - run: npm --prefix studio run deploy -- --yes

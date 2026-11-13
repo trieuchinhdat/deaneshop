@@ -21,20 +21,23 @@ const worker = {
 		const pathname = new URL(request.url).pathname
 		if (pathname === '/api/orders' || pathname.startsWith('/api/orders/')) {
 			if (env.ENABLE_COMMERCE_ORDERS !== 'true') {
-				return new Response(
-					JSON.stringify({
-						success: false,
-						error: 'Orders API is disabled in B2B RFQ mode',
-						code: 'ORDERS_DISABLED',
-					}),
-					{
-						status: 410,
-						headers: {
-							'content-type': 'application/json',
-							'cache-control': 'no-store',
+				const isCreateOrder = pathname === '/api/orders/create' && request.method === 'POST'
+				if (!isCreateOrder) {
+					return new Response(
+						JSON.stringify({
+							success: false,
+							error: 'Orders API is disabled in B2B RFQ mode',
+							code: 'ORDERS_DISABLED',
+						}),
+						{
+							status: 410,
+							headers: {
+								'content-type': 'application/json',
+								'cache-control': 'no-store',
+							},
 						},
-					},
-				)
+					)
+				}
 			}
 		}
 		return openNextHandler.fetch(request, env, ctx)

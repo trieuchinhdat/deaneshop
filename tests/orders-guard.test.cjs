@@ -25,12 +25,28 @@ test('assertOrdersApiEnabled blocks execution with HTTP 410 when ENABLE_COMMERCE
 	assert.equal(body.error, 'Orders API is disabled in B2B RFQ mode')
 })
 
+test('assertOrdersApiEnabled permits wholesale_rfq and sample modes, but blocks direct retail mode', async () => {
+	const guard = load('src/lib/orders-guard.ts', {}, {
+		process: { env: { ENABLE_COMMERCE_ORDERS: 'false' } },
+	})
+	assert.equal(guard.assertOrdersApiEnabled('wholesale_rfq'), null)
+	assert.equal(guard.assertOrdersApiEnabled('sample'), null)
+
+	const resDirect = guard.assertOrdersApiEnabled('direct')
+	assert.ok(resDirect)
+	assert.equal(resDirect.status, 410)
+	const bodyDirect = await resDirect.json()
+	assert.equal(bodyDirect.code, 'ORDERS_DISABLED')
+	assert.equal(bodyDirect.error, 'Direct retail checkout is disabled in B2B RFQ mode')
+})
+
 test('assertOrdersApiEnabled permits execution when ENABLE_COMMERCE_ORDERS is true', async () => {
 	const guard = load('src/lib/orders-guard.ts', {}, {
 		process: { env: { ENABLE_COMMERCE_ORDERS: 'true' } },
 	})
 	assert.equal(guard.isOrdersApiEnabled(), true)
 	assert.equal(guard.assertOrdersApiEnabled(), null)
+	assert.equal(guard.assertOrdersApiEnabled('direct'), null)
 })
 
 test('All 9 /api/orders/* route handlers return 410 Gone and never touch D1 when commerce is disabled', async () => {
@@ -53,7 +69,7 @@ test('All 9 /api/orders/* route handlers return 410 Gone and never touch D1 when
 	}
 
 	const routes = [
-		{ path: 'src/app/(frontend)/api/orders/create/route.ts', method: 'POST', url: 'https://test/api/orders/create' },
+		{ path: 'src/app/(frontend)/api/orders/create/route.ts', method: 'POST', url: 'https://test/api/orders/create', body: { mode: 'direct' } },
 		{ path: 'src/app/(frontend)/api/orders/list/route.ts', method: 'GET', url: 'https://test/api/orders/list' },
 		{ path: 'src/app/(frontend)/api/orders/update-status/route.ts', method: 'POST', url: 'https://test/api/orders/update-status' },
 		{ path: 'src/app/(frontend)/api/orders/record-payment/route.ts', method: 'POST', url: 'https://test/api/orders/record-payment' },
@@ -65,10 +81,14 @@ test('All 9 /api/orders/* route handlers return 410 Gone and never touch D1 when
 		{ path: 'src/app/(frontend)/api/orders/request-revision/route.ts', method: 'POST', url: 'https://test/api/orders/request-revision' },
 	]
 
-	for (const { path: routePath, method, url } of routes) {
+	for (const { path: routePath, method, url, body: routeBody } of routes) {
 		dbTouched = false
 		const handler = load(routePath, mocks, globalsDisabled)
-		const req = new Request(url, { method, body: method !== 'GET' ? JSON.stringify({ test: true }) : undefined })
+		const req = new Request(url, {
+			method,
+			headers: { 'Idempotency-Key': 'test-idem-key-1234567890' },
+			body: method !== 'GET' ? JSON.stringify(routeBody || { test: true }) : undefined,
+		})
 		const fn = handler[method]
 		assert.ok(fn, `Handler function ${method} missing in ${routePath}`)
 		const res = await fn(req)
@@ -79,7 +99,7 @@ test('All 9 /api/orders/* route handlers return 410 Gone and never touch D1 when
 	}
 })
 
-test('Edge Worker intercepts /api/orders/* with HTTP 410 before calling Next.js runtime', async () => {
+test('Edge Worker intercepts unused /api/orders/* routes with 410 while allowing POST /api/orders/create', async () => {
 	let nextJsHandlerCalled = false
 	const mockOpenNext = {
 		fetch: async () => {
@@ -92,14 +112,34 @@ test('Edge Worker intercepts /api/orders/* with HTTP 410 before calling Next.js 
 		'./src/lib/cf-env': { runWithRuntimeContext: async (_ctx, fn) => fn() },
 	})
 
-	const res = await worker.default.fetch(
+	// 1. Unused routes (list, approve-quote, update-status) are intercepted at edge before OpenNext
+	const blockedUrls = [
+		{ url: 'https://deanflow.test/api/orders/list', method: 'GET' },
+		{ url: 'https://deanflow.test/api/orders/approve-quote', method: 'POST' },
+		{ url: 'https://deanflow.test/api/orders/update-status', method: 'POST' },
+		{ url: 'https://deanflow.test/api/orders/create', method: 'GET' },
+	]
+
+	for (const { url, method } of blockedUrls) {
+		nextJsHandlerCalled = false
+		const res = await worker.default.fetch(
+			new Request(url, { method }),
+			{ ENABLE_COMMERCE_ORDERS: 'false' },
+			{ waitUntil: () => {} },
+		)
+		assert.equal(res.status, 410, `${method} ${url} must be intercepted at edge with 410`)
+		const body = await res.json()
+		assert.equal(body.code, 'ORDERS_DISABLED')
+		assert.equal(nextJsHandlerCalled, false, `Edge Worker called OpenNext for blocked ${method} ${url}`)
+	}
+
+	// 2. POST /api/orders/create is allowed through to OpenNext
+	nextJsHandlerCalled = false
+	const resCreate = await worker.default.fetch(
 		new Request('https://deanflow.test/api/orders/create', { method: 'POST' }),
 		{ ENABLE_COMMERCE_ORDERS: 'false' },
 		{ waitUntil: () => {} },
 	)
-
-	assert.equal(res.status, 410)
-	const body = await res.json()
-	assert.equal(body.code, 'ORDERS_DISABLED')
-	assert.equal(nextJsHandlerCalled, false, 'Edge Worker must not invoke OpenNext when orders are disabled')
+	assert.equal(resCreate.status, 200)
+	assert.equal(nextJsHandlerCalled, true, 'POST /api/orders/create must reach OpenNext')
 })

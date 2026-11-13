@@ -107,35 +107,13 @@ export default function QuoteViewClient({
 	const renderPrice = (val: number | string | undefined | null) =>
 		formatPrice(val, currency, locale)
 
-	// Modal state for digital approval
-	const [isModalOpen, setIsModalOpen] = useState(false)
-	const [signerName, setSignerName] = useState(quote.customerName || '')
-	const [signerTitle, setSignerTitle] = useState('Procurement Director')
-	const [signerCompany, setSignerCompany] = useState(quote.companyName || '')
-	const [poNumber, setPoNumber] = useState(quote.quotePoNumber || '')
-	const [isAuthorized, setIsAuthorized] = useState(false)
-	const [isSubmitting, setIsSubmitting] = useState(false)
-	const [approvalSuccess, setApprovalSuccess] = useState(false)
-	const [errorMessage, setErrorMessage] = useState<string | null>(null)
-
-	// Modal state for revision request
-	const [isRevisionModalOpen, setIsRevisionModalOpen] = useState(false)
-	const [revisionRequesterName, setRevisionRequesterName] = useState(quote.customerName || '')
-	const [revisionRequesterEmail, setRevisionRequesterEmail] = useState(quote.customerEmail || '')
-	const [revisionNotes, setRevisionNotes] = useState('')
-	const [isSubmittingRevision, setIsSubmittingRevision] = useState(false)
-	const [revisionSuccess, setRevisionSuccess] = useState(false)
-	const [revisionError, setRevisionError] = useState<string | null>(null)
-
 	// Quick Contact Sheet for mobile
 	const [isContactSheetOpen, setIsContactSheetOpen] = useState(false)
 
-	// Keyboard accessibility: ESC key closes modals
+	// Keyboard accessibility: ESC key closes contact sheet
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
-				setIsModalOpen(false)
-				setIsRevisionModalOpen(false)
 				setIsContactSheetOpen(false)
 			}
 		}
@@ -151,89 +129,6 @@ export default function QuoteViewClient({
 	const handlePrint = () => {
 		if (typeof window !== 'undefined') {
 			window.print()
-		}
-	}
-
-	const handleApproveQuote = async (e: React.FormEvent) => {
-		e.preventDefault()
-		if (!signerName.trim() || !signerTitle.trim() || !isAuthorized) return
-
-		try {
-			setIsSubmitting(true)
-			setErrorMessage(null)
-
-			const res = await fetch('/api/orders/approve-quote', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					quoteId: quote.quoteNumber,
-					version: quote.version,
-					token: new URLSearchParams(window.location.search).get('token'),
-					orderNumber: quote.quoteNumber,
-					approvedBy: signerName.trim(),
-					title: signerTitle.trim(),
-					company: signerCompany.trim(),
-					notes: poNumber.trim() ? `PO #${poNumber.trim()}` : undefined,
-				}),
-			})
-
-			const data = await res.json()
-			if (data.success) {
-				setQuoteStatus('approved')
-				setApprovedBy(data.approvedBy || `${signerName.trim()} (${signerTitle.trim()})`)
-				setApprovedAt(data.approvedAt || new Date().toISOString())
-				setApprovalSuccess(true)
-				setIsModalOpen(false)
-			} else {
-				setErrorMessage(data.message || 'Unable to record quotation approval.')
-			}
-		} catch (err: any) {
-			console.error('Quotation approval error:', err)
-			setErrorMessage(err.message || 'Network error while submitting approval.')
-		} finally {
-			setIsSubmitting(false)
-		}
-	}
-
-	const handleRequestRevision = async (e: React.FormEvent) => {
-		e.preventDefault()
-		if (!revisionNotes.trim() || revisionNotes.trim().length < 5) return
-
-		try {
-			setIsSubmittingRevision(true)
-			setRevisionError(null)
-
-			const res = await fetch('/api/orders/request-revision', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					quoteId: quote.quoteNumber,
-					version: quote.version,
-					token: new URLSearchParams(window.location.search).get('token'),
-					orderNumber: quote.quoteNumber,
-					customerName: revisionRequesterName.trim() || quote.customerName,
-					customerEmail: revisionRequesterEmail.trim() || quote.customerEmail,
-					requestedChanges: revisionNotes.trim(),
-				}),
-			})
-
-			const data = await res.json()
-			if (data.success) {
-				setQuoteStatus('revision_requested')
-				setRevisionSuccess(true)
-				setTimeout(() => {
-					setIsRevisionModalOpen(false)
-					setRevisionSuccess(false)
-					setRevisionNotes('')
-				}, 2200)
-			} else {
-				setRevisionError(data.message || 'Unable to submit revision request.')
-			}
-		} catch (err: any) {
-			console.error('Revision request error:', err)
-			setRevisionError(err.message || 'Network error while submitting revision request.')
-		} finally {
-			setIsSubmittingRevision(false)
 		}
 	}
 
@@ -314,53 +209,33 @@ export default function QuoteViewClient({
 
 					{/* Desktop Actions Row (hidden on mobile, mobile uses sticky bottom dock) */}
 					<div className="hidden sm:flex flex-wrap items-center gap-2">
-						{/* Accept / Approve Button */}
+						{/* Status Badge */}
 						{isApproved ? (
 							<div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600/90 px-4 py-2 text-xs font-bold text-white shadow-md">
 								<HiOutlineCheckBadge className="text-base text-emerald-200" />
 								<span>Approved by {approvedBy?.split('(')[0]?.trim() || 'Buyer'}</span>
 							</div>
 						) : isExpired || isCancelled ? (
-							<button
-								type="button"
-								onClick={() => setIsRevisionModalOpen(true)}
-								className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-amber-500 transition cursor-pointer"
-							>
-								<HiOutlinePencilSquare className="text-base" />
-								<span>Request Price Refresh</span>
-							</button>
+							<span className="inline-flex items-center gap-1.5 rounded-xl bg-amber-900/60 border border-amber-700/60 px-3 py-2 text-xs font-bold text-amber-200">
+								<HiOutlineClock className="text-sm" />
+								<span>{isExpired ? 'Quotation Expired' : 'Quotation Cancelled'}</span>
+							</span>
 						) : isRevisionRequested || quote.isDraftPreview ? (
 							<span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-800 px-3 py-2 text-xs font-bold text-slate-300">
 								<HiOutlineClock className="text-sm" />
 								<span>{quote.isDraftPreview ? 'Internal Draft Preview' : 'Revision In Progress'}</span>
 							</span>
 						) : (
-							<>
-								<button
-									type="button"
-									onClick={() => setIsModalOpen(true)}
-									className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-extrabold text-white shadow-md hover:bg-emerald-500 transition active:scale-95 cursor-pointer ring-2 ring-emerald-400/50"
-								>
-									<HiOutlineCheckBadge className="text-base" />
-									<span>Accept & Approve Quote</span>
-								</button>
-
-								<button
-									type="button"
-									onClick={() => setIsRevisionModalOpen(true)}
-									className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white transition cursor-pointer"
-									title="Request changes to quantities, Incoterms, or schedule"
-								>
-									<HiOutlinePencilSquare className="text-sm text-slate-300" />
-									<span>Request Revision</span>
-								</button>
-							</>
+							<span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-950/70 border border-emerald-700/60 px-3 py-2 text-xs font-bold text-emerald-300">
+								<HiOutlineDocumentCheck className="text-sm text-emerald-400" />
+								<span>Official Quotation</span>
+							</span>
 						)}
 
 						<button
 							type="button"
 							onClick={handlePrint}
-							className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-blue-500 transition active:scale-95 cursor-pointer"
+							className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-blue-500 transition active:scale-95 cursor-pointer ring-2 ring-blue-400/40"
 							title="Print or export proforma PDF"
 						>
 							<HiOutlinePrinter className="text-base" />
@@ -432,17 +307,10 @@ export default function QuoteViewClient({
 									Commercial Proposal Expired on {formattedValidUntil}
 								</p>
 								<p className="text-amber-800 text-[11px] sm:text-xs mt-0.5 leading-relaxed">
-									Container vessel freight slots and international commodity prices are subject to periodic market adjustments. Please click <strong>&quot;Refresh Quote&quot;</strong> to receive an updated quotation.
+									Container vessel freight slots and international commodity prices are subject to periodic market adjustments. Please contact your account representative to receive an updated quotation.
 								</p>
 							</div>
 						</div>
-						<button
-							type="button"
-							onClick={() => setIsRevisionModalOpen(true)}
-							className="w-full sm:w-auto text-center shrink-0 rounded-xl bg-amber-800 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700 transition cursor-pointer"
-						>
-							Refresh Quote
-						</button>
 					</div>
 				) : isCancelled ? (
 					<div className="mt-3 flex items-center gap-3 rounded-2xl bg-rose-50 p-3 sm:px-5 sm:py-3.5 text-xs text-rose-950 border-2 border-rose-300 shadow-sm" role="alert">
@@ -476,20 +344,11 @@ export default function QuoteViewClient({
 						</div>
 					</div>
 				) : (
-					<div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl bg-slate-50 p-3 sm:px-4 sm:py-2.5 text-xs text-slate-800 border border-slate-200">
-						<div className="flex items-center gap-2">
-							<HiOutlineShieldCheck className="text-base text-blue-600 shrink-0" />
-							<span className="text-[11px] sm:text-xs leading-relaxed">
-								<strong>Negotiated Estimate:</strong> Valid until <strong>{formattedValidUntil}</strong>. Click <strong>&quot;Approve&quot;</strong> to accept, or <strong>&quot;Revise&quot;</strong> for adjustments.
-							</span>
-						</div>
-						<button
-							type="button"
-							onClick={() => setIsModalOpen(true)}
-							className="text-emerald-700 font-extrabold hover:underline text-left sm:text-right shrink-0 cursor-pointer hidden sm:inline"
-						>
-							Approve Now →
-						</button>
+					<div className="mt-3 flex items-center gap-2 rounded-xl bg-slate-50 p-3 sm:px-4 sm:py-2.5 text-xs text-slate-800 border border-slate-200">
+						<HiOutlineShieldCheck className="text-base text-blue-600 shrink-0" />
+						<span className="text-[11px] sm:text-xs leading-relaxed">
+							<strong>Negotiated Commercial Proposal:</strong> Valid until <strong>{formattedValidUntil}</strong>. Use <strong>&quot;Print / Save PDF&quot;</strong> to export or review with your procurement team.
+						</span>
 					</div>
 				)}
 			</header>
@@ -797,18 +656,7 @@ export default function QuoteViewClient({
 							<div className="space-y-2 print:space-y-1">
 								<div className="border-b-2 border-slate-400 w-full sm:w-48 sm:ml-auto print:w-36 pt-4 sm:pt-6 print:pt-4"></div>
 								<p className="font-bold text-slate-800 text-[11px] print:text-[9.5px]">Authorized Signature & Company Stamp</p>
-								{!isExpired && !isCancelled && !isRevisionRequested && !quote.isDraftPreview && (
-									<div className="print:hidden pt-2">
-										<button
-											type="button"
-											onClick={() => setIsModalOpen(true)}
-											className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-500 transition cursor-pointer"
-										>
-											<HiOutlineDocumentCheck className="text-base" />
-											<span>Sign & Approve Online</span>
-										</button>
-									</div>
-								)}
+								<p className="text-[10px] text-slate-500 print:hidden">Print or export to PDF to sign and send back via email</p>
 							</div>
 						)}
 					</div>
@@ -846,50 +694,14 @@ export default function QuoteViewClient({
 							<HiOutlineChatBubbleLeftRight className="text-lg" />
 						</button>
 
-						{isApproved ? (
-							<button
-								type="button"
-								onClick={handlePrint}
-								className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-slate-900 px-4 text-xs font-bold text-white shadow-md active:scale-95 transition cursor-pointer"
-							>
-								<HiOutlinePrinter className="text-base text-slate-300" />
-								<span>Export PDF</span>
-							</button>
-						) : isExpired || isCancelled ? (
-							<button
-								type="button"
-								onClick={() => setIsRevisionModalOpen(true)}
-								className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-amber-600 px-4 text-xs font-bold text-white shadow-md active:scale-95 transition cursor-pointer"
-							>
-								<HiOutlinePencilSquare className="text-base text-amber-200" />
-								<span>Refresh Quote</span>
-							</button>
-						) : isRevisionRequested || quote.isDraftPreview ? (
-							<span className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-slate-100 px-3 text-xs font-bold text-slate-600">
-								<HiOutlineClock className="text-sm" />
-								<span>{quote.isDraftPreview ? 'Draft' : 'Under Revision'}</span>
-							</span>
-						) : (
-							<>
-								<button
-									type="button"
-									onClick={() => setIsRevisionModalOpen(true)}
-									className="inline-flex h-10 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 active:scale-95 transition cursor-pointer"
-								>
-									<HiOutlinePencilSquare className="text-sm text-slate-500" />
-									<span>Revise</span>
-								</button>
-
-								<button
-									type="button"
-									onClick={() => setIsModalOpen(true)}
-									className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-xs font-extrabold text-white shadow-md active:scale-95 transition cursor-pointer ring-2 ring-emerald-400/50"
-								>
-									<HiOutlineCheckBadge className="text-base" />
-									<span>Approve</span>
-								</button>
-							</>
-						)}
+						<button
+							type="button"
+							onClick={handlePrint}
+							className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-blue-600 px-4 text-xs font-bold text-white shadow-md active:scale-95 transition cursor-pointer"
+						>
+							<HiOutlinePrinter className="text-base text-white" />
+							<span>Export PDF</span>
+						</button>
 					</div>
 				</div>
 			</aside>
@@ -973,288 +785,9 @@ export default function QuoteViewClient({
 				</div>
 			)}
 
-			{/* Digital Approval Modal Dialog (Accessible & Mobile Optimized) */}
-			{isModalOpen && (
-				<div
-					role="dialog"
-					aria-modal="true"
-					aria-labelledby="approve-modal-title"
-					className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200 print:hidden"
-				>
-					<div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-5 sm:p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200">
-						<div className="flex items-center justify-between border-b border-slate-200 pb-3.5 mb-3.5">
-							<div className="flex items-center gap-2.5">
-								<div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-xs shrink-0">
-									<HiOutlineDocumentCheck className="text-xl" />
-								</div>
-								<div>
-									<h2 id="approve-modal-title" className="font-bold text-sm sm:text-base text-slate-950">
-										Approve Commercial Quotation
-									</h2>
-									<p className="text-xs text-slate-500 font-mono">
-										Quote #{quote.quoteNumber} • {renderPrice(effectiveTotal)}
-									</p>
-								</div>
-							</div>
-							<button
-								type="button"
-								onClick={() => setIsModalOpen(false)}
-								className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition cursor-pointer shrink-0"
-								aria-label="Close approval dialog"
-							>
-								<HiOutlineXMark className="text-lg" />
-							</button>
-						</div>
 
-						{errorMessage && (
-							<div className="mb-4 rounded-xl bg-red-50 p-3 text-xs text-red-700 border border-red-200" role="alert">
-								{errorMessage}
-							</div>
-						)}
 
-						<form onSubmit={handleApproveQuote} className="space-y-3.5 text-xs">
-							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-								<div>
-									<label htmlFor="signer-name" className="block font-bold text-slate-700 mb-1">
-										Authorized Signatory Name <span className="text-red-500">*</span>
-									</label>
-									<input
-										id="signer-name"
-										type="text"
-										required
-										value={signerName}
-										onChange={(e) => setSignerName(e.target.value)}
-										placeholder="e.g. John Doe"
-										className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base sm:text-xs font-medium text-slate-900 focus:border-emerald-600 focus:outline-hidden"
-									/>
-								</div>
 
-								<div>
-									<label htmlFor="signer-title" className="block font-bold text-slate-700 mb-1">
-										Job Title / Designation <span className="text-red-500">*</span>
-									</label>
-									<input
-										id="signer-title"
-										type="text"
-										required
-										value={signerTitle}
-										onChange={(e) => setSignerTitle(e.target.value)}
-										placeholder="e.g. Procurement Director"
-										className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base sm:text-xs font-medium text-slate-900 focus:border-emerald-600 focus:outline-hidden"
-									/>
-								</div>
-							</div>
-
-							<div>
-								<label htmlFor="signer-company" className="block font-bold text-slate-700 mb-1">
-									Company Legal Entity
-								</label>
-								<input
-									id="signer-company"
-									type="text"
-									value={signerCompany}
-									onChange={(e) => setSignerCompany(e.target.value)}
-									placeholder="e.g. Global Supplies LLC"
-									className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base sm:text-xs font-medium text-slate-900 focus:border-emerald-600 focus:outline-hidden"
-								/>
-							</div>
-
-							<div>
-								<label htmlFor="po-number" className="block font-bold text-slate-700 mb-1">
-									Purchase Order (PO) Number / Internal Reference
-								</label>
-								<input
-									id="po-number"
-									type="text"
-									value={poNumber}
-									onChange={(e) => setPoNumber(e.target.value)}
-									placeholder="e.g. PO-2026-US-894 (Optional)"
-									className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base sm:text-xs font-medium text-slate-900 focus:border-emerald-600 focus:outline-hidden"
-								/>
-							</div>
-
-							<div className="rounded-xl bg-slate-50 p-3 border border-slate-200 space-y-1.5">
-								<div className="flex justify-between text-slate-600">
-									<span>Trade Incoterm:</span>
-									<strong className="text-slate-900">{quote.incoterm || 'FOB'}</strong>
-								</div>
-								<div className="flex justify-between text-slate-600">
-									<span>Payment Terms:</span>
-									<strong className="text-slate-900">{quote.paymentTerms || 'T/T 30/70'}</strong>
-								</div>
-								<div className="flex justify-between text-slate-600">
-									<span>Total Agreed Amount:</span>
-									<strong className="text-emerald-700 font-mono font-bold text-sm">
-										{renderPrice(effectiveTotal)}
-									</strong>
-								</div>
-							</div>
-
-							<label className="flex items-start gap-2.5 p-2 rounded-xl bg-emerald-50/60 border border-emerald-200/80 cursor-pointer">
-								<input
-									type="checkbox"
-									required
-									checked={isAuthorized}
-									onChange={(e) => setIsAuthorized(e.target.checked)}
-									className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4 shrink-0"
-								/>
-								<span className="text-[11px] text-slate-700 leading-snug">
-									I hereby confirm that I am legally authorized to accept this commercial quotation on behalf of the company and authorize {brandName} to proceed with contract generation.
-								</span>
-							</label>
-
-							<div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-								<button
-									type="button"
-									onClick={() => setIsModalOpen(false)}
-									className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-								>
-									Cancel
-								</button>
-
-								<button
-									type="submit"
-									disabled={isSubmitting || !isAuthorized || !signerName.trim() || !signerTitle.trim()}
-									className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-emerald-500 transition active:scale-95 disabled:opacity-50 cursor-pointer"
-								>
-									<HiOutlineCheckBadge className="text-base" />
-									<span>{isSubmitting ? 'Recording Acceptance...' : 'Confirm & Digitally Approve'}</span>
-								</button>
-							</div>
-						</form>
-					</div>
-				</div>
-			)}
-
-			{/* Request Revision Modal Dialog (Accessible & Mobile Optimized) */}
-			{isRevisionModalOpen && (
-				<div
-					role="dialog"
-					aria-modal="true"
-					aria-labelledby="revision-modal-title"
-					className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200 print:hidden"
-				>
-					<div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-5 sm:p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200">
-						<div className="flex items-center justify-between border-b border-slate-200 pb-3.5 mb-3.5">
-							<div className="flex items-center gap-2.5">
-								<div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-xs shrink-0">
-									<HiOutlinePencilSquare className="text-xl text-amber-400" />
-								</div>
-								<div>
-									<h2 id="revision-modal-title" className="font-bold text-sm sm:text-base text-slate-950">
-										Request Quotation Revision
-									</h2>
-									<p className="text-xs text-slate-500 font-mono">
-										Quote #{quote.quoteNumber}
-									</p>
-								</div>
-							</div>
-							<button
-								type="button"
-								onClick={() => setIsRevisionModalOpen(false)}
-								className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition cursor-pointer shrink-0"
-								aria-label="Close revision dialog"
-							>
-								<HiOutlineXMark className="text-lg" />
-							</button>
-						</div>
-
-						{revisionSuccess ? (
-							<div className="py-6 text-center space-y-3" role="status">
-								<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-									<HiOutlineCheckBadge className="text-2xl" />
-								</div>
-								<h3 className="font-bold text-sm text-slate-900">Revision Request Submitted</h3>
-								<p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
-									Thank you. Our commercial export specialist will review your proposed modifications and issue an updated proforma proposal within 12 business hours.
-								</p>
-							</div>
-						) : isRevisionRequested || quote.isDraftPreview ? (
-							<span className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-slate-100 px-3 text-xs font-bold text-slate-600">
-								<HiOutlineClock className="text-sm" />
-								<span>{quote.isDraftPreview ? 'Draft' : 'Under Revision'}</span>
-							</span>
-						) : (
-							<form onSubmit={handleRequestRevision} className="space-y-3.5 text-xs">
-								{revisionError && (
-									<div className="rounded-xl bg-red-50 p-3 text-xs text-red-700 border border-red-200" role="alert">
-										{revisionError}
-									</div>
-								)}
-
-								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-									<div>
-										<label htmlFor="rev-name" className="block font-bold text-slate-700 mb-1">
-											Your Name <span className="text-red-500">*</span>
-										</label>
-										<input
-											id="rev-name"
-											type="text"
-											required
-											value={revisionRequesterName}
-											onChange={(e) => setRevisionRequesterName(e.target.value)}
-											placeholder="Full Name"
-											className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base sm:text-xs font-medium text-slate-900 focus:border-slate-900 focus:outline-hidden"
-										/>
-									</div>
-
-									<div>
-										<label htmlFor="rev-email" className="block font-bold text-slate-700 mb-1">
-											Business Email <span className="text-red-500">*</span>
-										</label>
-										<input
-											id="rev-email"
-											type="email"
-											required
-											value={revisionRequesterEmail}
-											onChange={(e) => setRevisionRequesterEmail(e.target.value)}
-											placeholder="Email address"
-											className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base sm:text-xs font-medium text-slate-900 focus:border-slate-900 focus:outline-hidden"
-										/>
-									</div>
-								</div>
-
-								<div>
-									<label htmlFor="rev-notes" className="block font-bold text-slate-700 mb-1">
-										Proposed Modifications & Special Requests <span className="text-red-500">*</span>
-									</label>
-									<textarea
-										id="rev-notes"
-										required
-										rows={4}
-										value={revisionNotes}
-										onChange={(e) => setRevisionNotes(e.target.value)}
-										placeholder="e.g. Please revise order quantity to 80,000 units, adjust Incoterm to CIF Felixstowe port, and include custom outer carton barcoding."
-										className="w-full rounded-xl border border-slate-300 bg-white p-3 text-base sm:text-xs font-medium text-slate-900 focus:border-slate-900 focus:outline-hidden leading-relaxed"
-									/>
-									<span className="text-[10px] text-slate-400 mt-1 block">
-										* Minimum 5 characters required. The original proposal #{quote.quoteNumber} remains on file for reference.
-									</span>
-								</div>
-
-								<div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-									<button
-										type="button"
-										onClick={() => setIsRevisionModalOpen(false)}
-										className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-									>
-										Cancel
-									</button>
-
-									<button
-										type="submit"
-										disabled={isSubmittingRevision || !revisionNotes.trim() || revisionNotes.trim().length < 5}
-										className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition active:scale-95 disabled:opacity-50 cursor-pointer"
-									>
-										<HiOutlinePencilSquare className="text-base text-amber-400" />
-										<span>{isSubmittingRevision ? 'Submitting Request...' : 'Submit Revision Request'}</span>
-									</button>
-								</div>
-							</form>
-						)}
-					</div>
-				</div>
-			)}
 		</main>
 	)
 }

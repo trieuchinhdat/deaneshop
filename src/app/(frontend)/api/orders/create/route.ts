@@ -12,14 +12,15 @@ import { assertOrdersApiEnabled } from '@/lib/orders-guard'
 import { client } from '@/sanity/lib/client'
 
 export async function POST(request: Request) {
-	const disabled = assertOrdersApiEnabled()
-	if (disabled) return disabled
 	try {
 		const body = await request.json()
 		const key = request.headers.get('Idempotency-Key')
 		if (!key || !/^[a-zA-Z0-9_-]{16,128}$/.test(key)) throw new CommerceError('A valid idempotency key is required')
 		const mode: PurchaseMode = body.mode
 		if (!['direct', 'sample', 'wholesale_rfq'].includes(mode)) throw new CommerceError('Invalid purchase mode')
+
+		const disabled = assertOrdersApiEnabled(mode)
+		if (disabled) return disabled
 		const items = requestedItems(body.itemsDetail)
 		const name = textField(body.name, 'name', true)
 		const email = textField(body.email, 'email', false, 254)

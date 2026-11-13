@@ -18,6 +18,7 @@ declare global {
 		NEXT_PUBLIC_ADMIN_AUTH_MODE?: string
 		NEXT_PUBLIC_DEPLOYMENT_PROFILE?: string
 		OUTBOX_MAX_JOBS_PER_INVOCATION?: string
+		ENABLE_COMMERCE_ORDERS?: string
 		D1_LOG_METRICS?: string
 		DB: D1Database
 		ANALYTICS?: AnalyticsEngineDataset

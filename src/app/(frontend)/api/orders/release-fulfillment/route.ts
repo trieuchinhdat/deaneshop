@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/admin-auth'
+import { assertOrdersApiEnabled } from '@/lib/orders-guard'
 import { broadcastAdminEvent } from '@/lib/admin-events'
 import { formatAdminOrder } from '@/lib/admin-format'
 import {
@@ -17,6 +18,8 @@ import {
 } from '@/lib/order-domain'
 
 export async function POST(request: Request) {
+	const disabled = assertOrdersApiEnabled()
+	if (disabled) return disabled
 	try {
 		const auth = await requireAdminSession(['superadmin', 'admin'])
 		if (!auth.ok) {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireAdminSession, type AdminSessionUser } from '@/lib/admin-auth'
+import { assertOrdersApiEnabled } from '@/lib/orders-guard'
 import { broadcastAdminEvent } from '@/lib/admin-events'
 import { formatAdminOrder } from '@/lib/admin-format'
 import {
@@ -136,6 +137,8 @@ async function softDeleteSingleOrder(params: {
 }
 
 async function handleDeleteOrder(request: Request) {
+	const disabled = assertOrdersApiEnabled()
+	if (disabled) return disabled
 	try {
 		const auth = await requireAdminSession(['superadmin'])
 		if (!auth.ok) {

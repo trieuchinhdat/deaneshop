@@ -8,9 +8,12 @@ import {
 	resolveRequestTrackingContext,
 	trackServerConversion,
 } from '@/lib/request-tracking'
+import { assertOrdersApiEnabled } from '@/lib/orders-guard'
 import { client } from '@/sanity/lib/client'
 
 export async function POST(request: Request) {
+	const disabled = assertOrdersApiEnabled()
+	if (disabled) return disabled
 	try {
 		const body = await request.json()
 		const key = request.headers.get('Idempotency-Key')

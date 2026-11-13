@@ -8,7 +8,26 @@ type ScheduledEvent = { cron: string; scheduledTime: number; noRetry: () => void
 
 export default {
 	async fetch(request: Request, env: CloudflareEnv, ctx: WorkerContext): Promise<Response> {
-		if (isRuntimePath(new URL(request.url).pathname)) {
+		const pathname = new URL(request.url).pathname
+		if (pathname === '/api/orders' || pathname.startsWith('/api/orders/')) {
+			if (env.ENABLE_COMMERCE_ORDERS !== 'true') {
+				return new Response(
+					JSON.stringify({
+						success: false,
+						error: 'Orders API is disabled in B2B RFQ mode',
+						code: 'ORDERS_DISABLED',
+					}),
+					{
+						status: 410,
+						headers: {
+							'content-type': 'application/json',
+							'cache-control': 'no-store',
+						},
+					},
+				)
+			}
+		}
+		if (isRuntimePath(pathname)) {
 			const { default: runtime } = await import('./worker')
 			return runtime.fetch(request, env, ctx)
 		}

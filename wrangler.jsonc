@@ -40,5 +40,6 @@
 		"NEXT_PUBLIC_ADMIN_AUTH_MODE": "password",
 		"NEXT_PUBLIC_DEPLOYMENT_PROFILE": "free",
 		"ANALYTICS_DATASET": "deanflow_analytics",
+		"ENABLE_COMMERCE_ORDERS": "false",
 	},
 }

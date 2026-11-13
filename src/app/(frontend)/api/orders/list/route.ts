@@ -1,9 +1,12 @@
 import { formatAdminOrder } from '@/lib/admin-format'
 import { requireAdminSession } from '@/lib/admin-auth'
+import { assertOrdersApiEnabled } from '@/lib/orders-guard'
 import { NextResponse } from 'next/server'
 import { PersistenceError, ordersDb } from '@/lib/d1'
 
 export async function GET(request: Request) {
+	const disabled = assertOrdersApiEnabled()
+	if (disabled) return disabled
 	try {
 		const auth = await requireAdminSession(['superadmin', 'admin'])
 		if (!auth.ok) return NextResponse.json({ success: false }, { status: auth.status })

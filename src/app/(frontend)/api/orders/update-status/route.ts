@@ -29,6 +29,7 @@ import {
 	type QuoteStatus,
 } from '@/lib/order-domain'
 import { drainOutbox } from '@/lib/outbox'
+import { assertOrdersApiEnabled } from '@/lib/orders-guard'
 
 function isConflictError(error: unknown): boolean {
 	if (!error || typeof error !== 'object') return false
@@ -49,6 +50,8 @@ function isDomainTriggerError(error: unknown): boolean {
 }
 
 export async function POST(request: Request) {
+	const disabled = assertOrdersApiEnabled()
+	if (disabled) return disabled
 	try {
 		const auth = await requireAdminSession(['superadmin', 'admin'])
 		if (!auth.ok) {

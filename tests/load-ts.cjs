@@ -6,7 +6,13 @@ function load(file, mocks = {}, globals = {}) {
  const filename = path.resolve(file)
  const code = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText
  const module = { exports: {} }
- const sandbox = { module, exports: module.exports, Buffer, URL, URLSearchParams, Request, Response, Headers, AbortSignal, TextEncoder, setTimeout, clearTimeout, process, console, fetch, ...globals,
+ if (globals?.process?.env) {
+  if (globals.process.env.ENABLE_COMMERCE_ORDERS === undefined) {
+   globals.process.env.ENABLE_COMMERCE_ORDERS = 'true'
+  }
+ }
+ const defaultProcess = { ...process, env: { ...process.env, ENABLE_COMMERCE_ORDERS: 'true' } }
+ const sandbox = { module, exports: module.exports, Buffer, URL, URLSearchParams, Request, Response, Headers, AbortSignal, TextEncoder, setTimeout, clearTimeout, process: defaultProcess, console, fetch, ...globals,
  require(name) {
   if (Object.hasOwn(mocks, name)) return mocks[name]
   if (name.startsWith('@shared/')) return load(path.resolve('shared', name.slice(8)) + '.ts', mocks, globals)
